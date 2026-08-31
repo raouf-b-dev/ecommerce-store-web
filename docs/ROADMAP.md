@@ -56,18 +56,19 @@ A feature phase is not done until its **Done when** checks pass.
 
 ## Phase overview
 
-| Phase | Name | Status | Focus |
-| ----- | ---- | ------ | ----- |
-| **0** | Foundation | `[ ]` | Next scaffold, tooling, tests, OpenAPI client |
-| **1** | Agent ecosystem and conventions | `[ ]` | AGENT policy, context, AI docs, adapters |
-| **2** | App shell | `[ ]` | Layouts, RSC rules, health check page |
-| **3** | Authentication | `[ ]` | Session UX + tests |
-| **4** | Catalog | `[ ]` | List/detail, SEO + tests |
-| **5** | Cart | `[ ]` | Mutations + tests |
-| **6** | Checkout | `[ ]` | Idempotency UX + path tests |
-| **7** | Orders and account | `[ ]` | Post-purchase + tests |
-| **8** | Quality sweep | `[ ]` | Full journey, a11y, perf |
-| **9** | Release gate | `[ ]` | Deploy, verified quick start |
+| Phase   | Name                                | Status | Priority | Focus                                                                           |
+| ------- | ----------------------------------- | ------ | :------: | ------------------------------------------------------------------------------- |
+| **0**   | Foundation                          | `[ ]`  |  `[P0]`  | Next scaffold, tooling, tests, OpenAPI client                                   |
+| **1**   | Agent ecosystem and conventions     | `[ ]`  |  `[P0]`  | AGENT policy, context, AI docs, adapters                                        |
+| **2**   | App shell                           | `[ ]`  |  `[P0]`  | Layouts, RSC rules, health check page                                           |
+| **3**   | Authentication                      | `[ ]`  |  `[P0]`  | Session UX + tests                                                              |
+| **4**   | Catalog                             | `[ ]`  |  `[P0]`  | List/detail, SEO + tests                                                        |
+| **5**   | Cart                                | `[ ]`  |  `[P0]`  | Mutations + tests                                                               |
+| **6**   | Checkout                            | `[ ]`  |  `[P0]`  | Idempotency UX + path tests                                                     |
+| **6.5** | Commercial Loop & Real-Time Sync    | `[ ]`  |  `[P1]`  | **Ecosystem**: SAGA checkout state handling + Admin Dashboard live push trigger |
+| **7**   | Orders and account                  | `[ ]`  |  `[P0]`  | Post-purchase + tests                                                           |
+| **8**   | Quality sweep                       | `[ ]`  |  `[P0]`  | Full journey, a11y, perf                                                        |
+| **9**   | Release gate                        | `[ ]`  |  `[P0]`  | Deploy, verified quick start                                                    |
 
 ---
 
@@ -230,6 +231,24 @@ Optional later: `.agents/skills/` only if you adopt the API skills-sync model.
 - [ ] Playwright: happy-path checkout on seeded data
 
 **Done when:** One seeded checkout completes end-to-end; idempotency retry does not create a duplicate order; tests green.
+
+---
+
+## Phase 6.5: End-to-End Commercial Loop & Real-Time Sync [P1]
+
+> **Goal**: Handle asynchronous SAGA checkout states and verify live event propagation across the ecosystem.
+>
+> *(Prerequisite: Requires Phase 6 complete. Companions: [ecommerce-store-api](https://github.com/raouf-b-dev/ecommerce-store-api) SAGA checkout & WebSocket stream, [ecommerce-admin-dashboard](https://github.com/raouf-b-dev/ecommerce-admin-dashboard) live order notifications).*
+
+**OpenAPI capabilities:** `POST /v1/checkout`, WebSocket events (`orders.created`), inventory check.
+
+**Scope:**
+- [ ] Handle asynchronous SAGA checkout states: PENDING -> PROCESSING -> COMPLETED (or FAILED with user-friendly stock/payment error messages).
+- [ ] Verify order placement triggers real-time WebSocket event on `ecommerce-admin-dashboard`.
+- [ ] Add E2E journey test: Customer places order on storefront -> Admin Dashboard displays new order in table without manual page refresh.
+
+**Done when:** A test checkout from the storefront handles SAGA completion states gracefully and pops up as a real-time order on the admin dashboard.
+**Location:** `app/checkout/`, `lib/api/`, `e2e/checkout-journey.spec.ts`
 
 ---
 
