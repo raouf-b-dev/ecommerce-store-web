@@ -34,12 +34,12 @@ This app handles UI, routing, and client caching. Pricing, stock, checkout, auth
 
 **Current limits**
 
-| Topic | Status |
-| :---- | :----- |
+| Topic            | Status                                                                 |
+| :--------------- | :--------------------------------------------------------------------- |
 | Application code | Not scaffolded yet. Build order: [`docs/ROADMAP.md`](docs/ROADMAP.md). |
-| Hosted demo | None yet. Run locally. |
-| Payments UI | Tracks whatever the API exposes (mock/test provider for now). |
-| BFF | Not used. Talks to the API directly. |
+| Hosted demo      | None yet. Run locally.                                                 |
+| Payments UI      | Tracks whatever the API exposes (mock/test provider for now).          |
+| BFF              | Not used. Talks to the API directly.                                   |
 
 ---
 
@@ -70,11 +70,11 @@ cp .env.example .env.local
 npm run dev
 ```
 
-| Service | URL |
-| :------ | :-- |
-| Storefront | `http://localhost:3100` (confirm in project config) |
-| API | `http://localhost:3000` |
-| Swagger (contract) | `http://localhost:3000/api` |
+| Service            | URL                                                 |
+| :----------------- | :-------------------------------------------------- |
+| Storefront         | `http://localhost:3100` (confirm in project config) |
+| API                | `http://localhost:3000`                             |
+| Swagger (contract) | `http://localhost:3000/api/docs`                    |
 
 Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md). Security baseline: [`SECURITY.md`](SECURITY.md).
 
@@ -90,14 +90,14 @@ Browser -> Next.js (RSC + client components) -> versioned HTTP API -> ecommerce-
 Admin SPA / mobile apps --------------------------------------------+
 ```
 
-| Rule | Detail |
-| :--- | :----- |
-| Boundary | Do not reimplement stock, pricing, or RBAC here. Show API errors clearly. |
-| Data access | Typed client from the API OpenAPI/Swagger spec. |
-| Rendering | Server Components by default. Client Components for cart, forms, and session UI. |
-| Client data | TanStack Query for browser fetches and mutations. |
-| Auth | Match the API session contract from OpenAPI. Authorization is enforced by the API. |
-| Checkout | Use idempotency exactly as the checkout operation documents in OpenAPI. |
+| Rule        | Detail                                                                             |
+| :---------- | :--------------------------------------------------------------------------------- |
+| Boundary    | Do not reimplement stock, pricing, or RBAC here. Show API errors clearly.          |
+| Data access | Typed client from the API OpenAPI/Swagger spec.                                    |
+| Rendering   | Server Components by default. Client Components for cart, forms, and session UI.   |
+| Client data | TanStack Query for browser fetches and mutations.                                  |
+| Auth        | Match the API session contract from OpenAPI. Authorization is enforced by the API. |
+| Checkout    | Use idempotency exactly as the checkout operation documents in OpenAPI.            |
 
 ---
 
@@ -105,17 +105,17 @@ Admin SPA / mobile apps --------------------------------------------+
 
 ## Tech stack
 
-| Layer | Choice |
-| :---- | :----- |
-| Framework | Next.js (App Router) |
-| UI | React 19 |
-| Language | TypeScript (strict) |
-| Styling | Tailwind CSS + shadcn/ui (Radix) |
-| Client data | TanStack Query |
+| Layer          | Choice                                                              |
+| :------------- | :------------------------------------------------------------------ |
+| Framework      | Next.js (App Router)                                                |
+| UI             | React 19                                                            |
+| Language       | TypeScript (strict)                                                 |
+| Styling        | Tailwind CSS + shadcn/ui (Radix)                                    |
+| Client data    | TanStack Query                                                      |
 | Local UI state | React state; Zustand only when several trees need the same UI state |
-| Forms | React Hook Form + Zod |
-| API | Typed OpenAPI client |
-| Tests | Vitest, Testing Library, Playwright |
+| Forms          | React Hook Form + Zod                                               |
+| API            | Typed OpenAPI client                                                |
+| Tests          | Vitest, Testing Library, Playwright                                 |
 
 ---
 
@@ -123,14 +123,14 @@ Admin SPA / mobile apps --------------------------------------------+
 
 ## Documentation
 
-| Document | Description |
-| :------- | :---------- |
-| [`SECURITY.md`](SECURITY.md) | Frontend security baseline |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Delivery plan, tests-with-features, ship gates |
-| [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md) | Client integration rules (OpenAPI is the contract) |
-| [`docs/README.md`](docs/README.md) | Docs index |
-| [`docs/ai/README.md`](docs/ai/README.md) | Agent and conventions docs |
-| API docs | [`ecommerce-store-api/docs`](https://github.com/raouf-b-dev/ecommerce-store-api/tree/master/docs) |
+| Document                                             | Description                                                                                       |
+| :--------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
+| [`SECURITY.md`](SECURITY.md)                         | Frontend security baseline                                                                        |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)                 | Delivery plan, tests-with-features, ship gates                                                    |
+| [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md) | Client integration rules (OpenAPI is the contract)                                                |
+| [`docs/README.md`](docs/README.md)                   | Docs index                                                                                        |
+| [`docs/ai/README.md`](docs/ai/README.md)             | Agent and conventions docs                                                                        |
+| API docs                                             | [`ecommerce-store-api/docs`](https://github.com/raouf-b-dev/ecommerce-store-api/tree/master/docs) |
 
 ---
 
@@ -138,10 +138,10 @@ Admin SPA / mobile apps --------------------------------------------+
 
 ## Related repositories
 
-| Repository | Role |
-| :--------- | :--- |
-| [`ecommerce-store-api`](https://github.com/raouf-b-dev/ecommerce-store-api) | Backend API |
-| [`ecommerce-admin-dashboard`](https://github.com/raouf-b-dev/ecommerce-admin-dashboard) | Admin SPA |
+| Repository                                                                              | Role        |
+| :-------------------------------------------------------------------------------------- | :---------- |
+| [`ecommerce-store-api`](https://github.com/raouf-b-dev/ecommerce-store-api)             | Backend API |
+| [`ecommerce-admin-dashboard`](https://github.com/raouf-b-dev/ecommerce-admin-dashboard) | Admin SPA   |
 
 ---
 

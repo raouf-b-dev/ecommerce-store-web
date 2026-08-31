@@ -6,7 +6,7 @@ How `ecommerce-store-web` consumes [ecommerce-store-api](https://github.com/raou
 
 | Concern | Source of truth |
 | :------ | :-------------- |
-| Paths, methods, DTOs, status codes | API **OpenAPI / Swagger** (`http://localhost:3000/api` locally) |
+| Paths, methods, DTOs, status codes | API **OpenAPI / Swagger** (`http://localhost:3000/api/docs` locally) |
 | Auth, cookies, versioning rules | API docs + OpenAPI |
 | Local seed users | API [`docs/development/SEEDING.md`](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/SEEDING.md) |
 | Local API boot | API [`docs/development/LOCAL-SETUP.md`](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/LOCAL-SETUP.md) |
