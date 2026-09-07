@@ -9,7 +9,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
 </p>
 
-> Intended customer storefront for the [E-commerce Store API](https://github.com/raouf-b-dev/ecommerce-store-api). Next.js. Not scaffolded yet. Business rules stay in the API.
+> Customer storefront for the [E-commerce Store API](https://github.com/raouf-b-dev/ecommerce-store-api). Next.js 16 App Router. Business rules stay in the API.
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@
 
 ## What this is
 
-Intended Next.js App Router storefront for the NestJS ecommerce API (catalog, cart, checkout, orders, account). Application code is not scaffolded yet.
+Intended Next.js App Router storefront for the NestJS ecommerce API (catalog, cart, checkout, orders, account). The app shell is scaffolded; shopper features follow [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 When it exists, this app should handle UI, routing, and client caching only. Pricing, stock, checkout, auth, and permissions stay in the API.
 
@@ -36,7 +36,7 @@ When it exists, this app should handle UI, routing, and client caching only. Pri
 
 | Topic            | Status                                                                 |
 | :--------------- | :--------------------------------------------------------------------- |
-| Application code | Not scaffolded yet. Build order: [`docs/ROADMAP.md`](docs/ROADMAP.md). |
+| Application code | App shell on port **3100**. Catalog and checkout are not wired yet. Build order: [`docs/ROADMAP.md`](docs/ROADMAP.md). |
 | Hosted demo      | None.                                                                  |
 
 ---
@@ -45,9 +45,18 @@ When it exists, this app should handle UI, routing, and client caching only. Pri
 
 ## Quick start
 
-There is no app to run yet. Use the [API README](https://github.com/raouf-b-dev/ecommerce-store-api) if you want a local backend.
+Requires Node.js 24+ and npm 11+ (see `.nvmrc`).
 
-Client rules for when this repo is scaffolded: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md). Security baseline: [`SECURITY.md`](SECURITY.md).
+1. `npm ci`
+2. `npm run env:init` (copies `.env.example` to `.env.local`; create `.secrets` for later Playwright)
+3. Start the API from the [API README](https://github.com/raouf-b-dev/ecommerce-store-api) on port **3000**. CORS must allow `http://localhost:3100` with credentials.
+4. `npm run dev` - storefront at [http://localhost:3100](http://localhost:3100)
+
+`npm run dev` and `npm run start` both bind **3100**. Stop one before starting the other.
+
+Regenerate OpenAPI types (API must be running): `npm run api:generate`.
+
+Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md). Security baseline: [`SECURITY.md`](SECURITY.md).
 
 ---
 
@@ -103,6 +112,8 @@ Admin SPA / mobile apps --------------------------------------------+
 | [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md) | Client integration rules (OpenAPI is the contract)                                                |
 | [`docs/README.md`](docs/README.md)                   | Docs index                                                                                        |
 | [`docs/ai/README.md`](docs/ai/README.md)             | Agent and conventions docs                                                                        |
+| [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) | System context                                                                                    |
+| [`AGENT.md`](AGENT.md)                               | Canonical agent policy                                                                            |
 | API docs                                             | [`ecommerce-store-api/docs`](https://github.com/raouf-b-dev/ecommerce-store-api/tree/master/docs) |
 
 ---
@@ -122,16 +133,14 @@ Admin SPA / mobile apps --------------------------------------------+
 
 ## Project layout
 
-Target layout (may shift slightly with the scaffold):
-
 ```
 src/
   app/                    # thin routes, layouts, metadata
-  components/             # shell, theme, shared UI
-  features/               # catalog, cart, checkout, auth, account
+  components/ui/          # shadcn primitives
+  features/               # catalog, cart, checkout, auth, account (when added)
   lib/
-    api/                  # OpenAPI client and HTTP helpers
-    auth/                 # session helpers matching the API
+    api/generated/        # OpenAPI schema.d.ts
+    utils.ts
 docs/
   API-INTEGRATION.md
   ROADMAP.md

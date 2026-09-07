@@ -2,7 +2,7 @@
 
 Agent policy and coding conventions for this repository. Sequencing lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-## Planned files
+## Files
 
 | File | Role |
 | :--- | :--- |
@@ -11,10 +11,12 @@ Agent policy and coding conventions for this repository. Sequencing lives in [`.
 | [CONVENTIONS.md](CONVENTIONS.md) | UI coding conventions |
 | [GOVERNANCE-AND-QUALITY-GATES.md](GOVERNANCE-AND-QUALITY-GATES.md) | Merge / quality gates |
 | [WORKFLOW-PLAYBOOK.md](WORKFLOW-PLAYBOOK.md) | How to execute a roadmap task |
+| [../architecture/ARCHITECTURE.md](../architecture/ARCHITECTURE.md) | System context and composition |
+| [../architecture/adr/README.md](../architecture/adr/README.md) | ADR index |
 
 Tool adapters (`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*`) should point at `AGENT.md` and must not fork policy.
 
-## Non-negotiables (preview)
+## Non-negotiables
 
 - No business rules in this UI repo.
 - Call the versioned API using the OpenAPI client where possible. No BFF.
@@ -23,4 +25,4 @@ Tool adapters (`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*`) should point at `AGE
 - Write tests with features.
 - Require verification for behavior changes.
 
-Sequencing and Next.js 16 rules: [`../ROADMAP.md`](../ROADMAP.md). Client contract: [`../API-INTEGRATION.md`](../API-INTEGRATION.md).
+Sequencing: [`../ROADMAP.md`](../ROADMAP.md). Client contract: [`../API-INTEGRATION.md`](../API-INTEGRATION.md).
