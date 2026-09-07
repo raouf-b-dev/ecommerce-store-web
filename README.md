@@ -64,11 +64,12 @@ Admin SPA / mobile apps --------------------------------------------+
 | Rule        | Detail                                                                             |
 | :---------- | :--------------------------------------------------------------------------------- |
 | Boundary    | Do not reimplement stock, pricing, or RBAC here. Show API errors clearly.          |
-| Data access | Typed client from the API OpenAPI/Swagger spec.                                    |
-| Rendering   | Server Components by default. Client Components for cart, forms, and session UI.   |
-| Client data | TanStack Query for browser fetches and mutations.                                  |
-| Auth        | Match the API session contract from OpenAPI. Authorization is enforced by the API. |
-| Checkout    | Use idempotency exactly as the checkout operation documents in OpenAPI.            |
+| Data access | Typed client from the API OpenAPI/Swagger spec. No BFF.                            |
+| Rendering   | Server Components by default. Catalog RSC is unauthenticated on purpose.           |
+| Client data | TanStack Query for session, cart, checkout, and orders.                            |
+| Auth        | In-memory access token + HttpOnly refresh cookie. Same contract as the admin SPA.  |
+| Cart        | Authenticated only (`manage_own_cart`). No guest basket.                           |
+| Checkout    | Idempotency headers as OpenAPI documents; poll own order for SAGA completion.      |
 
 ---
 
@@ -78,14 +79,15 @@ Admin SPA / mobile apps --------------------------------------------+
 
 | Layer          | Choice                                                              |
 | :------------- | :------------------------------------------------------------------ |
-| Framework      | Next.js (App Router)                                                |
+| Framework      | Next.js 16 App Router (`cacheComponents`, Turbopack)                |
 | UI             | React 19                                                            |
 | Language       | TypeScript (strict)                                                 |
-| Styling        | Tailwind CSS + shadcn/ui (Radix)                                    |
-| Client data    | TanStack Query                                                      |
-| Local UI state | React state |
+| Styling        | Tailwind CSS v4 + shadcn/ui (Radix)                                 |
+| Public reads   | React Server Components (unauthenticated catalog)                   |
+| Client data    | TanStack Query (session, cart, checkout, orders)                    |
+| Local UI state | React state (no global store for server data)                       |
 | Forms          | React Hook Form + Zod                                               |
-| API            | Typed OpenAPI client                                                |
+| API            | `openapi-fetch` + generated OpenAPI types                           |
 | Tests          | Vitest, Testing Library, Playwright                                 |
 
 ---
@@ -97,7 +99,7 @@ Admin SPA / mobile apps --------------------------------------------+
 | Document                                             | Description                                                                                       |
 | :--------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
 | [`SECURITY.md`](SECURITY.md)                         | Frontend security baseline                                                                        |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md)                 | Delivery plan, tests-with-features, ship gates                                                    |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)                 | Delivery plan, Next.js 16 conventions, ship gates                                                 |
 | [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md) | Client integration rules (OpenAPI is the contract)                                                |
 | [`docs/README.md`](docs/README.md)                   | Docs index                                                                                        |
 | [`docs/ai/README.md`](docs/ai/README.md)             | Agent and conventions docs                                                                        |
@@ -123,16 +125,18 @@ Admin SPA / mobile apps --------------------------------------------+
 Target layout (may shift slightly with the scaffold):
 
 ```
-app/                      # routes, layouts, metadata
-components/               # shared UI
-features/                 # catalog, cart, checkout, etc.
-lib/
-  api/                    # OpenAPI client and HTTP helpers
-  auth/                   # session helpers matching the API
+src/
+  app/                    # thin routes, layouts, metadata
+  components/             # shell, theme, shared UI
+  features/               # catalog, cart, checkout, auth, account
+  lib/
+    api/                  # OpenAPI client and HTTP helpers
+    auth/                 # session helpers matching the API
 docs/
   API-INTEGRATION.md
   ROADMAP.md
   ai/                     # agent conventions
+  architecture/           # ADRs
 ```
 
 ---
