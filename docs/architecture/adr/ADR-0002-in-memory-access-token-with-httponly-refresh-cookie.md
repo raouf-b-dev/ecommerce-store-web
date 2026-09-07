@@ -1,6 +1,6 @@
 # ADR-0002: In-Memory Access Token with HttpOnly Refresh Cookie
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-09-07
 - **Context**: Shopper session storage for `ecommerce-store-api` JWT auth. Ports the admin SPA decision to the storefront.
 
