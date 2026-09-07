@@ -122,7 +122,7 @@ Exact codes and bodies: OpenAPI.
 | Actions | `getErrorMessage` + `ActionErrorAlert` |
 | Forms | `applyApiFormErrors` |
 
-Helpers belong in `src/lib/api/` once Phase 3 exists.
+Helpers belong in `src/lib/api/` once the browser OpenAPI client exists.
 
 ## Capability areas (discover in OpenAPI)
 
