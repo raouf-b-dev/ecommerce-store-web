@@ -26,11 +26,19 @@ Backend context: [ecommerce-store-api ARCHITECTURE.md](https://github.com/raouf-
 
 ```text
 src/app/layout.tsx
-  html + body (document scroll)
-    src/app/page.tsx   # placeholder home
+  html (FOUC script, suppressHydrationWarning)
+  Providers (Theme + ThemeAwareToaster)
+  Suspense > FocusMainOnNavigate
+    (shop)/layout.tsx   # skip + header/footer + main#main
+      (shop)/page.tsx   # home
+      (shop)/status/page.tsx
+    (auth)/layout.tsx   # skip + logo/theme + main (no pages yet)
+    (account)/layout.tsx  # same shop chrome, no guards (no pages yet)
 ```
 
-Query, Auth, and theme providers are not mounted yet. When they land, QueryClient is created in a client `Providers` with `useState`, not at module scope.
+Theme is mounted. QueryClient and AuthProvider are not; they belong with session work.
+
+The storefront scrolls the document. Do not use an `h-screen overflow-hidden` operator cockpit.
 
 ## Routing model (target)
 
@@ -81,25 +89,45 @@ Next `cookies()` cannot read the API refresh cookie. Silent refresh uses raw `fe
 src/
   app/
     layout.tsx
-    page.tsx
+    providers.tsx
+    loading.tsx
+    error.tsx
+    not-found.tsx
+    global-error.tsx
     globals.css
+    (shop)/
+      layout.tsx
+      page.tsx
+      loading.tsx
+      error.tsx
+      status/page.tsx
+    (auth)/layout.tsx
+    (account)/layout.tsx
   components/
-    ui/           # shadcn: button, input, card, alert, sonner
+    layout/       # chrome, skip, mobile nav, focus helper
+    theme/        # provider, store, toggle, toaster
+    feedback/     # QueryStateAlert, ActionErrorAlert
+    ui/           # shadcn primitives
+  features/
+    health/       # /status diagnostics
   lib/
+    format.ts
+    list-filters.ts
     utils.ts
     api/
+      server-client.ts
+      parse-api-error.ts
       generated/
         schema.d.ts
   test/
     setup.ts
 e2e/
   smoke.spec.ts
+  shell.spec.ts
 scripts/
   generate-api-client.js
   generate-env.js
 ```
-
-Feature folders under `src/features/` are added when those screens exist. Do not invent them empty.
 
 ## Related ADRs
 
