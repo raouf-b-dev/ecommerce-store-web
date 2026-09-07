@@ -28,7 +28,7 @@
 
 ## What this is
 
-Intended Next.js App Router storefront for the NestJS ecommerce API (catalog, cart, checkout, orders, account). The app shell is scaffolded; shopper features follow [`docs/ROADMAP.md`](docs/ROADMAP.md).
+Intended Next.js App Router storefront for the NestJS ecommerce API (catalog, cart, checkout, orders, account). The app shell (chrome, theme, diagnostics) is in place; shopper features follow [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 When it exists, this app should handle UI, routing, and client caching only. Pricing, stock, checkout, auth, and permissions stay in the API.
 
@@ -135,11 +135,18 @@ Admin SPA / mobile apps --------------------------------------------+
 
 ```
 src/
-  app/                    # thin routes, layouts, metadata
-  components/ui/          # shadcn primitives
-  features/               # catalog, cart, checkout, auth, account (when added)
+  app/                    # thin routes, layouts, metadata; (shop)/(auth)/(account)
+  components/
+    layout/               # header, footer, skip link, mobile nav
+    theme/                # light/dark/system
+    feedback/             # Query/action alerts for later client features
+    ui/                   # shadcn primitives
+  features/health/        # /status diagnostics
   lib/
     api/generated/        # OpenAPI schema.d.ts
+    api/server-client.ts  # RSC OpenAPI client
+    format.ts
+    list-filters.ts
     utils.ts
 docs/
   API-INTEGRATION.md
