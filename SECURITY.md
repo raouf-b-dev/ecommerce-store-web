@@ -18,7 +18,7 @@ Security baseline for this frontend. The API remains the authority for authn/aut
 
 - Follow the API’s documented session/cookie (or bearer) contract from OpenAPI.
 - Prefer httpOnly, Secure cookies when the API provides them. Avoid storing long-lived tokens in `localStorage` unless the API contract forces it and risks are documented.
-- On `401`, clear client session state and require sign-in again.
+- On domain `401`, attempt a single-flight silent refresh and one retry; if that fails, clear client session state and require sign-in again. Never store long-lived tokens in `localStorage`.
 
 ## Dependencies and supply chain
 

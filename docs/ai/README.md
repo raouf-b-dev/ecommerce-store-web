@@ -17,6 +17,10 @@ Tool adapters (`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*`) should point at `AGE
 ## Non-negotiables (preview)
 
 - No business rules in this UI repo.
-- Call the versioned API using the OpenAPI client where possible.
+- Call the versioned API using the OpenAPI client where possible. No BFF.
+- Server Components by default; catalog RSC stays unauthenticated.
+- Session, cart, checkout, and orders are browser client + TanStack Query (admin session pattern).
 - Write tests with features.
 - Require verification for behavior changes.
+
+Sequencing and Next.js 16 rules: [`../ROADMAP.md`](../ROADMAP.md). Client contract: [`../API-INTEGRATION.md`](../API-INTEGRATION.md).
