@@ -1,11 +1,9 @@
 import 'server-only';
 
 import createClient from 'openapi-fetch';
+import { API_BASE_URL } from '@/lib/api/api-base-url';
 import type { paths } from '@/lib/api/generated/schema';
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
-
 export const serverClient = createClient<paths>({
-  baseUrl,
+  baseUrl: API_BASE_URL,
 });

@@ -20,11 +20,11 @@ ADRs are **immutable historical documents**. They record _why_ a decision was ma
 
 ### What may change later
 
-| Allowed | Not allowed |
-| :------ | :---------- |
+| Allowed                                                                          | Not allowed                                       |
+| :------------------------------------------------------------------------------- | :------------------------------------------------ |
 | File header **Status** (`Proposed` -> `Accepted` -> `Deprecated` / `Superseded`) | Rewriting Decisions / Alternatives / Consequences |
-| Optional header **Superseded By** / **Supersedes** links when lifecycle changes | Quietly amending the original decision in place |
-| This **index** table (status, supersedes, superseded-by) | Deleting historical ADRs |
+| Optional header **Superseded By** / **Supersedes** links when lifecycle changes  | Quietly amending the original decision in place   |
+| This **index** table (status, supersedes, superseded-by)                         | Deleting historical ADRs                          |
 
 If a decision changes or is extended:
 
@@ -36,11 +36,11 @@ If a decision changes or is extended:
 
 ## Lifecycle states
 
-| Status | Meaning |
-| :----- | :------ |
-| `Proposed` | Written during design; awaiting approval |
-| `Accepted` | Approved and in effect |
-| `Deprecated` | No longer recommended |
+| Status       | Meaning                                           |
+| :----------- | :------------------------------------------------ |
+| `Proposed`   | Written during design; awaiting approval          |
+| `Accepted`   | Approved and in effect                            |
+| `Deprecated` | No longer recommended                             |
 | `Superseded` | Replaced by a later ADR (must link the successor) |
 
 ## Naming standard
@@ -49,13 +49,14 @@ If a decision changes or is extended:
 
 ## ADR index
 
-| ADR | Status | Summary | Date | Supersedes | Superseded By |
-| :-- | :----- | :------ | :--- | :--------- | :------------ |
-| [ADR-0001](ADR-0001-rsc-catalog-browser-session-no-bff.md) | Accepted | RSC public catalog; browser client for session/mutations; no BFF | 2026-09-07 | - | - |
-| [ADR-0002](ADR-0002-in-memory-access-token-with-httponly-refresh-cookie.md) | Proposed | Access token in memory; refresh via HttpOnly cookie; no `localStorage` tokens | 2026-09-07 | - | - |
-| [ADR-0003](ADR-0003-single-flight-silent-refresh.md) | Proposed | Silent one-shot refresh + single-flight on domain 401 | 2026-09-07 | - | - |
-| [ADR-0004](ADR-0004-no-guest-cart.md) | Proposed | No guest line-item basket; login gate on cart and checkout | 2026-09-07 | - | - |
-| [ADR-0005](ADR-0005-checkout-order-polling.md) | Proposed | Checkout completion is own-order polling, not a job-queue API | 2026-09-07 | - | - |
-| [ADR-0006](ADR-0006-no-proxy-for-auth-or-headers.md) | Accepted | No `proxy.ts` for auth or headers; `next.config.ts` `headers()` | 2026-09-07 | - | - |
+| ADR                                                                         | Status   | Summary                                                                             | Date       | Supersedes | Superseded By |
+| :-------------------------------------------------------------------------- | :------- | :---------------------------------------------------------------------------------- | :--------- | :--------- | :------------ |
+| [ADR-0001](ADR-0001-rsc-catalog-browser-session-no-bff.md)                  | Accepted | RSC public catalog; browser client for session/mutations; no BFF                    | 2026-09-07 | -          | -             |
+| [ADR-0002](ADR-0002-in-memory-access-token-with-httponly-refresh-cookie.md) | Accepted | Access token in memory; refresh via HttpOnly cookie; no `localStorage` tokens       | 2026-09-07 | -          | -             |
+| [ADR-0003](ADR-0003-single-flight-silent-refresh.md)                        | Accepted | Silent one-shot refresh + single-flight on domain 401                               | 2026-09-07 | -          | -             |
+| [ADR-0004](ADR-0004-no-guest-cart.md)                                       | Proposed | No guest line-item basket; login gate on cart and checkout                          | 2026-09-07 | -          | -             |
+| [ADR-0005](ADR-0005-checkout-order-polling.md)                              | Proposed | Checkout completion is own-order polling, not a job-queue API                       | 2026-09-07 | -          | -             |
+| [ADR-0006](ADR-0006-no-proxy-for-auth-or-headers.md)                        | Accepted | No `proxy.ts` for auth or headers; `next.config.ts` `headers()`                     | 2026-09-07 | -          | -             |
+| [ADR-0007](ADR-0007-keep-session-alive-for-refresh-token-lifetime.md)       | Accepted | Refresh missing or expiring in-memory access tokens for the refresh-cookie lifetime | 2026-09-07 | -          | -             |
 
 Cross-link API ADRs when relevant; do not duplicate backend decision records here.

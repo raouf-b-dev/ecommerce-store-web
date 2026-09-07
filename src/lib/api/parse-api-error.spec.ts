@@ -63,9 +63,9 @@ describe('isOptimisticLockConflict', () => {
     ).toBe(true);
   });
 
-  it('returns true for object with 409 status', () => {
-    expect(isOptimisticLockConflict({ statusCode: 409 })).toBe(true);
-    expect(isOptimisticLockConflict({ status: 409 })).toBe(true);
+  it('does not treat an unclassified 409 as an optimistic-lock conflict', () => {
+    expect(isOptimisticLockConflict({ statusCode: 409 })).toBe(false);
+    expect(isOptimisticLockConflict({ status: 409 })).toBe(false);
   });
 
   it('returns false for other errors', () => {

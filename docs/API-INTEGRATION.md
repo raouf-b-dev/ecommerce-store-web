@@ -4,25 +4,25 @@ How `ecommerce-store-web` consumes [ecommerce-store-api](https://github.com/raou
 
 ## Single source of truth
 
-| Concern | Source of truth |
-| :------ | :-------------- |
-| Paths, methods, DTOs, status codes | API **OpenAPI / Swagger** (`http://localhost:3000/api/docs` locally) |
-| Auth, cookies, versioning rules | API docs + OpenAPI |
-| Local seed users | API [`docs/development/SEEDING.md`](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/SEEDING.md) |
-| Local API boot | API [`docs/development/LOCAL-SETUP.md`](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/LOCAL-SETUP.md) |
-| Delivery sequence | [`ROADMAP.md`](ROADMAP.md) |
+| Concern                            | Source of truth                                                                                                                         |
+| :--------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| Paths, methods, DTOs, status codes | API **OpenAPI / Swagger** (`http://localhost:3000/api/docs` locally)                                                                    |
+| Auth, cookies, versioning rules    | API docs + OpenAPI                                                                                                                      |
+| Local seed users                   | API [`docs/development/SEEDING.md`](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/SEEDING.md)         |
+| Local API boot                     | API [`docs/development/LOCAL-SETUP.md`](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/LOCAL-SETUP.md) |
+| Delivery sequence                  | [`ROADMAP.md`](ROADMAP.md)                                                                                                              |
 
 Do **not** maintain an endpoint catalog in this repo. When the API adds, renames, or removes routes, regenerate the typed client from OpenAPI and adjust call sites. This file only covers **client-side** rules that are easy to get wrong.
 
 ## Base connection
 
-| Item | Typical local value |
-| :--- | :------------------ |
-| Storefront origin | `http://localhost:3100` |
-| API origin | `http://localhost:3000` (from `NEXT_PUBLIC_API_BASE_URL`) |
-| Versioned API | Confirm versioning scheme in OpenAPI |
-| Health | Confirm health routes in OpenAPI |
-| CORS | API `CORS_ALLOWED_ORIGINS` must include the storefront origin **with credentials**. Default API example historically listed admin Vite ports (`5173`/`5174`) and **not** `3100` - add it in the API env; do not disable CORS in this app. |
+| Item              | Typical local value                                                                                                                                                                                                                       |
+| :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Storefront origin | `http://localhost:3100`                                                                                                                                                                                                                   |
+| API origin        | `http://localhost:3000` (from `NEXT_PUBLIC_API_BASE_URL`)                                                                                                                                                                                 |
+| Versioned API     | Confirm versioning scheme in OpenAPI                                                                                                                                                                                                      |
+| Health            | Confirm health routes in OpenAPI                                                                                                                                                                                                          |
+| CORS              | API `CORS_ALLOWED_ORIGINS` must include the storefront origin **with credentials**. Default API example historically listed admin Vite ports (`5173`/`5174`) and **not** `3100` - add it in the API env; do not disable CORS in this app. |
 
 ## Typed client
 
@@ -34,11 +34,11 @@ Do **not** maintain an endpoint catalog in this repo. When the API adds, renames
 
 ## Rendering split (no BFF)
 
-| Surface | How it talks to the API |
-| :------ | :---------------------- |
+| Surface                                       | How it talks to the API                                                                   |
+| :-------------------------------------------- | :---------------------------------------------------------------------------------------- |
 | Public catalog / categories / inventory check | React Server Components. **No** access token. Shopper visibility policy stays on the API. |
-| Session, cart, checkout, orders, account | Browser `apiClient` + TanStack Query. `credentials: 'include'`. Bearer from memory. |
-| Next Server Actions / Route Handlers | **Do not** use them to proxy the ecommerce API. That is a BFF and is out of scope. |
+| Session, cart, checkout, orders, account      | Browser `apiClient` + TanStack Query. `credentials: 'include'`. Bearer from memory.       |
+| Next Server Actions / Route Handlers          | **Do not** use them to proxy the ecommerce API. That is a BFF and is out of scope.        |
 
 Do **not** put `"use cache"` on product or inventory reads in v1 (stale stock). `cacheComponents` still prerenders chrome; wrap catalog fetch UI in `<Suspense>`. Never cache authenticated payloads. Deduplicate RSC fetchers with React `cache()` when metadata and the page share a call. After cart/checkout mutations, `router.refresh()` so RSC HTML is not stale.
 
@@ -58,10 +58,13 @@ Port the admin SPA rules, minus operator admission:
 
 - Use OpenAPI auth operations (register / login / refresh / logout / change-password).
 - Access token in memory; refresh via HttpOnly cookie (`credentials: 'include'`).
-- Session bootstrap: `POST` refresh on app mount (client `AuthProvider`).
+- Session bootstrap: `POST` refresh on app mount (client `AuthProvider`). Register returns a profile, not tokens, so successful registration is followed by login.
 - Login, refresh, and change-password responses include `mustChangePassword`. When `true`, route to `/change-password` before cart, checkout, or account.
 - Seeded **customer** starts with `mustChangePassword: true`. Passwords live only in the API seeding doc.
-- On domain `401`, single-flight silent refresh + one request retry; if that fails, clear session and return to login. Refresh uses **raw `fetch`** (not `apiClient`) so it cannot re-enter middleware. Never silent-retry `/authentication/*`. On success, `onSessionRefreshed` updates the session Query (`['auth','session']`).
+- The refresh cookie, not the short-lived access token, provides session continuity. Before authenticated browser requests, refresh when the in-memory token is missing, malformed, expired, or near JWT `exp`. The session Query also refreshes before `exp` and on focus/reconnect when the token is unusable. JWT claims are scheduling/chrome input only; the API verifies them.
+- Session bootstrap, proactive refresh, and domain `401` recovery share one raw-`fetch` single-flight request. A same-origin Web Lock serializes refresh and logout across tabs. Both are required because the API rotates refresh tokens and treats reuse as session theft.
+- A refresh **401** means the cookie is invalid: clear in-memory session and return to login. Refresh **429**, **5xx**, network failures, and malformed success payloads throw and keep the current session for retry. Never silent-retry authentication responses. On success, `onSessionRefreshed` updates `['auth','session']`.
+- The session Query is browser-only because the Next server cannot read the API-origin refresh cookie. Catalog RSC remains unauthenticated.
 - Login/register **429**: stable “too many requests” copy. Do not map throttle to invalid credentials. QueryClient skips retry on `429`.
 - `safeRedirectPath`: only same-origin relative paths; reject `//`; reject `/login` and `/change-password` as redirect targets.
 - On `403` with code `MUST_CHANGE_PASSWORD` **or** a message containing `Password change required`, redirect to change-password. Other `403` responses show forbidden; do not invent a bypass.
@@ -101,26 +104,26 @@ Checkout is an **async SAGA** on the API. Before coding:
 
 Map API failures to UI. Do not reinterpret domain rules.
 
-| Class | Typical storefront behavior |
-| :---- | :-------------------------- |
-| Validation (`4xx` with field errors) | Show field/form messages from the payload |
-| `401` | Silent refresh + one retry; then sign in |
-| `403` | `MUST_CHANGE_PASSWORD` → change-password; else not allowed |
-| `404` | Not found / empty |
-| `409` | Conflict: checkout in progress → wait/`Retry-After`; OCC → reload (rare on shopper writes) |
-| `429` | Retryable banner; keep last good data when possible |
-| `5xx` / fail-closed infra | Temporary failure; retry guidance |
+| Class                                | Typical storefront behavior                                                                |
+| :----------------------------------- | :----------------------------------------------------------------------------------------- |
+| Validation (`4xx` with field errors) | Show field/form messages from the payload                                                  |
+| `401`                                | Silent refresh + one retry; then sign in                                                   |
+| `403`                                | `MUST_CHANGE_PASSWORD` → change-password; else not allowed                                 |
+| `404`                                | Not found / empty                                                                          |
+| `409`                                | Conflict: checkout in progress → wait/`Retry-After`; OCC → reload (rare on shopper writes) |
+| `429`                                | Retryable banner; keep last good data when possible                                        |
+| `5xx` / fail-closed infra            | Temporary failure; retry guidance                                                          |
 
 Exact codes and bodies: OpenAPI.
 
 ### Client layering (same idea as admin)
 
-| Layer | Use |
-| :---- | :-- |
-| `*-api.ts` | `throwApiErrorFromResponse` only |
-| Queries | status UI + `getErrorMessage` |
-| Actions | `getErrorMessage` + `ActionErrorAlert` |
-| Forms | `applyApiFormErrors` |
+| Layer      | Use                                    |
+| :--------- | :------------------------------------- |
+| `*-api.ts` | `throwApiErrorFromResponse` only       |
+| Queries    | status UI + `getErrorMessage`          |
+| Actions    | `getErrorMessage` + `ActionErrorAlert` |
+| Forms      | `applyApiFormErrors`                   |
 
 Helpers belong in `src/lib/api/` once the browser OpenAPI client exists.
 

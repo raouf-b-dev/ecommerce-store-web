@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { StorefrontNav } from '@/components/layout/storefront-nav';
+import { StorefrontSessionLinks } from '@/components/layout/storefront-session-links';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 type StorefrontHeaderProps = {
@@ -18,11 +19,16 @@ export function StorefrontHeader({ variant = 'shop' }: StorefrontHeaderProps) {
           <Link href="/" className="text-sm font-semibold tracking-tight">
             Storefront
           </Link>
-          {showNav ? (
-            <StorefrontNav className="hidden lg:block" />
-          ) : null}
+          {showNav ? <StorefrontNav className="hidden lg:block" /> : null}
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          {showNav ? (
+            <div className="hidden lg:block">
+              <StorefrontSessionLinks />
+            </div>
+          ) : null}
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

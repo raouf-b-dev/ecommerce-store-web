@@ -18,7 +18,9 @@ Security baseline for this frontend. The API remains the authority for authn/aut
 
 - Follow the API’s documented session/cookie (or bearer) contract from OpenAPI.
 - Prefer httpOnly, Secure cookies when the API provides them. Avoid storing long-lived tokens in `localStorage` unless the API contract forces it and risks are documented.
-- On domain `401`, attempt a single-flight silent refresh and one retry; if that fails, clear client session state and require sign-in again. Never store long-lived tokens in `localStorage`.
+- Keep access tokens in memory only. Missing or near-expiry access tokens are restored through the API's HttpOnly refresh cookie; never persist access or refresh tokens in `localStorage` / `sessionStorage`.
+- Session bootstrap, proactive refresh, and domain-`401` recovery share one single-flight refresh because refresh tokens rotate. A same-origin Web Lock also serializes refresh/logout across tabs. Retry a domain request once with the new Bearer.
+- Only refresh HTTP `401` (or a retry that is still `401`) proves the session is invalid. Refresh `429`, `5xx`, network failures, and malformed success responses keep session state and surface a retryable error instead of forcing login.
 
 ## Dependencies and supply chain
 

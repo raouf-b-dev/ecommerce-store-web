@@ -74,8 +74,8 @@ export function toApiRequestError(
 
 export function isOptimisticLockConflict(error: unknown): boolean {
   return (
-    hasHttpStatus(error, 409) ||
-    (error instanceof ApiRequestError && error.code === 'OPTIMISTIC_LOCK_CONFLICT')
+    error instanceof ApiRequestError &&
+    error.code === 'OPTIMISTIC_LOCK_CONFLICT'
   );
 }
 

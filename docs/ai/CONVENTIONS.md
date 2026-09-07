@@ -56,8 +56,10 @@ Do not one-file both with `typeof window` branches.
 
 ## 5. Query and forms (when those layers exist)
 
-- QueryClient lives in a **client** `Providers` (`useState(() => new QueryClient())`). Never `new QueryClient()` at module scope. Do not import Query from RSC.
+- QueryClient lives in a **client** `Providers`. Create a new client for each server render and reuse one module-scoped instance only in the browser (`getQueryClient`); never share Query cache across SSR users. Do not import Query from RSC.
 - Skip retry on HTTP `429`; else `failureCount < 2`. Session: never retry `isClientError`. No `throwOnError`.
+- Session bootstrap, pre-expiry refresh, and domain-`401` recovery share one raw-fetch single-flight operation plus a same-origin Web Lock for cross-tab refresh-cookie rotation. Logout uses the same lock. Refresh `401` means unauthenticated; refresh `429`, `5xx`, network failures, and malformed success payloads throw without clearing session state.
+- Access tokens stay in memory. Before authenticated browser requests, refresh if the token is missing, malformed, expired, or near JWT `exp`. The browser-only session Query schedules before `exp` and refetches on focus/reconnect only when the token is unusable.
 - TkDodo query-key factories per **client** feature (`all` / `lists()` / `list(filters)` / `details()` / `detail(id)`).
 - Client lists (orders, not catalog): URL search params as source of truth; `placeholderData: keepPreviousData`; `staleTime` ~45s; enums `satisfies` generated unions.
 - Handle Query `isError` with `QueryStateAlert` (`hasData` = last good data). RSC uses `error.tsx` / `not-found.tsx` instead.
