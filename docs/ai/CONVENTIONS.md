@@ -74,7 +74,8 @@ Do not one-file both with `typeof window` branches.
 - Loading: `QueryLoading` / `role="status"` / `aria-busy` on client fetches. RSC: `<Suspense>` holes (+ optional `loading.tsx`). No skeleton requirement in v1.
 - React Compiler is on. Do not add `useMemo` / `useCallback` by habit.
 - Treat rendered API strings as untrusted. No `dangerouslySetInnerHTML`.
-- Theme (when added): Light / Dark / System, FOUC script, `useSyncExternalStore`, `ThemeAwareToaster`. Storage key `store-ui-theme`.
+- Theme: Light / Dark / System, FOUC script, `useSyncExternalStore`, `ThemeAwareToaster`. Storage key `store-ui-theme`.
+- Format helpers: `en-US` until i18n exists. Do not use `undefined` locale (Node vs browser drift).
 
 ## 7. Testing
 

@@ -139,7 +139,7 @@ The admin [`docs/ROADMAP.md`](https://github.com/raouf-b-dev/ecommerce-admin-das
 | ----- | ------------------------------- | ------ | :------: | ------------------------------------------------------------------ |
 | **0** | Foundation                      | `[x]`  |  `[P0]`  | Next 16 scaffold, tooling, tests, OpenAPI client, Cache Components |
 | **1** | Agent ecosystem and conventions | `[x]`  |  `[P0]`  | AGENT policy, Next-specific CONVENTIONS, ADR template, adapters    |
-| **2** | App shell                       | `[ ]`  |  `[P0]`  | Layouts, chrome, error/loading, theme, health page                 |
+| **2** | App shell                       | `[x]`  |  `[P0]`  | Layouts, chrome, error/loading, theme, health page                 |
 | **3** | Authentication and session      | `[ ]`  |  `[P0]`  | Login, register, silent refresh, customer chrome                   |
 | **4** | Forced password change          | `[ ]`  |  `[P0]`  | Seeded customer `mustChangePassword` (do not skip)                 |
 | **5** | Catalog                         | `[ ]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
@@ -285,18 +285,18 @@ Optional later: `.agents/skills/` only if you adopt the API skills-sync model.
 
 **Scope:**
 
-- [ ] Root layout: skip link to `#main`; `<main id="main" tabIndex={-1}>`; `html` lang; metadata defaults. Branding is not an `h1`. **Normal document scroll** (no `h-screen overflow-hidden`).
-- [ ] Storefront chrome: header, footer, mobile nav (shadcn `Sheet` + `SheetTitle`; Esc closes; close on navigate).
-- [ ] Route groups: `(shop)` public chrome; `(account)` later guards; `(auth)` without shopping chrome.
-- [ ] `loading.tsx` / `error.tsx` / `not-found.tsx` / `global-error.tsx` (`error.tsx` must be a Client Component). **Do not** add a class-based `route-error-boundary`.
-- [ ] Small client `FocusMainOnNavigate` using `usePathname()` - do not import React Router helpers.
-- [ ] Shared feedback components exist for later Query use (`QueryStateAlert`, `QueryLoading`, `QueryListRegion`, `ActionErrorAlert`). Do not use them on RSC catalog pages.
-- [ ] `src/lib/format.ts` + URL parse helpers + `cn()`.
-- [ ] Light / Dark / System theme (`useSyncExternalStore`, `store-ui-theme`, zero-FOUC script in root layout). `ThemeAwareToaster`. No dead theme button. If Phase 0 added a CSP, allow that inline script (nonce or a tight hash) - do not ship a CSP that silently blocks the FOUC script.
-- [ ] Optional diagnostics route, `noindex`, not linked in shopper nav.
-- [ ] Providers: Theme + Toaster. Query + Auth wait for Phase 3.
-- [ ] Refresh `.agents/PROJECT-CONTEXT.md` folder map
-- [ ] Playwright: home chrome, mobile nav, skip link, no theme flash
+- [x] Root layout: skip link to `#main`; `<main id="main" tabIndex={-1}>`; `html` lang; metadata defaults. Branding is not an `h1`. **Normal document scroll** (no `h-screen overflow-hidden`).
+- [x] Storefront chrome: header, footer, mobile nav (shadcn `Sheet` + `SheetTitle`; Esc closes; close on navigate).
+- [x] Route groups: `(shop)` public chrome; `(account)` later guards; `(auth)` without shopping chrome.
+- [x] `loading.tsx` / `error.tsx` / `not-found.tsx` / `global-error.tsx` (`error.tsx` must be a Client Component). **Do not** add a class-based `route-error-boundary`.
+- [x] Small client `FocusMainOnNavigate` using `usePathname()` - do not import React Router helpers.
+- [x] Shared feedback components exist for later Query use (`QueryStateAlert`, `QueryLoading`, `QueryListRegion`, `ActionErrorAlert`). Do not use them on RSC catalog pages.
+- [x] `src/lib/format.ts` + URL parse helpers + `cn()`.
+- [x] Light / Dark / System theme (`useSyncExternalStore`, `store-ui-theme`, zero-FOUC script in root layout). `ThemeAwareToaster`. No dead theme button. If Phase 0 added a CSP, allow that inline script (nonce or a tight hash) - do not ship a CSP that silently blocks the FOUC script.
+- [x] Optional diagnostics route, `noindex`, not linked in shopper nav.
+- [x] Providers: Theme + Toaster. Query + Auth wait for Phase 3.
+- [x] Refresh `.agents/PROJECT-CONTEXT.md` folder map
+- [x] Playwright: home chrome, mobile nav, skip link, no theme flash
 
 **Done when:** Home shell renders on 3100; theme persists; health page shows API up/down against a running API; tests green.
 

@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import { Suspense } from 'react';
+import { FocusMainOnNavigate } from '@/components/layout/focus-main-on-navigate';
+import { THEME_FOUC_SCRIPT } from '@/components/theme/theme-constants';
 import { cn } from '@/lib/utils';
+import { Providers } from '@/app/providers';
 import './globals.css';
 
 const geist = Geist({
@@ -8,15 +12,33 @@ const geist = Geist({
   variable: '--font-sans',
 });
 
+const storefrontOrigin =
+  process.env.NEXT_PUBLIC_STOREFRONT_ORIGIN ?? 'http://localhost:3100';
+
 export const metadata: Metadata = {
-  title: 'Storefront',
+  metadataBase: new URL(storefrontOrigin),
+  title: { default: 'Storefront', template: '%s | Storefront' },
   description: 'Customer storefront for the E-commerce Store API.',
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en" className={cn('font-sans', geist.variable)}>
-      <body className="min-h-screen antialiased">{children}</body>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn('font-sans', geist.variable)}
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_FOUC_SCRIPT }} />
+      </head>
+      <body className="min-h-screen antialiased">
+        <Providers>
+          <Suspense fallback={null}>
+            <FocusMainOnNavigate />
+          </Suspense>
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }
