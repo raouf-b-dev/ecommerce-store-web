@@ -23,11 +23,11 @@
 
 Write tests **with** each feature.
 
-| Layer | When |
-| :---- | :--- |
+| Layer                                       | When                                                                                      |
+| :------------------------------------------ | :---------------------------------------------------------------------------------------- |
 | Unit / component (Vitest + Testing Library) | Client islands and pure helpers in the same phase. **Do not** RTL-test Server Components. |
-| Playwright | RSC pages and the critical path when the feature joins it |
-| Cross-cutting quality | Phase 9 only |
+| Playwright                                  | RSC pages and the critical path when the feature joins it                                 |
+| Cross-cutting quality                       | Phase 9 only                                                                              |
 
 A feature phase is not done until its **Done when** checks pass.
 
@@ -46,22 +46,22 @@ A feature phase is not done until its **Done when** checks pass.
 
 Pin **latest stable** at scaffold time. Do not add backward-compat shims for Pages Router, `middleware.ts`, or implicit App Router fetch cache.
 
-| Concern | Choice |
-| :------ | :----- |
-| Runtime | Node.js 24 (same as API and admin) |
-| Framework | Next.js 16 App Router (`create-next-app@latest`). Turbopack default. `cacheComponents: true`. |
-| UI | React 19 (whatever Next 16 ships). TypeScript strict (`noUncheckedIndexedAccess`). |
-| Bundling / lint | Turbopack; ESLint flat config (`eslint .` - do **not** use removed `next lint`) |
-| Styling | Tailwind CSS v4 + shadcn/ui (Radix). Do not copy the admin Vite/Tailwind v3 scaffold blindly. |
-| Rendering | Server Components by default. `"use client"` only for session, forms, cart, checkout, and other interactivity. |
-| Public reads | RSC fetchers in `features/*/api/` with `import 'server-only'`. Catalog is unauthenticated on purpose. **No** TanStack Query hydration for catalog. |
-| Authenticated reads/writes | Browser `openapi-fetch` client + TanStack Query. **Not** Server Actions as an API proxy (that is a BFF). |
-| QueryClient | Query is **browser-only** in v1 (no catalog hydration). Create it in a client `Providers` with `useState(() => new QueryClient())` - never `new QueryClient()` at module scope. Do **not** import Query from RSC. A server `getQueryClient()` factory is only if a later phase prefetches. |
-| Local UI state | React state. Session via `AuthProvider`. **No Zustand** unless a later phase proves a real cross-tree UI need that is not server state. React Compiler on if Next 16 marks it stable - do not copy admin `useMemo` on table columns. |
-| Forms | React Hook Form + Zod **latest the current shadcn/RHF resolver supports** (do not pin admin’s Zod 3). Align to OpenAPI DTOs. |
-| API | `openapi-fetch` + generated `schema.d.ts` (same as admin) |
-| Tests | Vitest + Testing Library + Playwright |
-| A11y lint | `eslint-plugin-jsx-a11y` + `eslint-plugin-react-hooks` (React 19 compatible) from Phase 0 |
+| Concern                    | Choice                                                                                                                                                                                                                                                                                |
+| :------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Runtime                    | Node.js 24 (same as API and admin)                                                                                                                                                                                                                                                    |
+| Framework                  | Next.js 16 App Router (`create-next-app@latest`). Turbopack default. `cacheComponents: true`.                                                                                                                                                                                         |
+| UI                         | React 19 (whatever Next 16 ships). TypeScript strict (`noUncheckedIndexedAccess`).                                                                                                                                                                                                    |
+| Bundling / lint            | Turbopack; ESLint flat config (`eslint .` - do **not** use removed `next lint`)                                                                                                                                                                                                       |
+| Styling                    | Tailwind CSS v4 + shadcn/ui (Radix). Do not copy the admin Vite/Tailwind v3 scaffold blindly.                                                                                                                                                                                         |
+| Rendering                  | Server Components by default. `"use client"` only for session, forms, cart, checkout, and other interactivity.                                                                                                                                                                        |
+| Public reads               | RSC fetchers in `features/*/api/` with `import 'server-only'`. Catalog is unauthenticated on purpose. **No** TanStack Query hydration for catalog.                                                                                                                                    |
+| Authenticated reads/writes | Browser `openapi-fetch` client + TanStack Query. **Not** Server Actions as an API proxy (that is a BFF).                                                                                                                                                                              |
+| QueryClient                | Query is **browser-only** in v1 (no catalog hydration). A client `Providers` creates per-server-render clients and reuses one module instance only in the browser (`getQueryClient`) so Suspense cannot discard it and SSR users never share cache. Do **not** import Query from RSC. |
+| Local UI state             | React state. Session via `AuthProvider`. **No Zustand** unless a later phase proves a real cross-tree UI need that is not server state. React Compiler on if Next 16 marks it stable - do not copy admin `useMemo` on table columns.                                                  |
+| Forms                      | React Hook Form + Zod **latest the current shadcn/RHF resolver supports** (do not pin admin’s Zod 3). Align to OpenAPI DTOs.                                                                                                                                                          |
+| API                        | `openapi-fetch` + generated `schema.d.ts` (same as admin)                                                                                                                                                                                                                             |
+| Tests                      | Vitest + Testing Library + Playwright                                                                                                                                                                                                                                                 |
+| A11y lint                  | `eslint-plugin-jsx-a11y` + `eslint-plugin-react-hooks` (React 19 compatible) from Phase 0                                                                                                                                                                                             |
 
 **Ports (intent):** storefront `3100`, API `3000`, admin `5174`. Confirm in Phase 0. API CORS must allow `http://localhost:3100` with credentials (companion one-liner in the API `.env.example` - not a storefront invention).
 
@@ -71,24 +71,24 @@ Pin **latest stable** at scaffold time. Do not add backward-compat shims for Pag
 
 These are the decisions the old roadmap left vague. They are locked here so Phases 0-3 do not fork.
 
-| Rule | Detail |
-| :--- | :----- |
-| No BFF | No Next Route Handlers or Server Actions that forward cookies/tokens to the API. Out of scope, same as admin. |
-| No `proxy.ts` until needed | Security headers belong in `next.config.ts` `headers()`. Do **not** add `proxy.ts` (or `middleware.ts`) for headers or auth. Add Proxy only for a real rewrite/redirect that cannot live in `next.config`. |
-| Two HTTP clients | **Browser** client: cookies + Bearer + 401 recovery. **Server** client: `import 'server-only'`, no `credentials`, no Bearer, no login redirect. Do not one-file both with `typeof window` branches. |
-| RSC freshness | With `cacheComponents`, wrap catalog fetch UI in `<Suspense>` so chrome is the static shell. Deduplicate `generateMetadata` + page with React `cache()`. After cart/checkout mutations, `router.refresh()` so RSC inventory/HTML is not stale. |
-| 401 / force-password | `openapi-fetch` middleware is outside React: `window.location.assign` is acceptable **there** (admin panic path). Form success (login, logout, change-password) uses `router.push` + `router.refresh()`. |
-| Access token | In-memory only (port admin ADR-0002). Refresh via HttpOnly cookie on the **API** origin + `credentials: 'include'`. Next `cookies()` will not see it. |
-| Silent refresh | Domain `401`: single-flight refresh + one retry (ADR-0003). Never silent-retry `/authentication/*`. |
-| RSC catalog | Fetch **without** the shopper Bearer so `CatalogVisibilityPolicy` always sees a shopper (active-only). Sending an operator token from the server would leak inactive products into the storefront. |
-| Catalog filters | Server `searchParams` + Next `next/form` GET or `<Link href>`. **Not** admin `useSearchParams` + `setSearchParams` (that forces the list client-side). |
-| Cart | API requires `manage_own_cart`. **No guest line-item basket.** Persist **cart id** only (localStorage is fine; it is not a credential). Clear id on logout. |
-| Checkout | `POST /v1/orders/checkout` is **async**. HTTP 201 returns `orderId` + `jobId`. There is **no** public job-status route. Poll `GET` order by id until a documented status. Do not invent `PENDING → PROCESSING → COMPLETED`. |
-| Product URLs | OpenAPI product detail is by **numeric id**. `slug` is a field, not a lookup. Use `/products/[id]`. Do not build a client-side slug index. |
-| Query parity | Bind every list query param the **current** OpenAPI DTO already accepts in the same phase as the list. URL search params are the source of truth. |
-| Errors | Shared RFC 9110 helpers. Map payloads; do not re-validate domain rules. RSC failures use `error.tsx` / `not-found.tsx`. `QueryStateAlert` is for **client Query** only. |
-| Shell | Document/body scroll for the storefront. Do **not** copy admin `h-screen overflow-hidden` (operator cockpit, bad for SEO/mobile). |
-| DRY | No barrel `index.ts`. No cross-feature re-export shims. Pages in `src/app` stay thin. |
+| Rule                       | Detail                                                                                                                                                                                                                                         |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No BFF                     | No Next Route Handlers or Server Actions that forward cookies/tokens to the API. Out of scope, same as admin.                                                                                                                                  |
+| No `proxy.ts` until needed | Security headers belong in `next.config.ts` `headers()`. Do **not** add `proxy.ts` (or `middleware.ts`) for headers or auth. Add Proxy only for a real rewrite/redirect that cannot live in `next.config`.                                     |
+| Two HTTP clients           | **Browser** client: cookies + Bearer + 401 recovery. **Server** client: `import 'server-only'`, no `credentials`, no Bearer, no login redirect. Do not one-file both with `typeof window` branches.                                            |
+| RSC freshness              | With `cacheComponents`, wrap catalog fetch UI in `<Suspense>` so chrome is the static shell. Deduplicate `generateMetadata` + page with React `cache()`. After cart/checkout mutations, `router.refresh()` so RSC inventory/HTML is not stale. |
+| 401 / force-password       | `openapi-fetch` middleware is outside React: `window.location.assign` is acceptable **there** (admin panic path). Form success (login, logout, change-password) uses `router.push` + `router.refresh()`.                                       |
+| Access token               | In-memory only (port admin ADR-0002). Refresh via HttpOnly cookie on the **API** origin + `credentials: 'include'`. Next `cookies()` will not see it.                                                                                          |
+| Silent refresh             | Domain `401`: single-flight refresh + one retry (ADR-0003). Never silent-retry `/authentication/*`.                                                                                                                                            |
+| RSC catalog                | Fetch **without** the shopper Bearer so `CatalogVisibilityPolicy` always sees a shopper (active-only). Sending an operator token from the server would leak inactive products into the storefront.                                             |
+| Catalog filters            | Server `searchParams` + Next `next/form` GET or `<Link href>`. **Not** admin `useSearchParams` + `setSearchParams` (that forces the list client-side).                                                                                         |
+| Cart                       | API requires `manage_own_cart`. **No guest line-item basket.** Persist **cart id** only (localStorage is fine; it is not a credential). Clear id on logout.                                                                                    |
+| Checkout                   | `POST /v1/orders/checkout` is **async**. HTTP 201 returns `orderId` + `jobId`. There is **no** public job-status route. Poll `GET` order by id until a documented status. Do not invent `PENDING → PROCESSING → COMPLETED`.                    |
+| Product URLs               | OpenAPI product detail is by **numeric id**. `slug` is a field, not a lookup. Use `/products/[id]`. Do not build a client-side slug index.                                                                                                     |
+| Query parity               | Bind every list query param the **current** OpenAPI DTO already accepts in the same phase as the list. URL search params are the source of truth.                                                                                              |
+| Errors                     | Shared RFC 9110 helpers. Map payloads; do not re-validate domain rules. RSC failures use `error.tsx` / `not-found.tsx`. `QueryStateAlert` is for **client Query** only.                                                                        |
+| Shell                      | Document/body scroll for the storefront. Do **not** copy admin `h-screen overflow-hidden` (operator cockpit, bad for SEO/mobile).                                                                                                              |
+| DRY                        | No barrel `index.ts`. No cross-feature re-export shims. Pages in `src/app` stay thin.                                                                                                                                                          |
 
 Exact client rules: [API-INTEGRATION.md](API-INTEGRATION.md).
 
@@ -100,58 +100,58 @@ The admin [`docs/ROADMAP.md`](https://github.com/raouf-b-dev/ecommerce-admin-das
 
 **Copy / adapt these modules** (keep names unless Next forces a rename):
 
-| Admin source | What it actually does | Store-web |
-| :----------- | :-------------------- | :-------- |
-| `src/lib/api/client.ts` | Browser `openapi-fetch` + cookies + Bearer + 401 recovery; `403` `MUST_CHANGE_PASSWORD` **or** message `Password change required` | Phase 3. **Client-only module.** Interceptor redirects may `assign`; do not import from RSC. |
-| `src/lib/api/silent-refresh.ts` | **Raw `fetch`** to refresh (avoids client middleware re-entry); `inFlightRefresh` single-flight; `onSessionRefreshed` listener bus | Phase 3. Wire the bus into `AuthProvider` `setQueryData`. |
-| `src/lib/api/parse-api-error.ts` | `ApiRequestError`, `getErrorMessage`, `getErrorStatusCode`, `hasHttpStatus`, `isClientError` / `isServerError`, `isOptimisticLockConflict` | Phase 3. Port tests too. |
-| `src/lib/api/throw-api-error.ts` | Every feature `*-api.ts` uses `throwApiErrorFromResponse`; `throwTooManyRequests` stable copy | Phase 3. Login/register `429` is **not** “invalid password”. |
-| `src/lib/api/form-api-errors.ts` | `applyApiFormErrors` + `matchField`; **skip** inline field errors on OCC `409` | Phases 3-8. |
-| `src/lib/auth/auth-session.ts` | In-memory access token only | Phase 3. |
-| `src/lib/auth/auth-context.tsx` | Query key `['auth','session']`; `staleTime: Infinity`; **no retry on 4xx**, retry `< 2` on 5xx/network; logout `queryClient.clear()`; `onSessionRefreshed` updates session cache | Phase 3. Drop `hasPermission` / operator chrome. |
-| `src/features/auth/lib/safe-redirect-path.ts` | Same-origin `/…` only; reject `//`; reject `/login` and `/change-password` loops | Phase 3. Open-redirect footgun. |
-| `src/main.tsx` QueryClient | Module singleton - **Vite-safe, Next-unsafe** | Phase 3. Client `useState` factory; skip retry on `429`; else `failureCount < 2`. No `throwOnError`. |
-| `src/components/feedback/query-state.tsx` | `QueryStateAlert` (soft vs hard: `hasData`), `QueryLoading`, `QueryListRegion` (`aria-busy`, opacity while fetching) | Client Query surfaces only (cart, orders, session). **Not** RSC catalog pages. |
-| `src/components/feedback/action-error-alert.tsx` | Mutation banner, `aria-live="polite"` | Phases 3-8. |
-| `src/components/layout/app-layout.tsx` | Skip link; `<main id="main" tabIndex={-1}>` | Phase 2. |
-| `src/components/layout/focus-on-route-change.tsx` | Focus `#main` after client navigations | Phase 2 (Next equivalent on pathname change). |
-| `src/components/layout/route-error-boundary.tsx` | Class `componentDidCatch` | **Do not port.** Use `error.tsx` / `global-error.tsx`. |
-| `src/components/theme/*` | `useSyncExternalStore` OS sync; **zero-FOUC** inline script; `ThemeAwareToaster` (Sonner `theme={resolvedTheme}`, `richColors`, `closeButton`) | Phase 2. Storage key `store-ui-theme` (admin code uses `admin-ui-theme`, not the CONVENTIONS `vite-ui-theme` string). |
-| `src/lib/format.ts` | `formatMoney`, `formatDate`, `formatDateTime`, `formatStatusLabel` | Phases 5-8. Shopper locale. |
-| `src/lib/list-filters.ts` | `parsePositiveInt`, `parseNonNegativeNumber`, URL helpers | Phase 5+. Shared parsers, not copy-paste per feature. |
-| `src/lib/utils.ts` | `cn()` = `twMerge(clsx())` | Phase 0. |
-| `src/components/ui/status-badge.tsx` | Order/product status chrome | Phases 7-8. |
-| `scripts/generate-api-client.js` | Live OpenAPI → `schema.d.ts` | Phase 0. |
-| `scripts/generate-env.js` | `.env.example` → `.env.local`; `.secrets.example` → `.secrets` | Phase 0 / 9. |
-| `e2e/global-setup.ts` + `e2e/README.md` | Sibling `../ecommerce-store-api` `db:seed:auth`; `E2E_SKIP_DB_SEED`; login throttle **~61s**; fail-closed CI secrets | Phases 3 and 9. |
-| Playwright projects | `guest` parallel; authenticated project `workers: 1`; worker-scoped reused page (avoid full reload/cookie rotation) | Phase 9: `guest` + `customer`. |
-| `e2e/helpers/axe.ts` | Serious/critical only | Phase 9. |
-| Page specs | Hook-mocked pages; **do not** wrap page tests in `QueryClientProvider` unless testing the hook | Every feature phase. |
-| Mock `main.tsx` | **Inline** env gate before dynamic `import('@/lib/mock/browser')` so the bundler drops MSW; `onUnhandledRequest: 'bypass'` | Phase 10. Lazy demo chrome on login only. |
+| Admin source                                      | What it actually does                                                                                                                                                            | Store-web                                                                                                             |
+| :------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/api/client.ts`                           | Browser `openapi-fetch` + cookies + Bearer + 401 recovery; `403` `MUST_CHANGE_PASSWORD` **or** message `Password change required`                                                | Phase 3. **Client-only module.** Interceptor redirects may `assign`; do not import from RSC.                          |
+| `src/lib/api/silent-refresh.ts`                   | **Raw `fetch`** to refresh (avoids client middleware re-entry); `inFlightRefresh` single-flight; `onSessionRefreshed` listener bus                                               | Phase 3. Wire the bus into `AuthProvider` `setQueryData`.                                                             |
+| `src/lib/api/parse-api-error.ts`                  | `ApiRequestError`, `getErrorMessage`, `getErrorStatusCode`, `hasHttpStatus`, `isClientError` / `isServerError`, `isOptimisticLockConflict`                                       | Phase 3. Port tests too.                                                                                              |
+| `src/lib/api/throw-api-error.ts`                  | Every feature `*-api.ts` uses `throwApiErrorFromResponse`; `throwTooManyRequests` stable copy                                                                                    | Phase 3. Login/register `429` is **not** “invalid password”.                                                          |
+| `src/lib/api/form-api-errors.ts`                  | `applyApiFormErrors` + `matchField`; **skip** inline field errors on OCC `409`                                                                                                   | Phases 3-8.                                                                                                           |
+| `src/lib/auth/auth-session.ts`                    | In-memory access token only                                                                                                                                                      | Phase 3.                                                                                                              |
+| `src/lib/auth/auth-context.tsx`                   | Query key `['auth','session']`; `staleTime: Infinity`; **no retry on 4xx**, retry `< 2` on 5xx/network; logout `queryClient.clear()`; `onSessionRefreshed` updates session cache | Phase 3. Drop `hasPermission` / operator chrome.                                                                      |
+| `src/features/auth/lib/safe-redirect-path.ts`     | Same-origin `/…` only; reject `//`; reject `/login` and `/change-password` loops                                                                                                 | Phase 3. Open-redirect footgun.                                                                                       |
+| `src/main.tsx` QueryClient                        | Module singleton - **Vite-safe, Next-unsafe**                                                                                                                                    | Phase 3. Client `useState` factory; skip retry on `429`; else `failureCount < 2`. No `throwOnError`.                  |
+| `src/components/feedback/query-state.tsx`         | `QueryStateAlert` (soft vs hard: `hasData`), `QueryLoading`, `QueryListRegion` (`aria-busy`, opacity while fetching)                                                             | Client Query surfaces only (cart, orders, session). **Not** RSC catalog pages.                                        |
+| `src/components/feedback/action-error-alert.tsx`  | Mutation banner, `aria-live="polite"`                                                                                                                                            | Phases 3-8.                                                                                                           |
+| `src/components/layout/app-layout.tsx`            | Skip link; `<main id="main" tabIndex={-1}>`                                                                                                                                      | Phase 2.                                                                                                              |
+| `src/components/layout/focus-on-route-change.tsx` | Focus `#main` after client navigations                                                                                                                                           | Phase 2 (Next equivalent on pathname change).                                                                         |
+| `src/components/layout/route-error-boundary.tsx`  | Class `componentDidCatch`                                                                                                                                                        | **Do not port.** Use `error.tsx` / `global-error.tsx`.                                                                |
+| `src/components/theme/*`                          | `useSyncExternalStore` OS sync; **zero-FOUC** inline script; `ThemeAwareToaster` (Sonner `theme={resolvedTheme}`, `richColors`, `closeButton`)                                   | Phase 2. Storage key `store-ui-theme` (admin code uses `admin-ui-theme`, not the CONVENTIONS `vite-ui-theme` string). |
+| `src/lib/format.ts`                               | `formatMoney`, `formatDate`, `formatDateTime`, `formatStatusLabel`                                                                                                               | Phases 5-8. Shopper locale.                                                                                           |
+| `src/lib/list-filters.ts`                         | `parsePositiveInt`, `parseNonNegativeNumber`, URL helpers                                                                                                                        | Phase 5+. Shared parsers, not copy-paste per feature.                                                                 |
+| `src/lib/utils.ts`                                | `cn()` = `twMerge(clsx())`                                                                                                                                                       | Phase 0.                                                                                                              |
+| `src/components/ui/status-badge.tsx`              | Order/product status chrome                                                                                                                                                      | Phases 7-8.                                                                                                           |
+| `scripts/generate-api-client.js`                  | Live OpenAPI → `schema.d.ts`                                                                                                                                                     | Phase 0.                                                                                                              |
+| `scripts/generate-env.js`                         | `.env.example` → `.env.local`; `.secrets.example` → `.secrets`                                                                                                                   | Phase 0 / 9.                                                                                                          |
+| `e2e/global-setup.ts` + `e2e/README.md`           | Sibling `../ecommerce-store-api` `db:seed:auth`; `E2E_SKIP_DB_SEED`; login throttle **~61s**; fail-closed CI secrets                                                             | Phases 3 and 9.                                                                                                       |
+| Playwright projects                               | `guest` parallel; authenticated project `workers: 1`; worker-scoped reused page (avoid full reload/cookie rotation)                                                              | Phase 9: `guest` + `customer`.                                                                                        |
+| `e2e/helpers/axe.ts`                              | Serious/critical only                                                                                                                                                            | Phase 9.                                                                                                              |
+| Page specs                                        | Hook-mocked pages; **do not** wrap page tests in `QueryClientProvider` unless testing the hook                                                                                   | Every feature phase.                                                                                                  |
+| Mock `main.tsx`                                   | **Inline** env gate before dynamic `import('@/lib/mock/browser')` so the bundler drops MSW; `onUnhandledRequest: 'bypass'`                                                       | Phase 10. Lazy demo chrome on login only.                                                                             |
 
-**Admin-only - do not port:** `OperatorRoute`, `PermissionRoute`, `IndexLandingGate` / `getDefaultLandingRoute`, nav permission matrix, `NotOperatorError`, TanStack Table, Recharts, roles/users admin CRUD, inventory adjust, order Process/Ship/Deliver chrome, operator `WebSocketProvider` (low-stock / `orders.created` toasts). Shopper realtime, if ever, is Phase 14 and must follow the **live** Socket.IO contract (admin **code** uses `query.token` + `Authorization`, not CONVENTIONS `auth.token`).
+**Admin-only - do not port:** `OperatorRoute`, `PermissionRoute`, `IndexLandingGate` / `getDefaultLandingRoute`, nav permission matrix, `NotOperatorError`, TanStack Table, Recharts, roles/users admin CRUD, inventory adjust, order Process/Ship/Deliver chrome, operator `WebSocketProvider` (low-stock / `orders.created` toasts). Shopper realtime, if ever, is Phase 14 and must follow the **live** Socket.IO contract (`auth: { token }` on the handshake; the API also accepts Bearer and legacy `query.token`).
 
 ---
 
 ## Phase overview
 
-| Phase | Name                            | Status | Priority | Focus                                                              |
-| ----- | ------------------------------- | ------ | :------: | ------------------------------------------------------------------ |
-| **0** | Foundation                      | `[x]`  |  `[P0]`  | Next 16 scaffold, tooling, tests, OpenAPI client, Cache Components |
-| **1** | Agent ecosystem and conventions | `[x]`  |  `[P0]`  | AGENT policy, Next-specific CONVENTIONS, ADR template, adapters    |
-| **2** | App shell                       | `[x]`  |  `[P0]`  | Layouts, chrome, error/loading, theme, health page                 |
-| **3** | Authentication and session      | `[ ]`  |  `[P0]`  | Login, register, silent refresh, customer chrome                   |
-| **4** | Forced password change          | `[ ]`  |  `[P0]`  | Seeded customer `mustChangePassword` (do not skip)                 |
-| **5** | Catalog                         | `[ ]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
-| **6** | Cart                            | `[ ]`  |  `[P0]`  | Authenticated cart mutations + tests                               |
-| **7** | Checkout                        | `[ ]`  |  `[P0]`  | Idempotency + order polling + confirmation                         |
-| **8** | Orders and account              | `[ ]`  |  `[P0]`  | Own orders, profile read, address book                             |
-| **9** | Quality sweep                   | `[ ]`  |  `[P0]`  | Full journey, a11y, consistency, CI e2e policy                     |
-| **10** | Standalone mock preview        | `[ ]`  |  `[P1]`  | MSW `dev:mock` (Playwright still needs a live API)                 |
-| **11** | Commercial loop (ecosystem)    | `[ ]`  |  `[P1]`  | Storefront → SAGA → admin WS toast. Does **not** block Phase 12    |
-| **12** | Release gate                   | `[ ]`  |  `[P0]`  | Deploy/preview, stranger quick start, smoke                        |
-| **13** | Visual showcase                | `[ ]`  |  `[P1]`  | Hero recording, screenshots, README                                |
-| **14** | Storefront polish              | `[ ]`  |  `[P2]`  | Optional UX after the gate (empty-state guides, command palette)   |
+| Phase  | Name                            | Status | Priority | Focus                                                              |
+| ------ | ------------------------------- | ------ | :------: | ------------------------------------------------------------------ |
+| **0**  | Foundation                      | `[x]`  |  `[P0]`  | Next 16 scaffold, tooling, tests, OpenAPI client, Cache Components |
+| **1**  | Agent ecosystem and conventions | `[x]`  |  `[P0]`  | AGENT policy, Next-specific CONVENTIONS, ADR template, adapters    |
+| **2**  | App shell                       | `[x]`  |  `[P0]`  | Layouts, chrome, error/loading, theme, health page                 |
+| **3**  | Authentication and session      | `[x]`  |  `[P0]`  | Login, register, silent refresh, customer chrome                   |
+| **4**  | Forced password change          | `[ ]`  |  `[P0]`  | Seeded customer `mustChangePassword` (do not skip)                 |
+| **5**  | Catalog                         | `[ ]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
+| **6**  | Cart                            | `[ ]`  |  `[P0]`  | Authenticated cart mutations + tests                               |
+| **7**  | Checkout                        | `[ ]`  |  `[P0]`  | Idempotency + order polling + confirmation                         |
+| **8**  | Orders and account              | `[ ]`  |  `[P0]`  | Own orders, profile read, address book                             |
+| **9**  | Quality sweep                   | `[ ]`  |  `[P0]`  | Full journey, a11y, consistency, CI e2e policy                     |
+| **10** | Standalone mock preview         | `[ ]`  |  `[P1]`  | MSW `dev:mock` (Playwright still needs a live API)                 |
+| **11** | Commercial loop (ecosystem)     | `[ ]`  |  `[P1]`  | Storefront → SAGA → admin WS toast. Does **not** block Phase 12    |
+| **12** | Release gate                    | `[ ]`  |  `[P0]`  | Deploy/preview, stranger quick start, smoke                        |
+| **13** | Visual showcase                 | `[ ]`  |  `[P1]`  | Hero recording, screenshots, README                                |
+| **14** | Storefront polish               | `[ ]`  |  `[P2]`  | Optional UX after the gate (empty-state guides, command palette)   |
 
 ---
 
@@ -189,17 +189,17 @@ The admin [`docs/ROADMAP.md`](https://github.com/raouf-b-dev/ecommerce-admin-das
 
 ### Files to create (minimal outline)
 
-| File | Purpose (keep short) |
-| :--- | :------------------- |
-| `AGENT.md` | Authority order; non-negotiables; link to docs below |
-| `.agents/PROJECT-CONTEXT.md` | Stack, folders, RSC vs client, API base URL, CORS, links to API + admin docs |
-| `docs/ai/README.md` | Index of AI docs |
-| `docs/ai/CONVENTIONS.md` | Feature layout, RSC/client split, Query/forms, errors, naming |
-| `docs/ai/GOVERNANCE-AND-QUALITY-GATES.md` | Merge gates: lint, typecheck, tests, audit, Playwright policy |
-| `docs/ai/WORKFLOW-PLAYBOOK.md` | Roadmap task → implement → verify |
-| `docs/architecture/ARCHITECTURE.md` | System context + composition (write the real tree, not a wish) |
-| `docs/architecture/adr/README.md` | ADR index; immutable bodies (same lifecycle as admin/API) |
-| `AGENTS.md` / `CLAUDE.md` / `.cursor/rules/*` | Thin adapters that **point at** `AGENT.md` (no forked policy) |
+| File                                          | Purpose (keep short)                                                         |
+| :-------------------------------------------- | :--------------------------------------------------------------------------- |
+| `AGENT.md`                                    | Authority order; non-negotiables; link to docs below                         |
+| `.agents/PROJECT-CONTEXT.md`                  | Stack, folders, RSC vs client, API base URL, CORS, links to API + admin docs |
+| `docs/ai/README.md`                           | Index of AI docs                                                             |
+| `docs/ai/CONVENTIONS.md`                      | Feature layout, RSC/client split, Query/forms, errors, naming                |
+| `docs/ai/GOVERNANCE-AND-QUALITY-GATES.md`     | Merge gates: lint, typecheck, tests, audit, Playwright policy                |
+| `docs/ai/WORKFLOW-PLAYBOOK.md`                | Roadmap task → implement → verify                                            |
+| `docs/architecture/ARCHITECTURE.md`           | System context + composition (write the real tree, not a wish)               |
+| `docs/architecture/adr/README.md`             | ADR index; immutable bodies (same lifecycle as admin/API)                    |
+| `AGENTS.md` / `CLAUDE.md` / `.cursor/rules/*` | Thin adapters that **point at** `AGENT.md` (no forked policy)                |
 
 Optional later: `.agents/skills/` only if you adopt the API skills-sync model.
 
@@ -257,14 +257,14 @@ Optional later: `.agents/skills/` only if you adopt the API skills-sync model.
 
 ### ADRs to open in this phase (Proposed → Accepted as the matching phase lands)
 
-| ADR | Decision | Lands |
-| :-- | :------- | :---- |
+| ADR      | Decision                                                                                   | Lands |
+| :------- | :----------------------------------------------------------------------------------------- | :---- |
 | ADR-0001 | Browser OpenAPI client owns session and mutations; RSC only fetches public catalog; no BFF | 1 / 3 |
-| ADR-0002 | In-memory access token + HttpOnly refresh cookie (port admin) | 3 |
-| ADR-0003 | Single-flight silent refresh + one domain retry | 3 |
-| ADR-0004 | No guest cart; login/register gate on cart and checkout | 6 |
-| ADR-0005 | Checkout completion is order-resource polling, not a job-queue API | 7 |
-| ADR-0006 | Do not add `proxy.ts` for auth or headers; `next.config.ts` `headers()` for CSP/etc. | 0 / 2 |
+| ADR-0002 | In-memory access token + HttpOnly refresh cookie (port admin)                              | 3     |
+| ADR-0003 | Single-flight silent refresh + one domain retry                                            | 3     |
+| ADR-0004 | No guest cart; login/register gate on cart and checkout                                    | 6     |
+| ADR-0005 | Checkout completion is order-resource polling, not a job-queue API                         | 7     |
+| ADR-0006 | Do not add `proxy.ts` for auth or headers; `next.config.ts` `headers()` for CSP/etc.       | 0 / 2 |
 
 **Scope checklist:**
 
@@ -314,22 +314,23 @@ Optional later: `.agents/skills/` only if you adopt the API skills-sync model.
 
 **Scope:**
 
-- [ ] Browser `apiClient` from admin `client.ts` **in a client-only module**: cookies, Bearer, `recoverFromDomain401`. Never silent-retry `/authentication/*`. Do not import this file from Server Components.
-- [ ] Port `silent-refresh.ts`: raw `fetch`; `inFlightRefresh`; `onSessionRefreshed`.
-- [ ] Port RFC 9110 helpers + tests (`parse-api-error.ts`, `throw-api-error.ts`, `form-api-errors.ts`).
-- [ ] Client `Providers`: `useState(() => new QueryClient())` + defaults (no retry on `429`; else `failureCount < 2`). No `throwOnError`. Do not create QueryClient at module scope or import it from RSC.
-- [ ] `AuthProvider`: `['auth','session']`, `staleTime: Infinity`, never retry `isClientError`, retry `< 2` on 5xx/network; `onSessionRefreshed` → `setQueryData`; logout `clearAccessToken` + `queryClient.clear()`.
-- [ ] Login and register (RHF + Zod). `applyApiFormErrors`. Distinct **429** copy vs invalid credentials.
-- [ ] After login/logout/password-change **forms**: `router.push(safeRedirectPath)` + `router.refresh()`. Leave `window.location.assign` only on the OpenAPI interceptor panic path (failed refresh / forced password), matching admin `client.ts`.
-- [ ] Access token in memory; refresh cookie only. No `localStorage` **tokens**.
-- [ ] `safeRedirectPath`: same-origin path; reject `//`; reject `/login` and `/change-password` loops.
-- [ ] Auth-aware header. **Do not** port `OperatorRoute`, `PermissionRoute`, or `IndexLandingGate`.
-- [ ] Client guards: layout-level `ProtectedRoute` / `GuestRoute` under `(account)` / `(auth)`, not a wrap on every page. Unauthenticated → `/login?redirect=` + encoded `safeRedirectPath`. Do not invent a session-hint cookie in v1 (the access token is in memory; a short loading splash is the honest UX).
-- [ ] `401` after failed recovery → sign in. Other `403` → forbidden. Do not bounce to login on boot 5xx with no retry.
-- [ ] Accept any authenticated shopper session. RSC catalog still sends no Bearer.
-- [ ] Confirm API CORS allows `http://localhost:3100` with credentials.
-- [ ] Tests: validation, guards, silent refresh, `safeRedirectPath` (RTL). Playwright for login success/failure (throttle ~61s).
-- [ ] Accept ADR-0001, ADR-0002, ADR-0003. Update [API-INTEGRATION.md](API-INTEGRATION.md)
+- [x] Browser `apiClient` from admin `client.ts` **in a client-only module**: cookies, Bearer, `recoverFromDomain401`. Never silent-retry `/authentication/*`. Do not import this file from Server Components.
+- [x] Port `silent-refresh.ts`: raw `fetch`; `inFlightRefresh`; `onSessionRefreshed`.
+- [x] Port RFC 9110 helpers + tests (`parse-api-error.ts`, `throw-api-error.ts`, `form-api-errors.ts`).
+- [x] Client `Providers`: per-server-render QueryClient + browser-only reuse (`getQueryClient`) with defaults (no retry on `429`; else `failureCount < 2`). No `throwOnError`; never share Query cache across SSR users or import it from RSC.
+- [x] `AuthProvider`: `['auth','session']`, browser-only bootstrap, `staleTime: Infinity`, never retry `isClientError`, retry `< 2` on 5xx/network; `onSessionRefreshed` → `setQueryData`; logout clears access token, writes session `null`, and removes non-auth queries (no loading flicker).
+- [x] Keep the session alive for the refresh-cookie lifetime: refresh a missing/malformed/near-expiry access token before authenticated browser requests; schedule from JWT `exp`; refetch on focus/reconnect only when unusable. Bootstrap, proactive refresh, and domain-401 recovery share one single-flight call; a Web Lock serializes refresh/logout across tabs. Only refresh `401` logs out; `429`/`5xx`/network errors keep session state and surface retry.
+- [x] Login and register (RHF + Zod). `applyApiFormErrors`. Distinct **429** copy vs invalid credentials.
+- [x] After login/logout/password-change **forms**: `router.push(safeRedirectPath)` + `router.refresh()`. Leave `window.location.assign` only on the OpenAPI interceptor panic path (failed refresh / forced password), matching admin `client.ts`.
+- [x] Access token in memory; refresh cookie only. No `localStorage` **tokens**.
+- [x] `safeRedirectPath`: same-origin path; reject `//`; reject `/login` and `/change-password` loops.
+- [x] Auth-aware header. **Do not** port `OperatorRoute`, `PermissionRoute`, or `IndexLandingGate`.
+- [x] Client guards: layout-level `ProtectedRoute` / `GuestRoute` under `(account)` / `(auth)`, not a wrap on every page. Unauthenticated → `/login?redirect=` + encoded `safeRedirectPath`. Do not invent a session-hint cookie in v1 (the access token is in memory; a short loading splash is the honest UX).
+- [x] `401` after failed recovery → sign in. Other `403` → forbidden. Do not bounce to login on boot 5xx with no retry.
+- [x] Accept any authenticated shopper session. RSC catalog still sends no Bearer.
+- [x] Confirm API CORS allows `http://localhost:3100` with credentials.
+- [x] Tests: validation, guards, silent refresh, `safeRedirectPath` (RTL). Playwright for login success/failure (throttle ~61s).
+- [x] Accept ADR-0001, ADR-0002, ADR-0003, ADR-0007. Update [API-INTEGRATION.md](API-INTEGRATION.md)
 
 **Done when:** A registered (or seeded-after-Phase-4) customer can establish a session, refresh the page, and stay signed in via the cookie; unauthenticated users cannot open a protected stub; tests green.
 
@@ -572,7 +573,7 @@ Optional later: `.agents/skills/` only if you adopt the API skills-sync model.
 - [ ] Richer empty states / first-purchase guidance
 - [ ] Command palette or keyboard product search (only if catalog search is already URL-driven)
 - [ ] View Transitions / React 19 `Activity` where they improve real navigation, not decoration
-- [ ] Customer-facing WebSocket for own-order updates **only if** the API documents a shopper event. If you add it: connect like admin **code** (`query.token` + `Authorization` Bearer), connect on session / disconnect on logout, invalidate own-order query keys. Do **not** copy operator low-stock toasts or `dashboardKeys`. Otherwise keep Phase 7 polling.
+- [ ] Customer-facing WebSocket for own-order updates **only if** the API documents a shopper event. If you add it: connect like admin (`auth: { token }` on the Socket.IO handshake), connect on session / disconnect on logout, invalidate own-order query keys. Do **not** copy operator low-stock toasts or `dashboardKeys`. Otherwise keep Phase 7 polling.
 
 ---
 
