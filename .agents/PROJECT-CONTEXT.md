@@ -8,7 +8,8 @@ Read this file first for fast orientation. It summarizes `ecommerce-store-web` w
 - UI: React 19
 - Language: TypeScript (strict, `noUncheckedIndexedAccess`)
 - Styling: Tailwind CSS v4 + shadcn/ui (Radix) + Sonner
-- Public reads: React Server Components (unauthenticated catalog, when wired)
+- Theme: Light / Dark / System via `useSyncExternalStore`, storage key `store-ui-theme`, FOUC script in the root layout
+- Public reads: React Server Components (unauthenticated catalog, when wired). Health diagnostics use the server OpenAPI client.
 - Client data: TanStack Query for session, cart, checkout, and orders (not wired yet)
 - Forms: React Hook Form + Zod (when forms exist)
 - API: `openapi-fetch` + generated `src/lib/api/generated/schema.d.ts`
@@ -28,6 +29,7 @@ This repository is the customer storefront for `ecommerce-store-api`.
 
 - Storefront intent: `http://localhost:3100` (`npm run dev` and `npm run start` both bind 3100; they cannot share the port)
 - API origin: `NEXT_PUBLIC_API_BASE_URL` (default `http://localhost:3000`)
+- Storefront origin: `NEXT_PUBLIC_STOREFRONT_ORIGIN` (default `http://localhost:3100`, used for `metadataBase`)
 - Admin SPA (sibling): `http://localhost:5174`
 - Live API boot, Docker, and seed credentials: API [README](https://github.com/raouf-b-dev/ecommerce-store-api#quick-start), [LOCAL-SETUP.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/LOCAL-SETUP.md), and [SEEDING.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/SEEDING.md)
 - Cross-origin browser calls assume the API allows `http://localhost:3100` with `credentials: true`
@@ -36,13 +38,21 @@ This repository is the customer storefront for `ecommerce-store-api`.
 
 ## Directory Map
 
-- `src/app/` - thin App Router routes, layouts, metadata
-- `src/components/ui/` - shadcn primitives (button, input, card, alert, sonner)
-- `src/features/` - feature folders (none yet; catalog, cart, checkout, auth, account)
+- `src/app/` - thin App Router routes, layouts, metadata. Groups: `(shop)` (chrome), `(auth)` (minimal chrome), `(account)` (shop chrome, no guards yet)
+- `src/app/providers.tsx` - Theme + Toaster only
+- `src/components/layout/` - skip link, header, footer, mobile nav, chrome, focus helper
+- `src/components/theme/` - theme store, provider, toggle, FOUC script constant, toaster
+- `src/components/feedback/` - `QueryStateAlert`, `QueryLoading`, `QueryListRegion`, `ActionErrorAlert` (client Query later; not for RSC catalog)
+- `src/components/ui/` - shadcn primitives (button, input, card, alert, sheet, segmented-control)
+- `src/features/health/` - diagnostics `/status` (server OpenAPI health + readiness)
+- `src/lib/format.ts` - money/date helpers (`en-US` until i18n)
+- `src/lib/list-filters.ts` - shared URL parsers
 - `src/lib/utils.ts` - `cn()` class merger (re-exports the shadcn `cn` package)
+- `src/lib/api/server-client.ts` - `import 'server-only'` OpenAPI client (no cookies, no Bearer)
+- `src/lib/api/parse-api-error.ts` - RFC 9110 helpers
 - `src/lib/api/generated/schema.d.ts` - generated OpenAPI types (`npm run api:generate`)
 - `src/test/setup.ts` - Vitest Testing Library setup
-- `e2e/` - Playwright (home smoke today; guest/customer projects later)
+- `e2e/` - Playwright (home chrome, skip link, theme, mobile nav, `/status`)
 - `scripts/` - `generate-api-client.js`, `generate-env.js`
 - `docs/` - roadmap, API integration, AI conventions, ADRs
 
@@ -51,6 +61,7 @@ This repository is the customer storefront for `ecommerce-store-api`.
 | Surface | How it talks to the API |
 | :------ | :---------------------- |
 | Public catalog | RSC. No access token. `import 'server-only'` client when fetchers exist. |
+| Diagnostics `/status` | RSC via `server-client.ts`. Unauthenticated health/readiness. |
 | Session, cart, checkout, orders, account | Browser `openapi-fetch` + TanStack Query. Not implemented yet. |
 | Next Server Actions / Route Handlers | Do not use them to proxy the ecommerce API. |
 
