@@ -9,7 +9,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
 </p>
 
-> Customer storefront for the [E-commerce Store API](https://github.com/raouf-b-dev/ecommerce-store-api). Built with Next.js. Business rules stay in the API.
+> Intended customer storefront for the [E-commerce Store API](https://github.com/raouf-b-dev/ecommerce-store-api). Next.js. Not scaffolded yet. Business rules stay in the API.
 
 ## Table of Contents
 
@@ -28,18 +28,16 @@
 
 ## What this is
 
-Next.js App Router storefront for the NestJS ecommerce API. Covers catalog, cart, checkout, orders, and account flows over the API’s versioned HTTP surface (see OpenAPI).
+Intended Next.js App Router storefront for the NestJS ecommerce API (catalog, cart, checkout, orders, account). Application code is not scaffolded yet.
 
-This app handles UI, routing, and client caching. Pricing, stock, checkout, auth, and permissions are enforced by the API so the same backend can serve admin and mobile clients without special-casing this UI.
+When it exists, this app should handle UI, routing, and client caching only. Pricing, stock, checkout, auth, and permissions stay in the API.
 
 **Current limits**
 
 | Topic            | Status                                                                 |
 | :--------------- | :--------------------------------------------------------------------- |
 | Application code | Not scaffolded yet. Build order: [`docs/ROADMAP.md`](docs/ROADMAP.md). |
-| Hosted demo      | None yet. Run locally.                                                 |
-| Payments UI      | Tracks whatever the API exposes (mock/test provider for now).          |
-| BFF              | Not used. Talks to the API directly.                                   |
+| Hosted demo      | None.                                                                  |
 
 ---
 
@@ -47,36 +45,9 @@ This app handles UI, routing, and client caching. Pricing, stock, checkout, auth
 
 ## Quick start
 
-### Prerequisites
+There is no app to run yet. Use the [API README](https://github.com/raouf-b-dev/ecommerce-store-api) if you want a local backend.
 
-- **Node.js** >= 24
-- **npm** >= 11
-- Local [ecommerce-store-api](https://github.com/raouf-b-dev/ecommerce-store-api) on `http://localhost:3000`
-
-### Run the API first
-
-Follow the API local boot guide (do not fork script names here; they can change):
-
-[`docs/development/LOCAL-SETUP.md`](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/LOCAL-SETUP.md)
-
-Seeded customer account: API [`docs/development/SEEDING.md`](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/SEEDING.md) (local fixtures only; never production).
-
-### Run this app (after scaffold)
-
-```bash
-cd ../ecommerce-store-web
-npm install
-cp .env.example .env.local
-npm run dev
-```
-
-| Service            | URL                                                 |
-| :----------------- | :-------------------------------------------------- |
-| Storefront         | `http://localhost:3100` (confirm in project config) |
-| API                | `http://localhost:3000`                             |
-| Swagger (contract) | `http://localhost:3000/api/docs`                    |
-
-Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md). Security baseline: [`SECURITY.md`](SECURITY.md).
+Client rules for when this repo is scaffolded: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md). Security baseline: [`SECURITY.md`](SECURITY.md).
 
 ---
 
@@ -112,7 +83,7 @@ Admin SPA / mobile apps --------------------------------------------+
 | Language       | TypeScript (strict)                                                 |
 | Styling        | Tailwind CSS + shadcn/ui (Radix)                                    |
 | Client data    | TanStack Query                                                      |
-| Local UI state | React state; Zustand only when several trees need the same UI state |
+| Local UI state | React state |
 | Forms          | React Hook Form + Zod                                               |
 | API            | Typed OpenAPI client                                                |
 | Tests          | Vitest, Testing Library, Playwright                                 |
