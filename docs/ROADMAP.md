@@ -137,8 +137,8 @@ The admin [`docs/ROADMAP.md`](https://github.com/raouf-b-dev/ecommerce-admin-das
 
 | Phase | Name                            | Status | Priority | Focus                                                              |
 | ----- | ------------------------------- | ------ | :------: | ------------------------------------------------------------------ |
-| **0** | Foundation                      | `[ ]`  |  `[P0]`  | Next 16 scaffold, tooling, tests, OpenAPI client, Cache Components |
-| **1** | Agent ecosystem and conventions | `[ ]`  |  `[P0]`  | AGENT policy, Next-specific CONVENTIONS, ADR template, adapters    |
+| **0** | Foundation                      | `[x]`  |  `[P0]`  | Next 16 scaffold, tooling, tests, OpenAPI client, Cache Components |
+| **1** | Agent ecosystem and conventions | `[x]`  |  `[P0]`  | AGENT policy, Next-specific CONVENTIONS, ADR template, adapters    |
 | **2** | App shell                       | `[ ]`  |  `[P0]`  | Layouts, chrome, error/loading, theme, health page                 |
 | **3** | Authentication and session      | `[ ]`  |  `[P0]`  | Login, register, silent refresh, customer chrome                   |
 | **4** | Forced password change          | `[ ]`  |  `[P0]`  | Seeded customer `mustChangePassword` (do not skip)                 |
@@ -163,19 +163,19 @@ The admin [`docs/ROADMAP.md`](https://github.com/raouf-b-dev/ecommerce-admin-das
 
 **Scope:**
 
-- [ ] Scaffold with `create-next-app@latest`: App Router, TypeScript, ESLint, Tailwind v4, `src/` directory. **No** Pages Router. **No** `middleware.ts`. **No** `proxy.ts` unless a later phase proves a rewrite need.
-- [ ] `next.config.ts`: `cacheComponents: true`; `reactCompiler: true` if current stable docs mark it stable; `typedRoutes` on. Do not set `experimental.ppr`. Security headers via `headers()` (CSP/frame/etc.) - not Proxy.
-- [ ] Path aliases (`@/*` → `src/*`), strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `forceConsistentCasingInFileNames`). Keep the TypeScript major `create-next-app` installs (do not force admin’s TS 6 if Next does not support it). `engines` Node `>=24` / npm `>=11`; `.nvmrc` = `24`.
-- [ ] Prettier (local format; not a merge gate unless you choose otherwise). ESLint flat config: `typescript-eslint`, `react-hooks` (React 19), `jsx-a11y`, `consistent-type-imports`. Scripts: `dev`, `build`, `lint`, `lint:fix`, `typecheck`, `test`, `test:watch`, `test:e2e`. Lint is `eslint .`, not `next lint`.
-- [ ] shadcn/ui init for Next + Tailwind v4 (Zod major that the current `@hookform/resolvers` supports). `cn()` via `clsx` + `tailwind-merge`. Primitives under `src/components/ui/`. Add Sonner.
-- [ ] `.env.example` with `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000` (no secrets). Use `process.env.NEXT_PUBLIC_*` - **not** Vite `import.meta.env`. Port admin `scripts/generate-env.js`: `npm run env:init` / `env:init:force`. `.secrets.example` for Playwright (no passwords committed).
-- [ ] `.gitignore` ignores `.env`, `.env.local`, `.env*.local`, `.secrets`, and other secret files.
-- [ ] OpenAPI typed client: port `scripts/generate-api-client.js` → `src/lib/api/generated/schema.d.ts` + `npm run api:generate` from live Swagger (`openapi-fetch` + `openapi-typescript`).
-- [ ] Vitest + Testing Library: jsdom, globals, `@testing-library/jest-dom` (`src/test/setup.ts`). One sample test. Exclude `e2e/`.
-- [ ] Playwright placeholder smoke hitting `/`. Config later grows `guest` / `customer` projects (Phase 9).
-- [ ] CI: copy admin shape - parallel `lint`, `typecheck`, `unit-tests`, `build`, `audit` (`npm audit --omit=dev --audit-level=high`), composite `.github/actions/setup-node-ci` (Node from `.nvmrc` + `npm ci`), aggregator job `ci`. Dependabot weekly npm + GitHub Actions.
-- [ ] Dev server on port **3100** (`strictPort`). Document that `dev` and `start` cannot share the port.
-- [ ] Companion (API repo, tiny): add `http://localhost:3100` to `CORS_ALLOWED_ORIGINS` in `.env.example` / local env. Credentials CORS. Do not wildcard `*`.
+- [x] Scaffold with `create-next-app@latest`: App Router, TypeScript, ESLint, Tailwind v4, `src/` directory. **No** Pages Router. **No** `middleware.ts`. **No** `proxy.ts` unless a later phase proves a rewrite need.
+- [x] `next.config.ts`: `cacheComponents: true`; `reactCompiler: true` if current stable docs mark it stable; `typedRoutes` on. Do not set `experimental.ppr`. Security headers via `headers()` (CSP/frame/etc.) - not Proxy.
+- [x] Path aliases (`@/*` → `src/*`), strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `forceConsistentCasingInFileNames`). Keep the TypeScript major `create-next-app` installs (do not force admin’s TS 6 if Next does not support it). `engines` Node `>=24` / npm `>=11`; `.nvmrc` = `24`.
+- [x] Prettier (local format; not a merge gate unless you choose otherwise). ESLint flat config: `typescript-eslint`, `react-hooks` (React 19), `jsx-a11y`, `consistent-type-imports`. Scripts: `dev`, `build`, `lint`, `lint:fix`, `typecheck`, `test`, `test:watch`, `test:e2e`. Lint is `eslint .`, not `next lint`.
+- [x] shadcn/ui init for Next + Tailwind v4 (Zod major that the current `@hookform/resolvers` supports). `cn()` via `clsx` + `tailwind-merge`. Primitives under `src/components/ui/`. Add Sonner.
+- [x] `.env.example` with `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000` (no secrets). Use `process.env.NEXT_PUBLIC_*` - **not** Vite `import.meta.env`. Port admin `scripts/generate-env.js`: `npm run env:init` / `env:init:force`. `.secrets.example` for Playwright (no passwords committed).
+- [x] `.gitignore` ignores `.env`, `.env.local`, `.env*.local`, `.secrets`, and other secret files.
+- [x] OpenAPI typed client: port `scripts/generate-api-client.js` → `src/lib/api/generated/schema.d.ts` + `npm run api:generate` from live Swagger (`openapi-fetch` + `openapi-typescript`).
+- [x] Vitest + Testing Library: jsdom, globals, `@testing-library/jest-dom` (`src/test/setup.ts`). One sample test. Exclude `e2e/`.
+- [x] Playwright placeholder smoke hitting `/`. Config later grows `guest` / `customer` projects (Phase 9).
+- [x] CI: copy admin shape - parallel `lint`, `typecheck`, `unit-tests`, `build`, `audit` (`npm audit --omit=dev --audit-level=high`), composite `.github/actions/setup-node-ci` (Node from `.nvmrc` + `npm ci`), aggregator job `ci`. Dependabot weekly npm + GitHub Actions.
+- [x] Dev server on port **3100** (`strictPort`). Document that `dev` and `start` cannot share the port.
+- [x] Companion (API repo, tiny): add `http://localhost:3100` to `CORS_ALLOWED_ORIGINS` in `.env.example` / local env. Credentials CORS. Do not wildcard `*`.
 
 **Done when:** `npm run lint`, `typecheck`, and `test` pass on a clean install; `npm run dev` serves an empty App Router shell on **3100**.
 
@@ -268,10 +268,10 @@ Optional later: `.agents/skills/` only if you adopt the API skills-sync model.
 
 **Scope checklist:**
 
-- [ ] Create all files in the table above
-- [ ] Link them from the root README docs table
-- [ ] Point adapters at `AGENT.md` without duplicating rules
-- [ ] ADR index exists; bodies follow admin/API immutability rules
+- [x] Create all files in the table above
+- [x] Link them from the root README docs table
+- [x] Point adapters at `AGENT.md` without duplicating rules
+- [x] ADR index exists; bodies follow admin/API immutability rules
 
 **Done when:** A new chat can follow `AGENT.md` + `PROJECT-CONTEXT.md` and know stack, RSC/client boundary, session model, and quality gates without reading the whole roadmap.
 

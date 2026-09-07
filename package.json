@@ -1,0 +1,76 @@
+{
+  "name": "ecommerce-store-web",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Customer storefront for the E-commerce Store API.",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3100",
+    "build": "next build",
+    "start": "next start --port 3100",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "api:generate": "node ./scripts/generate-api-client.js",
+    "env:init": "node ./scripts/generate-env.js",
+    "env:init:force": "node ./scripts/generate-env.js --overwrite",
+    "env:init:secrets": "node ./scripts/generate-env.js --secrets-only",
+    "env:init:secrets:force": "node ./scripts/generate-env.js --secrets-only --overwrite"
+  },
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raouf-b-dev/ecommerce-store-web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/raouf-b-dev/ecommerce-store-web/issues"
+  },
+  "homepage": "https://github.com/raouf-b-dev/ecommerce-store-web#readme",
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cn": "^0.2.6",
+    "lucide-react": "^1.42.0",
+    "next": "16.3.4",
+    "next-themes": "^0.4.6",
+    "openapi-fetch": "^0.17.0",
+    "radix-ui": "^1.6.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "shadcn": "^4.21.0",
+    "sonner": "^2.0.8",
+    "tailwind-merge": "^3.4.0",
+    "tw-animate-css": "^1.4.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.6",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.2",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^16.4.0",
+    "jsdom": "^27.0.1",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "typescript-eslint": "^8.46.2",
+    "vitest": "^4.0.16"
+  }
+}
