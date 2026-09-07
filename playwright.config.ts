@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -9,6 +11,7 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
     baseURL: 'http://localhost:3100',
     trace: 'on-first-retry',
+    ...(executablePath ? { launchOptions: { executablePath } } : {}),
   },
   webServer: {
     command: 'npm run dev',
