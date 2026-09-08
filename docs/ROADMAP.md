@@ -144,7 +144,7 @@ The following patterns belong to administrative consoles and are explicitly **ex
 | **1**  | Agent ecosystem and conventions           | `[x]`  |  `[P0]`  | AGENT policy, Next-specific CONVENTIONS, ADR template, adapters    |
 | **2**  | App shell                                 | `[x]`  |  `[P0]`  | Layouts, chrome, error/loading, theme, health page                 |
 | **3**  | Authentication and session                | `[x]`  |  `[P0]`  | Login, register, silent refresh, customer chrome                   |
-| **4**  | Forced password change                    | `[ ]`  |  `[P0]`  | Seeded customer `mustChangePassword` (do not skip)                 |
+| **4**  | Forced password change                    | `[x]`  |  `[P0]`  | Seeded customer `mustChangePassword` (do not skip)                 |
 | **5**  | Catalog                                   | `[ ]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
 | **6**  | Cart                                      | `[ ]`  |  `[P0]`  | Authenticated cart mutations + tests                               |
 | **7**  | Checkout                                  | `[ ]`  |  `[P0]`  | Idempotency + order polling + confirmation                         |
@@ -352,7 +352,7 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 - [x] Parse `mustChangePassword` on login, refresh, and change-password responses
 - [x] Global `403` redirect on `apiClient`: `code === 'MUST_CHANGE_PASSWORD'` **or** message contains `Password change required` (do not rely on `code` alone)
 - [x] `/change-password` route (auth layout, no shopping chrome)
-- [x] Guards: cannot enter shop/account until the flag is clear; cannot skip via URL (`safeRedirectPath` already rejects this path as a post-login target)
+- [x] Guards: public shop gate is non-blocking during bootstrap but reactively redirects once flagged; private account routes strictly block until the flag is clear; cannot skip via URL (`safeRedirectPath` already rejects this path as a post-login target)
 - [x] Change-password form (RHF + Zod) wired to API; `applyApiFormErrors`
 - [x] Sign out on the change-password page stays on the auth view
 - [x] Component tests for guards and validation
