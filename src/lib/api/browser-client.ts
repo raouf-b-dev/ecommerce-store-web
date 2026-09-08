@@ -91,7 +91,8 @@ export async function attachAccessToken(request: Request): Promise<void> {
     return;
   }
   if (
-    url.pathname.includes('/authentication/logout') &&
+    (url.pathname.includes('/authentication/logout') ||
+      url.pathname.includes('/authentication/change-password')) &&
     request.headers.has('Authorization')
   ) {
     return;

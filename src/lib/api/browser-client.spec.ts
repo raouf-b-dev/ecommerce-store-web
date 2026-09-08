@@ -65,6 +65,19 @@ describe('browser client auth middleware', () => {
     expect(request.headers.get('Authorization')).toBe('Bearer locked-token');
   });
 
+  it('does not nest refresh when change-password already carries a locked Bearer', async () => {
+    const request = new Request(
+      'http://localhost:3000/v1/authentication/change-password',
+      {
+        method: 'POST',
+        headers: { Authorization: 'Bearer locked-token' },
+      },
+    );
+    await attachAccessToken(request);
+    expect(ensureFreshAccessToken).not.toHaveBeenCalled();
+    expect(request.headers.get('Authorization')).toBe('Bearer locked-token');
+  });
+
   it('replays a consumed POST body after a successful domain 401 refresh', async () => {
     vi.mocked(silentRefreshAccessToken).mockResolvedValue('fresh-token');
     const fetchMock = vi

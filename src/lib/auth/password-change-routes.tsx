@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   QueryLoading,
   QueryStateAlert,
 } from '@/components/feedback/query-state';
 import {
   getChangePasswordRedirectPath,
+  getLoginRedirectPath,
   navigateAfterLoginPath,
 } from '@/features/auth/lib/auth-routes';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -23,18 +24,18 @@ type RouteProps = {
 export function RequirePasswordChanged({ children }: RouteProps) {
   const { session } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!session?.mustChangePassword) {
       return;
     }
 
-    router.replace(
-      getChangePasswordRedirectPath(
-        `${window.location.pathname}${window.location.search}`,
-      ),
-    );
-  }, [session, router]);
+    const search = searchParams.toString();
+    const currentPath = `${pathname}${search ? `?${search}` : ''}`;
+    router.replace(getChangePasswordRedirectPath(currentPath));
+  }, [session, router, pathname, searchParams]);
 
   return children;
 }
@@ -46,7 +47,7 @@ export function ChangePasswordRoute({ children }: RouteProps) {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.replace('/login');
+      router.replace(getLoginRedirectPath(searchParams.get('redirect')));
       return;
     }
 

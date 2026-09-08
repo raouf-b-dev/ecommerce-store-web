@@ -45,6 +45,7 @@ type AuthContextValue = {
   register: (input: RegisterInput) => Promise<AuthSession>;
   changePassword: (input: ChangePasswordInput) => Promise<AuthSession>;
   logout: () => Promise<void>;
+  clearLocalSession: () => void;
   retrySession: () => void;
 };
 
@@ -136,21 +137,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  function clearLocalSession() {
+    clearAccessToken();
+    queryClient.setQueryData(AUTH_SESSION_QUERY_KEY, null);
+    queryClient.removeQueries({
+      predicate: (query) => query.queryKey[0] !== 'auth',
+    });
+  }
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       logoutInProgress.current = true;
       await queryClient.cancelQueries({ queryKey: AUTH_SESSION_QUERY_KEY });
-      try {
-        await logoutRequest();
-      } finally {
-        clearAccessToken();
-      }
+      await logoutRequest();
     },
     onSuccess: () => {
-      queryClient.setQueryData(AUTH_SESSION_QUERY_KEY, null);
-      queryClient.removeQueries({
-        predicate: (query) => query.queryKey[0] !== 'auth',
-      });
+      clearLocalSession();
       router.push('/login');
       router.refresh();
     },
@@ -179,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register: (input) => registerMutation.mutateAsync(input),
     changePassword: (input) => changePasswordMutation.mutateAsync(input),
     logout: () => logoutMutation.mutateAsync(),
+    clearLocalSession,
     retrySession: () => {
       void queryClient.refetchQueries({ queryKey: AUTH_SESSION_QUERY_KEY });
     },

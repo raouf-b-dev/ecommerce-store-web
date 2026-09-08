@@ -11,6 +11,8 @@ import { ProtectedRoute } from '@/lib/auth/protected-route';
 const mocks = vi.hoisted(() => ({
   replace: vi.fn(),
   retrySession: vi.fn(),
+  pathname: '/account',
+  searchParams: new URLSearchParams('tab=orders'),
   auth: {
     status: 'loading',
     sessionError: null as unknown,
@@ -24,8 +26,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: mocks.replace }),
-  usePathname: () => '/account',
-  useSearchParams: () => new URLSearchParams('tab=orders'),
+  usePathname: () => mocks.pathname,
+  useSearchParams: () => mocks.searchParams,
 }));
 vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: () => ({
@@ -135,7 +137,8 @@ describe('forced-password routes', () => {
     mocks.auth.sessionError = null;
     mocks.auth.mustChangePassword = false;
     mocks.auth.session = null;
-    window.history.replaceState({}, '', '/products?category=books');
+    mocks.pathname = '/products';
+    mocks.searchParams = new URLSearchParams('category=books');
   });
 
   it('does not block public content during session bootstrap', () => {
@@ -161,6 +164,47 @@ describe('forced-password routes', () => {
         '/change-password?redirect=%2Fproducts%3Fcategory%3Dbooks',
       );
     });
+  });
+
+  it('re-evaluates and redirects when pathname or search parameters change on client navigation', async () => {
+    mocks.auth.status = 'authenticated';
+    mocks.auth.session = {
+      email: 'shopper@example.com',
+      mustChangePassword: true,
+    };
+    const { rerender } = render(
+      <RequirePasswordChanged>Public catalog</RequirePasswordChanged>,
+    );
+    await waitFor(() => {
+      expect(mocks.replace).toHaveBeenCalledWith(
+        '/change-password?redirect=%2Fproducts%3Fcategory%3Dbooks',
+      );
+    });
+
+    mocks.replace.mockClear();
+    mocks.pathname = '/cart';
+    mocks.searchParams = new URLSearchParams('discount=vip');
+    rerender(
+      <RequirePasswordChanged>Public catalog</RequirePasswordChanged>,
+    );
+
+    await waitFor(() => {
+      expect(mocks.replace).toHaveBeenCalledWith(
+        '/change-password?redirect=%2Fcart%3Fdiscount%3Dvip',
+      );
+    });
+  });
+
+  it('preserves the redirect destination when an unauthenticated user hits change page', async () => {
+    mocks.auth.status = 'unauthenticated';
+    mocks.searchParams = new URLSearchParams('redirect=/account?tab=orders');
+    render(<ChangePasswordRoute>Rotation form</ChangePasswordRoute>);
+    await waitFor(() => {
+      expect(mocks.replace).toHaveBeenCalledWith(
+        '/login?redirect=%2Faccount%3Ftab%3Dorders',
+      );
+    });
+    expect(screen.queryByText('Rotation form')).not.toBeInTheDocument();
   });
 
   it('allows only flagged authenticated sessions onto the change page', () => {
