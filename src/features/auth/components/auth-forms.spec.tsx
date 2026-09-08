@@ -2,12 +2,15 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
+import { ChangePasswordForm } from '@/features/auth/components/change-password-form';
 import { LoginForm } from '@/features/auth/components/login-form';
 import { RegisterForm } from '@/features/auth/components/register-form';
 
 const mocks = vi.hoisted(() => ({
   login: vi.fn(),
   register: vi.fn(),
+  changePassword: vi.fn(),
+  logout: vi.fn(),
   push: vi.fn(),
   refresh: vi.fn(),
 }));
@@ -19,6 +22,12 @@ vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: () => ({
     login: mocks.login,
     register: mocks.register,
+    changePassword: mocks.changePassword,
+    logout: mocks.logout,
+    session: {
+      email: 'shopper@example.com',
+      mustChangePassword: true,
+    },
   }),
 }));
 
@@ -70,6 +79,15 @@ describe('LoginForm', () => {
     expect(mocks.push).toHaveBeenCalledWith('/account');
     expect(mocks.refresh).toHaveBeenCalledOnce();
   });
+
+  it('preserves the destination when password rotation is required', async () => {
+    mocks.login.mockResolvedValue({ mustChangePassword: true });
+    render(<LoginForm redirect="/account?tab=orders" />);
+    await fillLogin();
+    expect(mocks.push).toHaveBeenCalledWith(
+      '/change-password?redirect=%2Faccount%3Ftab%3Dorders',
+    );
+  });
 });
 
 describe('RegisterForm', () => {
@@ -103,5 +121,89 @@ describe('RegisterForm', () => {
     });
     expect(mocks.push).toHaveBeenCalledWith('/account');
     expect(mocks.refresh).toHaveBeenCalledOnce();
+  });
+});
+
+async function fillChangePassword(
+  currentPassword = 'Customer123!',
+  newPassword = 'Rotated123!',
+  confirmPassword = newPassword,
+) {
+  const user = userEvent.setup();
+  await user.type(screen.getByLabelText('Current password'), currentPassword);
+  await user.type(
+    screen.getByLabelText('New password', { exact: true }),
+    newPassword,
+  );
+  await user.type(
+    screen.getByLabelText('Confirm new password'),
+    confirmPassword,
+  );
+  await user.click(screen.getByRole('button', { name: 'Update password' }));
+}
+
+describe('ChangePasswordForm', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.logout.mockResolvedValue(undefined);
+  });
+
+  it('validates password difference and confirmation locally', async () => {
+    render(<ChangePasswordForm />);
+    await fillChangePassword('Customer123!', 'Customer123!', 'Different123!');
+    expect(
+      await screen.findByText(
+        'New password must differ from current password',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
+    expect(mocks.changePassword).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [401, 'Current password is incorrect'],
+    [429, 'Too many password-change attempts. Wait about a minute and try again.'],
+  ])('maps HTTP %s to actionable feedback', async (statusCode, message) => {
+    mocks.changePassword.mockRejectedValue(
+      new ApiRequestError({ statusCode, message: 'raw API text' }),
+    );
+    render(<ChangePasswordForm />);
+    await fillChangePassword();
+    expect(await screen.findByText(message)).toBeInTheDocument();
+  });
+
+  it('maps the reused-password API response to the new password field', async () => {
+    mocks.changePassword.mockRejectedValue(
+      new ApiRequestError({
+        statusCode: 400,
+        message: 'New password must differ from current password',
+      }),
+    );
+    render(<ChangePasswordForm />);
+    await fillChangePassword();
+    expect(
+      await screen.findByText(
+        'New password must differ from current password',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('submits the DTO, restores the destination, and refreshes layouts', async () => {
+    mocks.changePassword.mockResolvedValue({ mustChangePassword: false });
+    render(<ChangePasswordForm redirect="/account?tab=orders" />);
+    await fillChangePassword();
+    expect(mocks.changePassword).toHaveBeenCalledWith({
+      currentPassword: 'Customer123!',
+      newPassword: 'Rotated123!',
+    });
+    expect(mocks.push).toHaveBeenCalledWith('/account?tab=orders');
+    expect(mocks.refresh).toHaveBeenCalledOnce();
+  });
+
+  it('offers logout without exposing an account link', async () => {
+    render(<ChangePasswordForm />);
+    expect(screen.queryByRole('link', { name: 'Account' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    expect(mocks.logout).toHaveBeenCalledOnce();
   });
 });
