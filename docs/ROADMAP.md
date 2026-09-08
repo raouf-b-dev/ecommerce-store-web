@@ -349,15 +349,15 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 
 **Scope:**
 
-- [ ] Parse `mustChangePassword` on login, refresh, and change-password responses
-- [ ] Global `403` redirect on `apiClient`: `code === 'MUST_CHANGE_PASSWORD'` **or** message contains `Password change required` (do not rely on `code` alone)
-- [ ] `/change-password` route (auth layout, no shopping chrome)
-- [ ] Guards: cannot enter shop/account until the flag is clear; cannot skip via URL (`safeRedirectPath` already rejects this path as a post-login target)
-- [ ] Change-password form (RHF + Zod) wired to API; `applyApiFormErrors`
-- [ ] Sign out on the change-password page stays on the auth view
-- [ ] Component tests for guards and validation
-- [ ] Playwright: seeded customer forced change then reaches the storefront (accounting for API login throttling)
-- [ ] Update `docs/API-INTEGRATION.md`
+- [x] Parse `mustChangePassword` on login, refresh, and change-password responses
+- [x] Global `403` redirect on `apiClient`: `code === 'MUST_CHANGE_PASSWORD'` **or** message contains `Password change required` (do not rely on `code` alone)
+- [x] `/change-password` route (auth layout, no shopping chrome)
+- [x] Guards: cannot enter shop/account until the flag is clear; cannot skip via URL (`safeRedirectPath` already rejects this path as a post-login target)
+- [x] Change-password form (RHF + Zod) wired to API; `applyApiFormErrors`
+- [x] Sign out on the change-password page stays on the auth view
+- [x] Component tests for guards and validation
+- [x] Playwright: seeded customer forced change then reaches the storefront (accounting for API login throttling)
+- [x] Update `docs/API-INTEGRATION.md`
 
 **Done when:** Seeded `customer@store.local` lands on change-password, updates the password, and reaches the storefront shell; tests green.
 
