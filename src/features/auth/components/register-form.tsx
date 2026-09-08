@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import type { Route } from 'next';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,8 +17,11 @@ import { Input } from '@/components/ui/input';
 import { applyApiFormErrors } from '@/lib/api/form-api-errors';
 import { hasHttpStatus } from '@/lib/api/parse-api-error';
 import { AUTH_THROTTLE_MESSAGE } from '@/features/auth/api/auth-api';
+import {
+  getLoginRedirectPath,
+  navigateAfterLoginPath,
+} from '@/features/auth/lib/auth-routes';
 import { matchAuthField } from '@/features/auth/lib/match-auth-field';
-import { safeRedirectPath } from '@/features/auth/lib/safe-redirect-path';
 import {
   registerSchema,
   type RegisterFormValues,
@@ -63,14 +65,14 @@ export function RegisterForm({ redirect }: RegisterFormProps) {
     const phone = values.phone?.trim();
 
     try {
-      await register({
+      const session = await register({
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
         password: values.password,
         ...(phone ? { phone } : {}),
       });
-      router.push(safeRedirectPath(redirect ?? null) as Route);
+      router.push(navigateAfterLoginPath(session, redirect));
       router.refresh();
     } catch (error) {
       if (hasHttpStatus(error, 429)) {
@@ -170,11 +172,7 @@ export function RegisterForm({ redirect }: RegisterFormProps) {
       <p className="text-sm text-muted-foreground">
         Already have an account?{' '}
         <Link
-          href={
-            redirect
-              ? (`/login?redirect=${encodeURIComponent(redirect)}` as Route)
-              : '/login'
-          }
+          href={getLoginRedirectPath(redirect)}
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
           Sign in

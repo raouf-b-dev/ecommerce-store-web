@@ -8,6 +8,10 @@ import {
   silentRefreshAccessToken,
 } from '@/lib/api/silent-refresh';
 import { clearAccessToken } from '@/lib/auth/auth-session';
+import {
+  getChangePasswordRedirectPath,
+  getLoginRedirectPath,
+} from '@/features/auth/lib/auth-routes';
 
 export const browserClient = createClient<paths>({
   baseUrl: API_BASE_URL,
@@ -57,7 +61,10 @@ function redirectToChangePassword(): void {
   }
 
   if (window.location.pathname !== '/change-password') {
-    window.location.assign('/change-password');
+    const currentPath =
+      `${window.location.pathname}${window.location.search}` +
+      window.location.hash;
+    window.location.assign(getChangePasswordRedirectPath(currentPath));
   }
 }
 
@@ -68,8 +75,10 @@ export function redirectToLogin(): void {
     return;
   }
 
-  const redirectTarget = `${window.location.pathname}${window.location.search}`;
-  const loginUrl = `/login?redirect=${encodeURIComponent(redirectTarget)}`;
+  const redirectTarget =
+    `${window.location.pathname}${window.location.search}` +
+    window.location.hash;
+  const loginUrl = getLoginRedirectPath(redirectTarget);
 
   if (window.location.pathname !== '/login') {
     window.location.assign(loginUrl);
@@ -82,7 +91,8 @@ export async function attachAccessToken(request: Request): Promise<void> {
     return;
   }
   if (
-    url.pathname.includes('/authentication/logout') &&
+    (url.pathname.includes('/authentication/logout') ||
+      url.pathname.includes('/authentication/change-password')) &&
     request.headers.has('Authorization')
   ) {
     return;

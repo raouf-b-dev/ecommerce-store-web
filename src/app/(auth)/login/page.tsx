@@ -4,12 +4,13 @@ import { QueryLoading } from '@/components/feedback/query-state';
 import { PageHeader } from '@/components/layout/page-header';
 import { LoginForm } from '@/features/auth/components/login-form';
 import { firstSearchValue } from '@/features/auth/lib/first-search-value';
+import { GuestRoute } from '@/lib/auth/guest-route';
 
 export const metadata: Metadata = {
   title: 'Sign in',
 };
 
-// GuestRoute must finish browser-only cookie bootstrap before revealing auth UI.
+// This route depends on browser-only session bootstrap, so exempt it from instant-navigation validation.
 export const instant = false;
 
 async function LoginFormWithRedirect({
@@ -21,14 +22,16 @@ async function LoginFormWithRedirect({
 
 export default function LoginPage({ searchParams }: PageProps<'/login'>) {
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Sign in"
-        description="Use your storefront account. A short-lived access token stays in memory; the API refresh cookie keeps you signed in."
-      />
-      <Suspense fallback={<QueryLoading>Loading sign-in form…</QueryLoading>}>
+    <Suspense fallback={<QueryLoading>Loading session…</QueryLoading>}>
+      <GuestRoute>
+        <div className="space-y-6">
+          <PageHeader
+            title="Sign in"
+            description="Use your storefront account. A short-lived access token stays in memory; the API refresh cookie keeps you signed in."
+          />
         <LoginFormWithRedirect searchParams={searchParams} />
-      </Suspense>
-    </div>
+        </div>
+      </GuestRoute>
+    </Suspense>
   );
 }

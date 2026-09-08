@@ -7,6 +7,12 @@ export type FreshCustomer = {
   password: string;
 };
 
+export function uniquePasswords(
+  ...values: Array<string | null | undefined>
+): string[] {
+  return [...new Set(values.filter((value): value is string => Boolean(value)))];
+}
+
 export function createFreshCustomer(): FreshCustomer {
   const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   return {

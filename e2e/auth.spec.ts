@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { registerFreshCustomer } from './helpers/auth';
+import {
+  AUTH_THROTTLE_WAIT_MS,
+  registerFreshCustomer,
+  uniquePasswords,
+} from './helpers/auth';
+import { skipUnlessEnv } from './helpers/env';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -55,4 +60,93 @@ test('shows distinct rate-limit copy for login HTTP 429', async ({ page }) => {
       'Too many sign-in attempts. Wait about a minute and try again.',
     ),
   ).toBeVisible();
+});
+
+test('rotates a seeded forced password and restores the destination', async ({
+  page,
+}) => {
+  skipUnlessEnv('E2E_CUSTOMER_EMAIL', 'E2E_CUSTOMER_PASSWORD');
+  test.setTimeout(180_000);
+
+  const email = process.env.E2E_CUSTOMER_EMAIL!;
+  const seedPassword = process.env.E2E_CUSTOMER_PASSWORD!;
+  const rotatedPassword =
+    process.env.E2E_CUSTOMER_NEW_PASSWORD ?? `${seedPassword}Rotated1!`;
+  const candidates = uniquePasswords(seedPassword, rotatedPassword);
+  const destination = '/account?tab=orders';
+
+  for (const candidate of [...candidates, ...candidates]) {
+    await page.goto(destination);
+    await expect(
+      page.getByRole('heading', { name: 'Sign in' }),
+    ).toBeVisible({ timeout: 15_000 });
+    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Password').fill(candidate);
+    await page.getByRole('button', { name: 'Sign in' }).click();
+
+    const accountHeading = page.getByRole('heading', { name: 'Account' });
+    const changeHeading = page.getByRole('heading', {
+      name: 'Change your password',
+    });
+    const invalidError = page.getByText('Invalid email or password.');
+    const throttleError = page.getByText('Too many sign-in attempts');
+
+    await Promise.race([
+      accountHeading.waitFor({ state: 'visible', timeout: 15_000 }),
+      changeHeading.waitFor({ state: 'visible', timeout: 15_000 }),
+      invalidError.waitFor({ state: 'visible', timeout: 15_000 }),
+      throttleError.waitFor({ state: 'visible', timeout: 15_000 }),
+    ]).catch(() => undefined);
+
+    if (await throttleError.isVisible()) {
+      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+      continue;
+    }
+
+    if (await accountHeading.isVisible()) {
+      throw new Error(
+        'Seeded customer account was already rotated and bypassed password rotation. Run `npm run db:seed:auth` in `ecommerce-store-api` to reset customer seed state before running this test.',
+      );
+    }
+
+    if (await changeHeading.isVisible()) {
+      await expect(page).toHaveURL(
+        '/change-password?redirect=%2Faccount%3Ftab%3Dorders',
+      );
+
+      // A direct protected-route navigation cannot bypass forced rotation.
+      await page.goto(destination);
+      await expect(changeHeading).toBeVisible({ timeout: 15_000 });
+
+      const nextPassword =
+        candidate === rotatedPassword ? seedPassword : rotatedPassword;
+      await page.getByLabel('Current password').fill(candidate);
+      await page
+        .getByLabel('New password', { exact: true })
+        .fill(nextPassword);
+      await page.getByLabel('Confirm new password').fill(nextPassword);
+      await page.getByRole('button', { name: 'Update password' }).click();
+
+      const changeThrottleError = page.getByText(
+        'Too many password-change attempts',
+      );
+      await Promise.race([
+        accountHeading.waitFor({ state: 'visible', timeout: 15_000 }),
+        changeThrottleError.waitFor({ state: 'visible', timeout: 15_000 }),
+      ]).catch(() => undefined);
+
+      if (await changeThrottleError.isVisible()) {
+        await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+        await page.getByRole('button', { name: 'Update password' }).click();
+      }
+
+      await expect(accountHeading).toBeVisible({ timeout: 15_000 });
+      await expect(page).toHaveURL(destination);
+      return;
+    }
+  }
+
+  throw new Error(
+    'Seeded customer login failed with both seed and rotated passwords. Run `npm run db:seed:auth` in `ecommerce-store-api`.',
+  );
 });

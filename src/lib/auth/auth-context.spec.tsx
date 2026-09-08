@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 
 const mocks = vi.hoisted(() => ({
   refresh: vi.fn(),
+  changePassword: vi.fn(),
   logout: vi.fn(),
   clearAccessToken: vi.fn(),
   push: vi.fn(),
@@ -14,6 +15,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/features/auth/api/auth-api', () => ({
   buildSessionFromAccessToken: vi.fn(),
+  changePasswordRequest: mocks.changePassword,
   loginRequest: vi.fn(),
   registerAndLoginRequest: vi.fn(),
   logoutRequest: mocks.logout,
@@ -42,10 +44,22 @@ const session = {
 };
 
 function Probe() {
-  const { status, logout } = useAuth();
+  const { status, session, changePassword, logout } = useAuth();
   return (
     <>
       <span>{status}</span>
+      <span>{String(session?.mustChangePassword)}</span>
+      <button
+        type="button"
+        onClick={() =>
+          void changePassword({
+            currentPassword: 'Seed123!',
+            newPassword: 'Rotated123!',
+          })
+        }
+      >
+        Change password
+      </button>
       <button type="button" onClick={() => void logout().catch(() => {})}>
         Log out
       </button>
@@ -73,6 +87,7 @@ describe('AuthProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.refresh.mockResolvedValue(session);
+    mocks.changePassword.mockResolvedValue(session);
     mocks.logout.mockResolvedValue(undefined);
   });
 
@@ -91,6 +106,17 @@ describe('AuthProvider', () => {
     mocks.refresh.mockRejectedValue(new Error('API unavailable'));
     renderProvider();
     expect(await screen.findByText('error')).toBeInTheDocument();
+  });
+
+  it('replaces the cached session after password rotation', async () => {
+    mocks.refresh.mockResolvedValue({ ...session, mustChangePassword: true });
+    mocks.changePassword.mockResolvedValue(session);
+    renderProvider();
+    expect(await screen.findByText('true')).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Change password' }),
+    );
+    expect(await screen.findByText('false')).toBeInTheDocument();
   });
 
   it('settles logout at unauthenticated instead of flashing loading', async () => {

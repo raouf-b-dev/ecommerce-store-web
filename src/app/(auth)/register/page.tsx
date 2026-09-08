@@ -4,12 +4,13 @@ import { QueryLoading } from '@/components/feedback/query-state';
 import { PageHeader } from '@/components/layout/page-header';
 import { RegisterForm } from '@/features/auth/components/register-form';
 import { firstSearchValue } from '@/features/auth/lib/first-search-value';
+import { GuestRoute } from '@/lib/auth/guest-route';
 
 export const metadata: Metadata = {
   title: 'Create account',
 };
 
-// GuestRoute must finish browser-only cookie bootstrap before revealing auth UI.
+// This route depends on browser-only session bootstrap, so exempt it from instant-navigation validation.
 export const instant = false;
 
 async function RegisterFormWithRedirect({
@@ -23,16 +24,16 @@ export default function RegisterPage({
   searchParams,
 }: PageProps<'/register'>) {
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Create account"
-        description="Register a customer account, then we sign you in automatically."
-      />
-      <Suspense
-        fallback={<QueryLoading>Loading registration form…</QueryLoading>}
-      >
-        <RegisterFormWithRedirect searchParams={searchParams} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<QueryLoading>Loading session…</QueryLoading>}>
+      <GuestRoute>
+        <div className="space-y-6">
+          <PageHeader
+            title="Create account"
+            description="Register a customer account, then we sign you in automatically."
+          />
+          <RegisterFormWithRedirect searchParams={searchParams} />
+        </div>
+      </GuestRoute>
+    </Suspense>
   );
 }
