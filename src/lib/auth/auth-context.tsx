@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext } from 'react';
 import {
   buildSessionFromAccessToken,
+  changePasswordRequest,
   loginRequest,
   logoutRequest,
   refreshSessionRequest,
@@ -20,6 +21,7 @@ import {
 import type {
   AuthSession,
   AuthStatus,
+  ChangePasswordInput,
   LoginCredentials,
   RegisterInput,
 } from '@/features/auth/types';
@@ -41,6 +43,7 @@ type AuthContextValue = {
   mustChangePassword: boolean;
   login: (credentials: LoginCredentials) => Promise<AuthSession>;
   register: (input: RegisterInput) => Promise<AuthSession>;
+  changePassword: (input: ChangePasswordInput) => Promise<AuthSession>;
   logout: () => Promise<void>;
   retrySession: () => void;
 };
@@ -126,6 +129,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const changePasswordMutation = useMutation({
+    mutationFn: changePasswordRequest,
+    onSuccess: (session) => {
+      queryClient.setQueryData(AUTH_SESSION_QUERY_KEY, session);
+    },
+  });
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       logoutInProgress.current = true;
@@ -167,6 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mustChangePassword: session?.mustChangePassword ?? false,
     login: (credentials) => loginMutation.mutateAsync(credentials),
     register: (input) => registerMutation.mutateAsync(input),
+    changePassword: (input) => changePasswordMutation.mutateAsync(input),
     logout: () => logoutMutation.mutateAsync(),
     retrySession: () => {
       void queryClient.refetchQueries({ queryKey: AUTH_SESSION_QUERY_KEY });

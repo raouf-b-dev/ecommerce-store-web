@@ -2,11 +2,14 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import type { Route } from 'next';
 import {
   QueryLoading,
   QueryStateAlert,
 } from '@/components/feedback/query-state';
+import {
+  getChangePasswordRedirectPath,
+  getLoginRedirectPath,
+} from '@/features/auth/lib/auth-routes';
 import { useAuth } from '@/lib/auth/auth-context';
 
 type ProtectedRouteProps = {
@@ -14,20 +17,27 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { status, sessionError, retrySession } = useAuth();
+  const { status, mustChangePassword, sessionError, retrySession } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (status !== 'unauthenticated') {
+    if (
+      status !== 'unauthenticated' &&
+      !(status === 'authenticated' && mustChangePassword)
+    ) {
       return;
     }
 
     const search = searchParams.toString();
     const redirect = `${pathname}${search ? `?${search}` : ''}`;
-    router.replace(`/login?redirect=${encodeURIComponent(redirect)}` as Route);
-  }, [status, pathname, searchParams, router]);
+    const destination =
+      status === 'unauthenticated'
+        ? getLoginRedirectPath(redirect)
+        : getChangePasswordRedirectPath(redirect);
+    router.replace(destination);
+  }, [status, mustChangePassword, pathname, searchParams, router]);
 
   if (status === 'loading') {
     return <QueryLoading>Loading session…</QueryLoading>;
@@ -45,7 +55,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (status === 'unauthenticated') {
+  if (
+    status === 'unauthenticated' ||
+    (status === 'authenticated' && mustChangePassword)
+  ) {
     return <QueryLoading>Redirecting…</QueryLoading>;
   }
 

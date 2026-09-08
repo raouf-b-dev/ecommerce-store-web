@@ -14,6 +14,7 @@ import {
   recoverFromDomain401,
   shouldRedirectToChangePassword,
 } from '@/lib/api/browser-client';
+import { getChangePasswordRedirectPath } from '@/features/auth/lib/auth-routes';
 import {
   ensureFreshAccessToken,
   silentRefreshAccessToken,
@@ -126,5 +127,19 @@ describe('forced-password detection', () => {
         code: 'FORBIDDEN',
       }),
     ).toBe(false);
+  });
+
+  it('preserves safe destinations and rejects redirect loops', () => {
+    expect(
+      getChangePasswordRedirectPath('/products?category=books'),
+    ).toBe(
+      '/change-password?redirect=%2Fproducts%3Fcategory%3Dbooks',
+    );
+    expect(getChangePasswordRedirectPath('/login')).toBe(
+      '/change-password?redirect=%2F',
+    );
+    expect(getChangePasswordRedirectPath('//evil.example')).toBe(
+      '/change-password?redirect=%2F',
+    );
   });
 });

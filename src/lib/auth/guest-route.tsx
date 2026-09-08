@@ -2,12 +2,11 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { Route } from 'next';
 import {
   QueryLoading,
   QueryStateAlert,
 } from '@/components/feedback/query-state';
-import { safeRedirectPath } from '@/features/auth/lib/safe-redirect-path';
+import { navigateAfterLoginPath } from '@/features/auth/lib/auth-routes';
 import { useAuth } from '@/lib/auth/auth-context';
 
 type GuestRouteProps = {
@@ -15,7 +14,7 @@ type GuestRouteProps = {
 };
 
 export function GuestRoute({ children }: GuestRouteProps) {
-  const { status, sessionError, retrySession } = useAuth();
+  const { status, session, sessionError, retrySession } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -24,9 +23,14 @@ export function GuestRoute({ children }: GuestRouteProps) {
       return;
     }
 
-    const redirect = safeRedirectPath(searchParams.get('redirect'));
-    router.replace(redirect as Route);
-  }, [status, searchParams, router]);
+    if (!session) {
+      return;
+    }
+
+    router.replace(
+      navigateAfterLoginPath(session, searchParams.get('redirect')),
+    );
+  }, [status, session, searchParams, router]);
 
   if (status === 'loading') {
     return <QueryLoading>Loading session…</QueryLoading>;
