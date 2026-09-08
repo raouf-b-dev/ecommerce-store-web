@@ -2,6 +2,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
+import {
+  SESSION_EXPIRED_CODE,
+} from '@/features/auth/api/auth-api';
 import { ChangePasswordForm } from '@/features/auth/components/change-password-form';
 import { LoginForm } from '@/features/auth/components/login-form';
 import { RegisterForm } from '@/features/auth/components/register-form';
@@ -11,12 +14,18 @@ const mocks = vi.hoisted(() => ({
   register: vi.fn(),
   changePassword: vi.fn(),
   logout: vi.fn(),
+  clearLocalSession: vi.fn(),
   push: vi.fn(),
+  replace: vi.fn(),
   refresh: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mocks.push, refresh: mocks.refresh }),
+  useRouter: () => ({
+    push: mocks.push,
+    replace: mocks.replace,
+    refresh: mocks.refresh,
+  }),
 }));
 vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: () => ({
@@ -24,6 +33,7 @@ vi.mock('@/lib/auth/auth-context', () => ({
     register: mocks.register,
     changePassword: mocks.changePassword,
     logout: mocks.logout,
+    clearLocalSession: mocks.clearLocalSession,
     session: {
       email: 'shopper@example.com',
       mustChangePassword: true,
@@ -172,7 +182,23 @@ describe('ChangePasswordForm', () => {
     expect(await screen.findByText(message)).toBeInTheDocument();
   });
 
-  it('maps the reused-password API response to the new password field', async () => {
+  it('clears session and replaces with login redirect on SESSION_EXPIRED', async () => {
+    mocks.changePassword.mockRejectedValue(
+      new ApiRequestError({
+        statusCode: 401,
+        code: SESSION_EXPIRED_CODE,
+        message: 'Your session has expired. Please sign in again.',
+      }),
+    );
+    render(<ChangePasswordForm redirect="/account?tab=orders" />);
+    await fillChangePassword();
+    expect(mocks.clearLocalSession).toHaveBeenCalledOnce();
+    expect(mocks.replace).toHaveBeenCalledWith(
+      '/login?redirect=%2Faccount%3Ftab%3Dorders',
+    );
+  });
+
+  it('maps an un-coded 400 error to the form error banner rather than newPassword field', async () => {
     mocks.changePassword.mockRejectedValue(
       new ApiRequestError({
         statusCode: 400,
@@ -182,9 +208,7 @@ describe('ChangePasswordForm', () => {
     render(<ChangePasswordForm />);
     await fillChangePassword();
     expect(
-      await screen.findByText(
-        'New password must differ from current password',
-      ),
+      await screen.findByText('New password must differ from current password'),
     ).toBeInTheDocument();
   });
 

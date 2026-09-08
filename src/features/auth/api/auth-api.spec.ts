@@ -33,6 +33,67 @@ import {
 describe('changePasswordRequest', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.ensureFreshAccessToken.mockResolvedValue('current-token');
+  });
+
+  it('ensures fresh token before acquiring lock and passes Authorization header', async () => {
+    const callOrder: string[] = [];
+    mocks.ensureFreshAccessToken.mockImplementation(async () => {
+      callOrder.push('ensureFreshAccessToken');
+      return 'current-token';
+    });
+    mocks.withSessionCookieLock.mockImplementation(async (task) => {
+      callOrder.push('withSessionCookieLock');
+      return task();
+    });
+    mocks.post.mockResolvedValue({
+      data: {
+        accessToken: 'rotated-access-token',
+        mustChangePassword: false,
+        permissions: ['orders:read'],
+      },
+      error: undefined,
+      response: new Response(null, { status: 200 }),
+    });
+
+    await changePasswordRequest({
+      currentPassword: 'Seed123!',
+      newPassword: 'Rotated123!',
+    });
+
+    expect(callOrder).toEqual([
+      'ensureFreshAccessToken',
+      'withSessionCookieLock',
+    ]);
+    expect(mocks.post).toHaveBeenCalledWith(
+      '/v1/authentication/change-password',
+      {
+        body: {
+          currentPassword: 'Seed123!',
+          newPassword: 'Rotated123!',
+        },
+        headers: {
+          Authorization: 'Bearer current-token',
+        },
+      },
+    );
+  });
+
+  it('throws SESSION_EXPIRED and does not acquire lock when no token exists', async () => {
+    mocks.ensureFreshAccessToken.mockResolvedValue(null);
+
+    await expect(
+      changePasswordRequest({
+        currentPassword: 'Seed123!',
+        newPassword: 'Rotated123!',
+      }),
+    ).rejects.toMatchObject({
+      statusCode: 401,
+      code: 'SESSION_EXPIRED',
+    });
+
+    expect(mocks.withSessionCookieLock).not.toHaveBeenCalled();
+    expect(mocks.post).not.toHaveBeenCalled();
   });
 
   it('returns the clean session represented by the rotated tokens', async () => {
@@ -58,15 +119,6 @@ describe('changePasswordRequest', () => {
       permissions: ['orders:read'],
       mustChangePassword: false,
     });
-    expect(mocks.post).toHaveBeenCalledWith(
-      '/v1/authentication/change-password',
-      {
-        body: {
-          currentPassword: 'Seed123!',
-          newPassword: 'Rotated123!',
-        },
-      },
-    );
   });
 
   it('maps strict authentication throttling to actionable copy', async () => {

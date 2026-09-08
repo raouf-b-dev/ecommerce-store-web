@@ -14,8 +14,15 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { PASSWORD_CHANGE_THROTTLE_MESSAGE } from '@/features/auth/api/auth-api';
-import { navigateAfterLoginPath } from '@/features/auth/lib/auth-routes';
+import {
+  PASSWORD_CHANGE_THROTTLE_MESSAGE,
+  SESSION_EXPIRED_MESSAGE,
+  isSessionExpiredError,
+} from '@/features/auth/api/auth-api';
+import {
+  getLoginRedirectPath,
+  navigateAfterLoginPath,
+} from '@/features/auth/lib/auth-routes';
 import { matchAuthField } from '@/features/auth/lib/match-auth-field';
 import {
   changePasswordSchema,
@@ -23,7 +30,6 @@ import {
 } from '@/features/auth/schemas/change-password-schema';
 import { applyApiFormErrors } from '@/lib/api/form-api-errors';
 import {
-  ApiRequestError,
   getErrorMessage,
   hasHttpStatus,
 } from '@/lib/api/parse-api-error';
@@ -37,7 +43,7 @@ type ChangePasswordFormProps = {
 };
 
 export function ChangePasswordForm({ redirect }: ChangePasswordFormProps) {
-  const { session, changePassword, logout } = useAuth();
+  const { session, changePassword, logout, clearLocalSession } = useAuth();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -69,21 +75,17 @@ export function ChangePasswordForm({ redirect }: ChangePasswordFormProps) {
         return;
       }
 
+      if (isSessionExpiredError(error)) {
+        clearLocalSession();
+        toast.error(SESSION_EXPIRED_MESSAGE);
+        router.replace(getLoginRedirectPath(redirect));
+        return;
+      }
+
       if (hasHttpStatus(error, 401)) {
         form.setError('currentPassword', {
           type: 'server',
           message: 'Current password is incorrect',
-        });
-        return;
-      }
-
-      if (
-        error instanceof ApiRequestError &&
-        error.message === 'New password must differ from current password'
-      ) {
-        form.setError('newPassword', {
-          type: 'server',
-          message: error.message,
         });
         return;
       }

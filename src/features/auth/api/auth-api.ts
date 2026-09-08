@@ -1,5 +1,5 @@
 import { browserClient } from '@/lib/api/browser-client';
-import { toApiRequestError } from '@/lib/api/parse-api-error';
+import { ApiRequestError, toApiRequestError } from '@/lib/api/parse-api-error';
 import { throwApiErrorFromResponse } from '@/lib/api/throw-api-error';
 import {
   ensureFreshAccessToken,
@@ -131,14 +131,35 @@ export async function refreshSessionRequest(): Promise<AuthSession | null> {
   );
 }
 
+export const SESSION_EXPIRED_MESSAGE =
+  'Your session has expired. Please sign in again.';
+export const SESSION_EXPIRED_CODE = 'SESSION_EXPIRED';
+
+export function isSessionExpiredError(error: unknown): boolean {
+  return (
+    error instanceof ApiRequestError && error.code === SESSION_EXPIRED_CODE
+  );
+}
+
 export async function changePasswordRequest(
   input: ChangePasswordInput,
 ): Promise<AuthSession> {
-  const { data, error, response } = await browserClient.POST(
-    '/v1/authentication/change-password',
-    {
+  const accessToken = await ensureFreshAccessToken();
+  if (!accessToken) {
+    throw new ApiRequestError({
+      statusCode: 401,
+      code: SESSION_EXPIRED_CODE,
+      message: SESSION_EXPIRED_MESSAGE,
+    });
+  }
+
+  const { data, error, response } = await withSessionCookieLock(() =>
+    browserClient.POST('/v1/authentication/change-password', {
       body: input,
-    },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }),
   );
 
   if (error || !response.ok) {

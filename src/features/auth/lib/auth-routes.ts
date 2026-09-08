@@ -2,17 +2,11 @@ import type { Route } from 'next';
 import type { AuthSession } from '@/features/auth/types';
 import { safeRedirectPath } from '@/features/auth/lib/safe-redirect-path';
 
-function route(path: string): Route {
-  return path as Route;
-}
-
 export function getChangePasswordRedirectPath(
   redirect?: string | null,
 ): Route {
   const destination = safeRedirectPath(redirect);
-  return route(
-    `/change-password?redirect=${encodeURIComponent(destination)}`,
-  );
+  return `/change-password?redirect=${encodeURIComponent(destination)}`;
 }
 
 export function getLoginRedirectPath(redirect?: string | null): Route {
@@ -21,7 +15,7 @@ export function getLoginRedirectPath(redirect?: string | null): Route {
   }
 
   const destination = safeRedirectPath(redirect);
-  return route(`/login?redirect=${encodeURIComponent(destination)}`);
+  return `/login?redirect=${encodeURIComponent(destination)}`;
 }
 
 export function getRegisterRedirectPath(
@@ -32,7 +26,7 @@ export function getRegisterRedirectPath(
   }
 
   const destination = safeRedirectPath(redirect);
-  return route(`/register?redirect=${encodeURIComponent(destination)}`);
+  return `/register?redirect=${encodeURIComponent(destination)}`;
 }
 
 export function navigateAfterLoginPath(
@@ -43,5 +37,7 @@ export function navigateAfterLoginPath(
     return getChangePasswordRedirectPath(redirect);
   }
 
-  return route(safeRedirectPath(redirect));
+  // Boundary cast: safeRedirectPath sanitizes untrusted runtime input,
+  // which Next.js router.push/replace requires as Route.
+  return safeRedirectPath(redirect) as Route;
 }
