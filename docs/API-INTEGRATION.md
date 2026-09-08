@@ -68,6 +68,10 @@ Storefront authentication and session rules:
 - Login/register **429**: stable “too many requests” copy. Do not map throttle to invalid credentials. QueryClient skips retry on `429`.
 - `safeRedirectPath`: only same-origin relative paths; reject `//`; reject `/login` and `/change-password` as redirect targets.
 - On `403` with code `MUST_CHANGE_PASSWORD` **or** a message containing `Password change required`, redirect to change-password. Other `403` responses show forbidden; do not invent a bypass.
+- Preserve a sanitized `redirect` destination when login or a domain `403` diverts a shopper through `/change-password`. After successful rotation, return to that destination with `router.push(...)` and refresh server layouts.
+- The public shop gate is non-blocking during browser session bootstrap: anonymous catalog HTML remains visible. Once an authenticated session is known to be flagged, redirect it; account content remains blocking and cannot render until the flag clears.
+- `POST /v1/authentication/change-password` sends only `currentPassword` and `newPassword`. Its token response replaces `['auth','session']` immediately and rotates the HttpOnly refresh cookie, so the clean session does not require another refresh.
+- Change-password errors remain distinct: `401` marks the current password, the API same-password message marks the new password, DTO errors use `applyApiFormErrors`, and `429` gets stable retry guidance. The auth view exposes a logout-only action and never links a flagged session to account.
 - There is **no** `access_admin` gate on this app. It serves customer shopper accounts only; administrative route guards are excluded.
 - RSC catalog fetchers must not attach a Bearer token (an operator session in the browser must not change what the public catalog shows).
 
