@@ -72,7 +72,7 @@ Do not one-file both with `typeof window` branches.
 - `params` / `searchParams` / `cookies()` / `headers()` are async. Await them.
 - Env: `NEXT_PUBLIC_*` only in the browser. Use `process.env.NEXT_PUBLIC_*`, not Vite `import.meta.env`.
 - No `proxy.ts` unless a rewrite/redirect cannot live in `next.config.ts`. Never auth in Proxy. Security headers belong in `next.config.ts` `headers()`.
-- Storefront scrolls the document. Do not copy admin `h-screen overflow-hidden`.
+- Storefront scrolls the document. Avoid viewport-locked `h-screen overflow-hidden` layouts.
 - Loading: `QueryLoading` / `role="status"` / `aria-busy` on client fetches. RSC: `<Suspense>` holes (+ optional `loading.tsx`). No skeleton requirement in v1.
 - React Compiler is on. Do not add `useMemo` / `useCallback` by habit.
 - Treat rendered API strings as untrusted. No `dangerouslySetInnerHTML`.

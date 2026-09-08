@@ -30,7 +30,6 @@ This repository is the customer storefront for `ecommerce-store-api`.
 - Storefront intent: `http://localhost:3100` (`npm run dev` and `npm run start` both bind 3100; they cannot share the port)
 - API origin: `NEXT_PUBLIC_API_BASE_URL` (default `http://localhost:3000`)
 - Storefront origin: `NEXT_PUBLIC_STOREFRONT_ORIGIN` (default `http://localhost:3100`, used for `metadataBase`)
-- Admin SPA (sibling): `http://localhost:5174`
 - Live API boot, Docker, and seed credentials: API [README](https://github.com/raouf-b-dev/ecommerce-store-api#quick-start), [LOCAL-SETUP.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/LOCAL-SETUP.md), and [SEEDING.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/SEEDING.md)
 - Cross-origin browser calls assume the API allows `http://localhost:3100` with `credentials: true`
 - Browser configuration must use `NEXT_PUBLIC_*` env vars only. Do not expose secrets
@@ -84,4 +83,4 @@ This repository is the customer storefront for `ecommerce-store-api`.
 - [docs/ai/CONVENTIONS.md](../docs/ai/CONVENTIONS.md)
 - [docs/API-INTEGRATION.md](../docs/API-INTEGRATION.md)
 - [docs/architecture/ARCHITECTURE.md](../docs/architecture/ARCHITECTURE.md)
-- Admin SPA (session patterns to port, not the Vite shell): [ecommerce-admin-dashboard](https://github.com/raouf-b-dev/ecommerce-admin-dashboard)
+- [docs/ROADMAP.md](../docs/ROADMAP.md)

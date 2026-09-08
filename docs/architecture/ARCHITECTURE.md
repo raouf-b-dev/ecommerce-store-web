@@ -6,8 +6,6 @@ High-level architecture for the customer-facing Next.js App Router storefront.
 
 ```text
 Browser -> Next.js (RSC + client components) -> versioned HTTP API -> ecommerce-store-api
-                                                                    ^
-Admin SPA / mobile apps --------------------------------------------+
 ```
 
 Backend context: [ecommerce-store-api ARCHITECTURE.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/architecture/ARCHITECTURE.md).
@@ -42,7 +40,7 @@ src/app/layout.tsx
 The browser session is global so shopper chrome can reflect login state. Catalog
 RSC fetchers remain separate and token-free.
 
-The storefront scrolls the document. Do not use an `h-screen overflow-hidden` operator cockpit.
+The storefront scrolls the document naturally. Avoid viewport-locked `h-screen overflow-hidden` layouts.
 
 ## Routing model
 

@@ -66,8 +66,6 @@ Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md). Security bas
 
 ```text
 Browser -> Next.js (RSC + client components) -> versioned HTTP API -> ecommerce-store-api
-                                                                    ^
-Admin SPA / mobile apps --------------------------------------------+
 ```
 
 | Rule        | Detail                                                                             |
@@ -76,7 +74,7 @@ Admin SPA / mobile apps --------------------------------------------+
 | Data access | Typed client from the API OpenAPI/Swagger spec. No BFF.                            |
 | Rendering   | Server Components by default. Catalog RSC is unauthenticated on purpose.           |
 | Client data | TanStack Query for session, cart, checkout, and orders.                            |
-| Auth        | In-memory access token + HttpOnly refresh cookie. Same contract as the admin SPA.  |
+| Auth        | In-memory access token + HttpOnly refresh cookie on the API origin.                |
 | Cart        | Authenticated only (`manage_own_cart`). No guest basket.                           |
 | Checkout    | Idempotency headers as OpenAPI documents; poll own order for SAGA completion.      |
 

@@ -5,7 +5,7 @@ Security baseline for this frontend. The API remains the authority for authn/aut
 ## Secrets and config
 
 - Never commit `.env`, `.env.local`, or files with real credentials.
-- Only non-secret values may use `NEXT_PUBLIC_*` (this app) / public Vite env vars (admin uses `VITE_*`). API keys, private JWTs, and refresh tokens must not be embedded in public env vars.
+- Only non-secret values may use `NEXT_PUBLIC_*`. API keys, private JWTs, and refresh tokens must not be embedded in public env vars.
 - Local seed users live only in the API seeding doc. Do not copy passwords into this repository.
 
 ## Trust boundaries

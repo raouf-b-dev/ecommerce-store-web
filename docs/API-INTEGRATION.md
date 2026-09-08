@@ -22,7 +22,7 @@ Do **not** maintain an endpoint catalog in this repo. When the API adds, renames
 | API origin        | `http://localhost:3000` (from `NEXT_PUBLIC_API_BASE_URL`)                                                                                                                                                                                 |
 | Versioned API     | Confirm versioning scheme in OpenAPI                                                                                                                                                                                                      |
 | Health            | Confirm health routes in OpenAPI                                                                                                                                                                                                          |
-| CORS              | API `CORS_ALLOWED_ORIGINS` must include the storefront origin **with credentials**. Default API example historically listed admin Vite ports (`5173`/`5174`) and **not** `3100` - add it in the API env; do not disable CORS in this app. |
+| CORS              | API `CORS_ALLOWED_ORIGINS` must include the storefront origin (`http://localhost:3100`) **with credentials**. If the API env default omits port `3100`, add it to `CORS_ALLOWED_ORIGINS` in the API env; do not disable CORS or credentials in this app. |
 
 ## Typed client
 
@@ -54,7 +54,7 @@ See also root [`SECURITY.md`](../SECURITY.md).
 
 ## Auth and session
 
-Port the admin SPA rules, minus operator admission:
+Storefront authentication and session rules:
 
 - Use OpenAPI auth operations (register / login / refresh / logout / change-password).
 - Access token in memory; refresh via HttpOnly cookie (`credentials: 'include'`).
@@ -68,7 +68,7 @@ Port the admin SPA rules, minus operator admission:
 - Login/register **429**: stable “too many requests” copy. Do not map throttle to invalid credentials. QueryClient skips retry on `429`.
 - `safeRedirectPath`: only same-origin relative paths; reject `//`; reject `/login` and `/change-password` as redirect targets.
 - On `403` with code `MUST_CHANGE_PASSWORD` **or** a message containing `Password change required`, redirect to change-password. Other `403` responses show forbidden; do not invent a bypass.
-- There is **no** `access_admin` gate on this app. Do not copy admin `OperatorRoute`.
+- There is **no** `access_admin` gate on this app. It serves customer shopper accounts only; administrative route guards are excluded.
 - RSC catalog fetchers must not attach a Bearer token (an operator session in the browser must not change what the public catalog shows).
 
 ## Cart
@@ -116,7 +116,7 @@ Map API failures to UI. Do not reinterpret domain rules.
 
 Exact codes and bodies: OpenAPI.
 
-### Client layering (same idea as admin)
+### Client error & response layering
 
 | Layer      | Use                                    |
 | :--------- | :------------------------------------- |
