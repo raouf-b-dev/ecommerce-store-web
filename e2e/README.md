@@ -9,9 +9,12 @@ CORS for the storefront origin.
 npm run test:e2e
 ```
 
-Auth tests register unique customers and do not commit or require passwords.
-Seeded-user tests added later must read `.secrets`; use
-`skipUnlessEnv(...)` so missing secrets fail CI and skip locally.
+Most auth tests register unique customers and do not commit or require
+passwords. The forced-password test reads `E2E_CUSTOMER_EMAIL` and
+`E2E_CUSTOMER_PASSWORD` from `.secrets`; `E2E_CUSTOMER_NEW_PASSWORD` is
+optional and otherwise derives a rotated password from the seed password.
+The test tries both seed and rotated credentials so it remains rerunnable
+without reseeding. Missing required secrets fail CI and skip locally.
 
 Authentication routes are limited to roughly ten attempts per minute. If a
 local run reaches HTTP 429, wait at least 61 seconds
