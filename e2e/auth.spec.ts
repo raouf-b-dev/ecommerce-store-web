@@ -104,8 +104,9 @@ test('rotates a seeded forced password and restores the destination', async ({
     }
 
     if (await accountHeading.isVisible()) {
-      await expect(page).toHaveURL(destination);
-      return;
+      throw new Error(
+        'Seeded customer account was already rotated and bypassed password rotation. Run `npm run db:seed:auth` in `ecommerce-store-api` to reset customer seed state before running this test.',
+      );
     }
 
     if (await changeHeading.isVisible()) {
@@ -126,6 +127,19 @@ test('rotates a seeded forced password and restores the destination', async ({
       await page.getByLabel('Confirm new password').fill(nextPassword);
       await page.getByRole('button', { name: 'Update password' }).click();
 
+      const changeThrottleError = page.getByText(
+        'Too many password-change attempts',
+      );
+      await Promise.race([
+        accountHeading.waitFor({ state: 'visible', timeout: 15_000 }),
+        changeThrottleError.waitFor({ state: 'visible', timeout: 15_000 }),
+      ]).catch(() => undefined);
+
+      if (await changeThrottleError.isVisible()) {
+        await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+        await page.getByRole('button', { name: 'Update password' }).click();
+      }
+
       await expect(accountHeading).toBeVisible({ timeout: 15_000 });
       await expect(page).toHaveURL(destination);
       return;
@@ -133,6 +147,6 @@ test('rotates a seeded forced password and restores the destination', async ({
   }
 
   throw new Error(
-    'Seeded customer login failed with both seed and rotated passwords.',
+    'Seeded customer login failed with both seed and rotated passwords. Run `npm run db:seed:auth` in `ecommerce-store-api`.',
   );
 });
