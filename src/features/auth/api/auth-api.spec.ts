@@ -16,8 +16,77 @@ vi.mock('@/lib/api/silent-refresh', () => ({
   silentRefreshSession: vi.fn(),
   withSessionCookieLock: mocks.withSessionCookieLock,
 }));
+vi.mock('@/features/auth/lib/jwt-decode', () => ({
+  decodeAccessTokenClaims: vi.fn(() => ({
+    sub: '42',
+    email: 'shopper@example.com',
+    role: 'CUSTOMER',
+  })),
+}));
 
-import { logoutRequest } from '@/features/auth/api/auth-api';
+import {
+  changePasswordRequest,
+  logoutRequest,
+  PASSWORD_CHANGE_THROTTLE_MESSAGE,
+} from '@/features/auth/api/auth-api';
+
+describe('changePasswordRequest', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns the clean session represented by the rotated tokens', async () => {
+    mocks.post.mockResolvedValue({
+      data: {
+        accessToken: 'rotated-access-token',
+        mustChangePassword: false,
+        permissions: ['orders:read'],
+      },
+      error: undefined,
+      response: new Response(null, { status: 200 }),
+    });
+
+    await expect(
+      changePasswordRequest({
+        currentPassword: 'Seed123!',
+        newPassword: 'Rotated123!',
+      }),
+    ).resolves.toEqual({
+      userId: '42',
+      email: 'shopper@example.com',
+      role: 'CUSTOMER',
+      permissions: ['orders:read'],
+      mustChangePassword: false,
+    });
+    expect(mocks.post).toHaveBeenCalledWith(
+      '/v1/authentication/change-password',
+      {
+        body: {
+          currentPassword: 'Seed123!',
+          newPassword: 'Rotated123!',
+        },
+      },
+    );
+  });
+
+  it('maps strict authentication throttling to actionable copy', async () => {
+    mocks.post.mockResolvedValue({
+      data: undefined,
+      error: { statusCode: 429, message: 'Too many requests' },
+      response: new Response(null, { status: 429 }),
+    });
+
+    await expect(
+      changePasswordRequest({
+        currentPassword: 'Seed123!',
+        newPassword: 'Rotated123!',
+      }),
+    ).rejects.toMatchObject({
+      statusCode: 429,
+      message: PASSWORD_CHANGE_THROTTLE_MESSAGE,
+    });
+  });
+});
 
 describe('logoutRequest', () => {
   beforeEach(() => {

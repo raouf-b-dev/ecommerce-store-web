@@ -11,12 +11,15 @@ import { setAccessToken } from '@/lib/auth/auth-session';
 import { decodeAccessTokenClaims } from '@/features/auth/lib/jwt-decode';
 import type {
   AuthSession,
+  ChangePasswordInput,
   LoginCredentials,
   RegisterInput,
 } from '@/features/auth/types';
 
 export const AUTH_THROTTLE_MESSAGE =
   'Too many sign-in attempts. Wait about a minute and try again.';
+export const PASSWORD_CHANGE_THROTTLE_MESSAGE =
+  'Too many password-change attempts. Wait about a minute and try again.';
 
 export function buildSessionFromAccessToken(
   accessToken: string,
@@ -125,6 +128,38 @@ export async function refreshSessionRequest(): Promise<AuthSession | null> {
     result.accessToken,
     result.mustChangePassword,
     result.permissions,
+  );
+}
+
+export async function changePasswordRequest(
+  input: ChangePasswordInput,
+): Promise<AuthSession> {
+  const { data, error, response } = await browserClient.POST(
+    '/v1/authentication/change-password',
+    {
+      body: input,
+    },
+  );
+
+  if (error || !response.ok) {
+    if (response?.status === 429) {
+      throw toApiRequestError(
+        response,
+        {
+          statusCode: 429,
+          message: PASSWORD_CHANGE_THROTTLE_MESSAGE,
+        },
+        PASSWORD_CHANGE_THROTTLE_MESSAGE,
+      );
+    }
+    await throwApiErrorFromResponse(response, 'Could not update password.');
+  }
+
+  const tokens = parseAuthTokensPayload(data);
+  return buildSessionFromAccessToken(
+    tokens.accessToken,
+    tokens.mustChangePassword,
+    tokens.permissions,
   );
 }
 
