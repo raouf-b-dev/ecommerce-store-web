@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: 'Change your password',
 };
 
+// This route depends on browser-only session bootstrap, so exempt it from instant-navigation validation.
 export const instant = false;
 
 async function ChangePasswordFormWithRedirect({

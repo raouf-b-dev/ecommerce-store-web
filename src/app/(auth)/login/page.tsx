@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Sign in',
 };
 
-// GuestRoute must finish browser-only cookie bootstrap before revealing auth UI.
+// This route depends on browser-only session bootstrap, so exempt it from instant-navigation validation.
 export const instant = false;
 
 async function LoginFormWithRedirect({
