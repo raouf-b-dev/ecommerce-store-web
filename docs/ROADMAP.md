@@ -145,7 +145,7 @@ The following patterns belong to administrative consoles and are explicitly **ex
 | **2**  | App shell                                 | `[x]`  |  `[P0]`  | Layouts, chrome, error/loading, theme, health page                 |
 | **3**  | Authentication and session                | `[x]`  |  `[P0]`  | Login, register, silent refresh, customer chrome                   |
 | **4**  | Forced password change                    | `[x]`  |  `[P0]`  | Seeded customer `mustChangePassword` (do not skip)                 |
-| **5**  | Catalog                                   | `[x]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
+| **5**  | Catalog                                   | `[ ]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
 | **6**  | Cart                                      | `[ ]`  |  `[P0]`  | Authenticated cart mutations + tests                               |
 | **7**  | Checkout                                  | `[ ]`  |  `[P0]`  | Idempotency + order polling + confirmation                         |
 | **8**  | Orders and account                        | `[ ]`  |  `[P0]`  | Own orders, profile read, address book                             |
@@ -375,12 +375,24 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 - [x] Category navigation from category list (active only)
 - [x] Product detail by **id**. Await `params`. Inactive → `not-found.tsx`
 - [x] Availability from public inventory/check. `200 + null` → out of stock, not an error banner. `formatMoney` for price
-- [x] Metadata, Open Graph, `robots.ts` / `sitemap.ts`
+- [x] Metadata, Open Graph, `robots.ts` / `sitemap.ts`:
+  - Pure domain-neutral SEO utilities under `src/lib/seo/` (canonical URL composer, safe JSON-LD serialization, page metadata composer, image URL validator, standard robots presets).
+  - Complete fallback social-image metadata: native 1200×630 PNG routes (`opengraph-image.tsx`, `twitter-image.tsx`) with explicit width, height, and `image/png` metadata.
+  - Catalog faceted URL policy in `src/features/catalog/lib/catalog-seo.ts`: normalized self-canonicals for allowlisted params with all defaults omitted; `noindex, follow` on search/price/sort/limit facets.
+  - Zero-API metadata for root, search, and pagination; lazy cached category fetching only when valid `categoryId` is supplied. API timeouts and 500s propagate without being caught or misclassified.
+  - Unique titles and descriptions for root pagination and category pages; `noindex, follow` on malformed (`?categoryId=abc`) or nonexistent categories; canonical tag omitted on malformed category queries.
+  - Empty category pages (0 products) detected on page visits via primitive-argument deduplicated `getProducts` in React `cache()` and marked `noindex, follow`. Category URLs are omitted from sitemaps for now because OpenAPI exposes no category product count, making global emptiness inference across multi-partition catalogs impossible without N+1 queries; adding category URLs to sitemaps requires a backend `productCount`/`hasProducts` contract on `CategoryResponseDto`. Category links remain naturally crawlable via storefront navigation.
+  - Open Graph type for product detail pages set to `website`.
+  - Schema.org structured data (`Product` and `BreadcrumbList` JSON-LD) using canonical URLs, valid absolute HTTP(S) image URLs (omitted when relative or invalid), and XSS-safe escaping.
+  - Metadata-level `noindex, nofollow` on private routes (`(auth)`, `(account)`, `/status`), unblocking them in `robots.ts` so crawlers observe the directive. Simplified robots rules: `Allow: /` covers all catalog routes.
+  - Real Next.js 16 `generateSitemaps()` partitioning via shared server-only partition helper (`getSitemapPartitions`) with bounded 1-hour caching and unswallowed error propagation.
+  - Bounded parallel fetching within each partition (up to 1,000 products per partition, at most 10 API page requests with remaining pages fetched in parallel via `Promise.all`) using deterministic sorting (`sortBy: 'id'`, `sortOrder: 'asc'`).
+  - Strict validation of sitemap partition IDs as non-negative integers within bounds (returns 404 `notFound()` on invalid, malformed, or out-of-range IDs). Stale manifest detection returns 404 if `startPage > totalPages`. Partition 0 includes the homepage and products; complete omission of `lastModified` across all entries until the backend list DTO exposes an accurate `updatedAt`.
 - [x] `next/image` + `images.remotePatterns`. Placeholder when `imageUrl` is null
 - [x] Do **not** put `"use cache"` on product/inventory reads in v1 (stale stock). `cacheComponents` still streams a static shell
 - [x] Do **not** hydrate catalog into TanStack Query
-- [x] Add-to-cart CTA island only; mutation is Phase 6
-- [x] Tests: URL parsers (unit); Playwright for list → detail and filter round-trip
+- [x] Tests: URL parsers and SEO helpers (unit); Playwright for list → detail, canonicals, robots meta tags, and filter round-trip
+- [ ] [P0] Resolve production soft-404 on `/products/[id]` by blocking navigation until product existence is known. Acceptance criteria: run against `next start` (production server) and require `/products/999` and malformed IDs to return `HTTP 404 Not Found` with `noindex`, while valid active products (e.g. `/products/8`) render correctly with `HTTP 200 OK`. Must not stream an HTTP 200 OK with delayed client-side not-found UI.
 
 **Done when:** Seeded catalog is browsable without a session; SEO tags exist on detail; filters round-trip through the URL to the API; tests green.
 
@@ -395,6 +407,7 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 **Scope:**
 
 - [ ] Accept ADR-0004. Guest add-to-cart → `/login?redirect=` + `safeRedirectPath`. No local guest basket
+- [ ] Cart route metadata exports `robots: NO_INDEX_ROBOTS` to prevent indexing before and after authentication. Unblock `/cart` in `robots.ts` once this lands.
 - [ ] Create/load cart after session exists; persist **cart id** in `localStorage` (namespaced key; not a credential). Clear it on logout. Do **not** persist line items locally
 - [ ] Add / update quantity / remove / clear via OpenAPI. Client components only. Feature `api/` uses `throwApiErrorFromResponse` only. On mutation success: invalidate cart queries **and** `router.refresh()` so RSC inventory on open product pages is not stale.
 - [ ] Query cache: TkDodo keys; `placeholderData: keepPreviousData`; invalidate `detail(cartId)` (and header badge) on mutation success
@@ -417,6 +430,7 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 
 - [ ] Accept ADR-0005
 - [ ] Checkout is a protected route. Empty cart cannot start checkout (API will reject; UX disables)
+- [ ] Checkout route metadata exports `robots: NO_INDEX_ROBOTS` to prevent indexing. Unblock `/checkout` in `robots.ts` once this lands.
 - [ ] Form matching the checkout command: `cartId`, shipping address (prefill from default address when Phase 8 exists; until then, fields aligned to `ShippingAddressDto`), `paymentMethod` as the OpenAPI enum (`satisfies` - no invented `COD`), optional notes
 - [ ] Send `Idempotency-Key` (and keep body fallback only if the DTO still has it). Generate once per **attempt**; reuse on retry of that attempt; new attempt → new key. Persist the in-flight key in `sessionStorage`
 - [ ] Handle validation via `applyApiFormErrors`; **409** in-progress (`Retry-After`); **503** fail-closed; **429** banner. Disable submit while `isPending`.
@@ -483,6 +497,7 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 - [ ] Shared `QueryStateAlert` / `QueryListRegion` / `ActionErrorAlert`; `StatusBadge` for order states
 - [ ] Confirm no catalog data is duplicated in TanStack Query without a reason
 - [ ] Confirm no barrels, no `any`, no Server Actions hitting the API, no `throwOnError`, no skeleton cargo-cult
+- [ ] Audit SEO and metadata: verify canonical URLs, social tags, structured data, and robots directives match the Phase 5 foundation
 - [ ] Hook-mocked page specs remain the pattern; do not rewrite them onto `QueryClientProvider`
 - [ ] Align CONVENTIONS + ARCHITECTURE + PROJECT-CONTEXT with the real tree (phase numbers stay in this file only)
 
