@@ -8,8 +8,7 @@ import {
   toApiRequestError,
 } from '@/lib/api/parse-api-error';
 import type { ProductDetail } from '@/features/catalog/types';
-
-const FETCH_TIMEOUT_MS = 10000;
+import { CATALOG_FETCH_TIMEOUT_MS } from '@/features/catalog/api/catalog-constants';
 
 export const getProduct = cache(
   async (id: number): Promise<ProductDetail | null> => {
@@ -18,7 +17,7 @@ export const getProduct = cache(
         '/v1/products/{id}',
         {
           params: { path: { id } },
-          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          signal: AbortSignal.timeout(CATALOG_FETCH_TIMEOUT_MS),
         },
       );
 

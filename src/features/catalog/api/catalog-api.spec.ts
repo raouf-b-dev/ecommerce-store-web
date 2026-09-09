@@ -1,51 +1,48 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { serverClient } from '@/lib/api/server-client';
+
+const mocks = vi.hoisted(() => ({
+  get: vi.fn(),
+}));
+
+vi.mock('@/lib/api/server-client', () => ({
+  serverClient: {
+    GET: mocks.get,
+  },
+}));
+
 import { getProducts } from '@/features/catalog/api/get-products';
 import { getProduct } from '@/features/catalog/api/get-product';
 import { getCategories } from '@/features/catalog/api/get-categories';
 import { getProductInventory } from '@/features/catalog/api/get-product-inventory';
-
-vi.mock('@/lib/api/server-client', () => ({
-  serverClient: {
-    GET: vi.fn(),
-  },
-}));
+import {
+  createMockCategory,
+  createMockInventory,
+  createMockPaginatedProducts,
+  createMockProductDetail,
+} from '@/test/fixtures/catalog.fixture';
+import {
+  createErrorApiResponse,
+  createSuccessApiResponse,
+} from '@/test/fixtures/api-response.fixture';
 
 describe('catalog-api fetchers', () => {
-  const mockGet = vi.mocked(serverClient.GET);
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('getProducts', () => {
     it('returns paginated products on successful 200 response', async () => {
-      const mockData = {
-        items: [{ id: 1, name: 'Phone', price: 500, currency: 'USD', isActive: true, createdAt: '', sku: 'SKU1' }],
-        total: 1,
-        page: 1,
-        limit: 12,
-        totalPages: 1,
-      };
-
-      mockGet.mockResolvedValueOnce({
-        data: mockData,
-        error: undefined,
-        response: new Response(JSON.stringify(mockData), { status: 200 }),
-      } as never);
+      const mockData = createMockPaginatedProducts();
+      mocks.get.mockResolvedValueOnce(createSuccessApiResponse(mockData));
 
       const result = await getProducts({ page: 1, limit: 12 });
       expect(result).toEqual(mockData);
     });
 
     it('preserves HTTP status code on error and does not convert to 503', async () => {
-      mockGet.mockResolvedValueOnce({
-        data: undefined,
-        error: { statusCode: 429, message: 'Too many requests' },
-        response: new Response(JSON.stringify({ statusCode: 429, message: 'Too many requests' }), {
-          status: 429,
-        }),
-      } as never);
+      mocks.get.mockResolvedValueOnce(
+        createErrorApiResponse({ statusCode: 429, message: 'Too many requests' }, 429),
+      );
 
       await expect(getProducts({ page: 1, limit: 12 })).rejects.toMatchObject({
         statusCode: 429,
@@ -54,11 +51,11 @@ describe('catalog-api fetchers', () => {
     });
 
     it('throws 500 on malformed 200 response (data is null or undefined)', async () => {
-      mockGet.mockResolvedValueOnce({
+      mocks.get.mockResolvedValueOnce({
         data: null,
         error: undefined,
         response: new Response('null', { status: 200 }),
-      } as never);
+      });
 
       await expect(getProducts({ page: 1, limit: 12 })).rejects.toMatchObject({
         statusCode: 500,
@@ -67,77 +64,88 @@ describe('catalog-api fetchers', () => {
     });
 
     it('wraps raw network failure in 503 ApiRequestError', async () => {
-      mockGet.mockRejectedValueOnce(new TypeError('fetch failed'));
+      mocks.get.mockRejectedValueOnce(new TypeError('fetch failed'));
 
       await expect(getProducts({ page: 1, limit: 12 })).rejects.toMatchObject({
         statusCode: 503,
         message: 'API unavailable',
       });
     });
+
+    it('forwards normalized primitive filter parameters to the API client', async () => {
+      const mockData = createMockPaginatedProducts();
+      mocks.get.mockResolvedValueOnce(createSuccessApiResponse(mockData));
+
+      const result = await getProducts({
+        page: 2,
+        limit: 24,
+        categoryId: 3,
+        search: 'laptop',
+        minPrice: 100,
+        maxPrice: 1000,
+        sortBy: 'price',
+        sortOrder: 'desc',
+      });
+
+      expect(result).toEqual(mockData);
+      expect(mocks.get).toHaveBeenCalledWith('/v1/products', {
+        params: {
+          query: {
+            page: 2,
+            limit: 24,
+            categoryId: 3,
+            search: 'laptop',
+            minPrice: 100,
+            maxPrice: 1000,
+            sortBy: 'price',
+            sortOrder: 'desc',
+          },
+        },
+        signal: expect.any(AbortSignal),
+      });
+    });
   });
 
   describe('getProduct', () => {
     it('returns product detail on 200 active product', async () => {
-      const mockProduct = {
-        id: 1,
+      const mockProduct = createMockProductDetail({
         name: 'Laptop',
-        price: 1200,
-        currency: 'USD',
-        isActive: true,
-        createdAt: '',
-        sku: 'SKU2',
         slug: 'laptop',
-      };
+        price: 1200,
+      });
 
-      mockGet.mockResolvedValueOnce({
-        data: mockProduct,
-        error: undefined,
-        response: new Response(JSON.stringify(mockProduct), { status: 200 }),
-      } as never);
+      mocks.get.mockResolvedValueOnce(createSuccessApiResponse(mockProduct));
 
       const result = await getProduct(1);
       expect(result).toEqual(mockProduct);
     });
 
     it('returns null on 404 response', async () => {
-      mockGet.mockResolvedValueOnce({
-        data: undefined,
-        error: { statusCode: 404, message: 'Product not found' },
-        response: new Response(null, { status: 404 }),
-      } as never);
+      mocks.get.mockResolvedValueOnce(
+        createErrorApiResponse({ statusCode: 404, message: 'Product not found' }, 404),
+      );
 
       const result = await getProduct(999);
       expect(result).toBeNull();
     });
 
     it('returns null if product is returned with isActive = false', async () => {
-      const mockProduct = {
+      const mockProduct = createMockProductDetail({
         id: 2,
         name: 'Inactive Laptop',
-        price: 1200,
-        currency: 'USD',
         isActive: false,
-        createdAt: '',
-        sku: 'SKU3',
-        slug: 'inactive-laptop',
-      };
+      });
 
-      mockGet.mockResolvedValueOnce({
-        data: mockProduct,
-        error: undefined,
-        response: new Response(JSON.stringify(mockProduct), { status: 200 }),
-      } as never);
+      mocks.get.mockResolvedValueOnce(createSuccessApiResponse(mockProduct));
 
       const result = await getProduct(2);
       expect(result).toBeNull();
     });
 
     it('throws ApiRequestError on upstream 500 error', async () => {
-      mockGet.mockResolvedValueOnce({
-        data: undefined,
-        error: { statusCode: 500, message: 'Database failure' },
-        response: new Response(null, { status: 500 }),
-      } as never);
+      mocks.get.mockResolvedValueOnce(
+        createErrorApiResponse({ statusCode: 500, message: 'Database failure' }, 500),
+      );
 
       await expect(getProduct(1)).rejects.toMatchObject({
         statusCode: 500,
@@ -147,24 +155,18 @@ describe('catalog-api fetchers', () => {
 
   describe('getCategories', () => {
     it('returns category array on 200', async () => {
-      const mockCategories = [{ id: 1, name: 'Electronics', slug: 'electronics', isActive: true }];
+      const mockCategories = [createMockCategory()];
 
-      mockGet.mockResolvedValueOnce({
-        data: mockCategories,
-        error: undefined,
-        response: new Response(JSON.stringify(mockCategories), { status: 200 }),
-      } as never);
+      mocks.get.mockResolvedValueOnce(createSuccessApiResponse(mockCategories));
 
       const result = await getCategories();
       expect(result).toEqual(mockCategories);
     });
 
     it('throws 500 on malformed category response (not an array)', async () => {
-      mockGet.mockResolvedValueOnce({
-        data: { message: 'not an array' },
-        error: undefined,
-        response: new Response('{}', { status: 200 }),
-      } as never);
+      mocks.get.mockResolvedValueOnce(
+        createSuccessApiResponse({ message: 'not an array' }),
+      );
 
       await expect(getCategories()).rejects.toMatchObject({
         statusCode: 500,
@@ -175,43 +177,31 @@ describe('catalog-api fetchers', () => {
 
   describe('getProductInventory', () => {
     it('returns null on 200 when data is null (no inventory row)', async () => {
-      mockGet.mockResolvedValueOnce({
+      mocks.get.mockResolvedValueOnce({
         data: null,
         error: undefined,
         response: new Response('null', { status: 200 }),
-      } as never);
+      });
 
       const result = await getProductInventory(1);
       expect(result).toBeNull();
     });
 
     it('returns inventory data on 200 with inventory item', async () => {
-      const mockInventory = {
-        id: 1,
-        productId: 1,
-        sku: 'SKU1',
-        productTitle: 'Phone',
-        availableQuantity: 10,
-        reservedQuantity: 0,
-        totalQuantity: 10,
-      };
+      const mockInventory = createMockInventory();
 
-      mockGet.mockResolvedValueOnce({
-        data: mockInventory,
-        error: undefined,
-        response: new Response(JSON.stringify(mockInventory), { status: 200 }),
-      } as never);
+      mocks.get.mockResolvedValueOnce(createSuccessApiResponse(mockInventory));
 
       const result = await getProductInventory(1);
       expect(result).toEqual(mockInventory);
     });
 
     it('throws 500 on 200 when data is undefined (malformed response)', async () => {
-      mockGet.mockResolvedValueOnce({
+      mocks.get.mockResolvedValueOnce({
         data: undefined,
         error: undefined,
         response: new Response(null, { status: 200 }),
-      } as never);
+      });
 
       await expect(getProductInventory(1)).rejects.toMatchObject({
         statusCode: 500,
@@ -220,11 +210,9 @@ describe('catalog-api fetchers', () => {
     });
 
     it('throws ApiRequestError on upstream error', async () => {
-      mockGet.mockResolvedValueOnce({
-        data: undefined,
-        error: { statusCode: 500, message: 'Inventory service down' },
-        response: new Response(null, { status: 500 }),
-      } as never);
+      mocks.get.mockResolvedValueOnce(
+        createErrorApiResponse({ statusCode: 500, message: 'Inventory service down' }, 500),
+      );
 
       await expect(getProductInventory(1)).rejects.toMatchObject({
         statusCode: 500,
