@@ -13,13 +13,22 @@ describe('list-filters', () => {
     expect(parsePositiveInt('-2')).toBeUndefined();
     expect(parsePositiveInt('1.5')).toBeUndefined();
     expect(parsePositiveInt('nope')).toBeUndefined();
+    expect(parsePositiveInt('')).toBeUndefined();
+    expect(parsePositiveInt('   ')).toBeUndefined();
+    expect(parsePositiveInt(null)).toBeUndefined();
+    expect(parsePositiveInt(undefined)).toBeUndefined();
   });
 
   it('parses non-negative numbers', () => {
     expect(parseNonNegativeNumber('0')).toBe(0);
+    expect(parseNonNegativeNumber(0)).toBe(0);
     expect(parseNonNegativeNumber('2.5')).toBe(2.5);
     expect(parseNonNegativeNumber(-1)).toBeUndefined();
     expect(parseNonNegativeNumber('nope')).toBeUndefined();
+    expect(parseNonNegativeNumber('')).toBeUndefined();
+    expect(parseNonNegativeNumber('   ')).toBeUndefined();
+    expect(parseNonNegativeNumber(null)).toBeUndefined();
+    expect(parseNonNegativeNumber(undefined)).toBeUndefined();
   });
 
   it('parses isActive query flags', () => {
