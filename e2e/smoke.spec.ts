@@ -9,7 +9,9 @@ test('home shell renders chrome', async ({ page }) => {
   await expect(
     page.getByRole('banner').getByRole('link', { name: 'Storefront' }),
   ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Products', level: 1 }),
+  ).toBeVisible();
   await expect(page.locator('#main')).toBeVisible();
   await expect(page.getByRole('contentinfo')).toBeVisible();
   await expect(page.getByRole('radiogroup', { name: 'Theme selector' })).toBeVisible();

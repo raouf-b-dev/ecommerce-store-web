@@ -145,7 +145,7 @@ The following patterns belong to administrative consoles and are explicitly **ex
 | **2**  | App shell                                 | `[x]`  |  `[P0]`  | Layouts, chrome, error/loading, theme, health page                 |
 | **3**  | Authentication and session                | `[x]`  |  `[P0]`  | Login, register, silent refresh, customer chrome                   |
 | **4**  | Forced password change                    | `[x]`  |  `[P0]`  | Seeded customer `mustChangePassword` (do not skip)                 |
-| **5**  | Catalog                                   | `[ ]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
+| **5**  | Catalog                                   | `[x]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
 | **6**  | Cart                                      | `[ ]`  |  `[P0]`  | Authenticated cart mutations + tests                               |
 | **7**  | Checkout                                  | `[ ]`  |  `[P0]`  | Idempotency + order polling + confirmation                         |
 | **8**  | Orders and account                        | `[ ]`  |  `[P0]`  | Own orders, profile read, address book                             |
@@ -369,18 +369,18 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 
 **Scope:**
 
-- [ ] Home + product list as **async Server Components**. Wrap the fetching UI in `<Suspense>` so `cacheComponents` can ship chrome as the static shell. Empty/error via `not-found.tsx` / `error.tsx` - **not** `QueryStateAlert`
-- [ ] Server OpenAPI wrapper (`import 'server-only'`). No cookies, no Bearer. Wrap fetchers in React `cache()` when `generateMetadata` and the page share a call.
-- [ ] Bind **every** current list DTO field to the URL. Parse `searchParams` on the server. Change filters with Next `<Form>` from `next/form` or `<Link href={...}>` - not `setSearchParams`, not `nuqs`
-- [ ] Category navigation from category list (active only)
-- [ ] Product detail by **id**. Await `params`. Inactive → `not-found.tsx`
-- [ ] Availability from public inventory/check. `200 + null` → out of stock, not an error banner. `formatMoney` for price
-- [ ] Metadata, Open Graph, `robots.ts` / `sitemap.ts`
-- [ ] `next/image` + `images.remotePatterns`. Placeholder when `imageUrl` is null
-- [ ] Do **not** put `"use cache"` on product/inventory reads in v1 (stale stock). `cacheComponents` still streams a static shell
-- [ ] Do **not** hydrate catalog into TanStack Query
-- [ ] Add-to-cart CTA island only; mutation is Phase 6
-- [ ] Tests: URL parsers (unit); Playwright for list → detail and filter round-trip
+- [x] Home + product list as **async Server Components**. Wrap the fetching UI in `<Suspense>` so `cacheComponents` can ship chrome as the static shell. Empty/error via `not-found.tsx` / `error.tsx` - **not** `QueryStateAlert`
+- [x] Server OpenAPI wrapper (`import 'server-only'`). No cookies, no Bearer. Wrap fetchers in React `cache()` when `generateMetadata` and the page share a call.
+- [x] Bind **every** current list DTO field to the URL. Parse `searchParams` on the server. Change filters with Next `<Form>` from `next/form` or `<Link href={...}>` - not `setSearchParams`, not `nuqs`
+- [x] Category navigation from category list (active only)
+- [x] Product detail by **id**. Await `params`. Inactive → `not-found.tsx`
+- [x] Availability from public inventory/check. `200 + null` → out of stock, not an error banner. `formatMoney` for price
+- [x] Metadata, Open Graph, `robots.ts` / `sitemap.ts`
+- [x] `next/image` + `images.remotePatterns`. Placeholder when `imageUrl` is null
+- [x] Do **not** put `"use cache"` on product/inventory reads in v1 (stale stock). `cacheComponents` still streams a static shell
+- [x] Do **not** hydrate catalog into TanStack Query
+- [x] Add-to-cart CTA island only; mutation is Phase 6
+- [x] Tests: URL parsers (unit); Playwright for list → detail and filter round-trip
 
 **Done when:** Seeded catalog is browsable without a session; SEO tags exist on detail; filters round-trip through the URL to the API; tests green.
 

@@ -17,6 +17,6 @@ test('mobile navigation opens, navigates, and closes on Escape', async ({
 
   await menu.click();
   await page.getByRole('link', { name: 'Home' }).first().click();
-  await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Products', level: 1 })).toBeVisible();
   await expect(menu).toBeVisible();
 });

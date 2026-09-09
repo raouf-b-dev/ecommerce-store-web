@@ -11,6 +11,24 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   reactCompiler: true,
   typedRoutes: true,
+  images: {
+    remotePatterns:
+      process.env.NODE_ENV !== 'production'
+        ? [
+            { protocol: 'http', hostname: 'localhost', port: '3000' },
+            { protocol: 'http', hostname: '127.0.0.1', port: '3000' },
+          ]
+        : [],
+  },
+  async redirects() {
+    return [
+      {
+        source: '/products',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

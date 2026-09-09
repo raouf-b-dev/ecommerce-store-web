@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { FocusMainOnNavigate } from '@/components/layout/focus-main-on-navigate';
 import { THEME_FOUC_SCRIPT } from '@/components/theme/theme-constants';
 import { cn } from '@/lib/utils';
+import { getStorefrontOrigin } from '@/lib/storefront-origin';
 import { Providers } from '@/app/providers';
 import './globals.css';
 
@@ -12,11 +13,8 @@ const geist = Geist({
   variable: '--font-sans',
 });
 
-const storefrontOrigin =
-  process.env.NEXT_PUBLIC_STOREFRONT_ORIGIN ?? 'http://localhost:3100';
-
 export const metadata: Metadata = {
-  metadataBase: new URL(storefrontOrigin),
+  metadataBase: new URL(getStorefrontOrigin()),
   title: { default: 'Storefront', template: '%s | Storefront' },
   description: 'Customer storefront for the E-commerce Store API.',
 };

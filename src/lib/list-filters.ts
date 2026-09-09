@@ -1,4 +1,10 @@
 export function parsePositiveInt(value: unknown): number | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  if (typeof value === 'string' && value.trim() === '') {
+    return undefined;
+  }
   const n = typeof value === 'number' ? value : Number(value);
   if (Number.isInteger(n) && n > 0) {
     return n;
@@ -7,6 +13,12 @@ export function parsePositiveInt(value: unknown): number | undefined {
 }
 
 export function parseNonNegativeNumber(value: unknown): number | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  if (typeof value === 'string' && value.trim() === '') {
+    return undefined;
+  }
   const n = typeof value === 'number' ? value : Number(value);
   if (Number.isFinite(n) && n >= 0) {
     return n;
