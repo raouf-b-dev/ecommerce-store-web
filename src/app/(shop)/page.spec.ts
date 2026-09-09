@@ -1,0 +1,192 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { generateMetadata } from '@/app/(shop)/page';
+import * as getCategoriesModule from '@/features/catalog/api/get-categories';
+import * as getProductsModule from '@/features/catalog/api/get-products';
+import * as storefrontOriginModule from '@/lib/storefront-origin';
+import type { Category, PaginatedProducts } from '@/features/catalog/types';
+
+describe('HomePage generateMetadata orchestration', () => {
+  const origin = 'https://storefront.test';
+
+  const sampleCategories: Category[] = [
+    {
+      id: 1,
+      name: 'Apparel',
+      slug: 'apparel',
+      description: 'Clothing and apparel',
+      isActive: true,
+    },
+    {
+      id: 2,
+      name: 'Archived',
+      slug: 'archived',
+      description: 'Inactive items',
+      isActive: false,
+    },
+  ];
+
+  const emptyProductsResult: PaginatedProducts = {
+    items: [],
+    total: 0,
+    page: 1,
+    limit: 12,
+    totalPages: 0,
+  };
+
+  const nonEmptyProductsResult: PaginatedProducts = {
+    items: [
+      {
+        id: 10,
+        name: 'T-Shirt',
+        slug: 't-shirt',
+        price: 20,
+        currency: 'USD',
+        sku: 'TSH-1',
+        isActive: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ],
+    total: 1,
+    page: 1,
+    limit: 12,
+    totalPages: 1,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(storefrontOriginModule, 'getStorefrontOrigin').mockReturnValue(
+      origin,
+    );
+  });
+
+  it('causes zero category API calls when no category parameter is present', async () => {
+    const getCategoriesSpy = vi
+      .spyOn(getCategoriesModule, 'getCategories')
+      .mockResolvedValue(sampleCategories);
+    const getProductsSpy = vi.spyOn(getProductsModule, 'getProducts');
+
+    const metadata = await generateMetadata({
+      searchParams: Promise.resolve({ page: '1' }),
+    });
+
+    expect(getCategoriesSpy).not.toHaveBeenCalled();
+    expect(getProductsSpy).not.toHaveBeenCalled();
+    expect(metadata.title).toBe('Browse Products');
+    expect(metadata.robots).toEqual({ index: true, follow: true });
+    expect(metadata.alternates?.canonical).toBe('https://storefront.test/');
+  });
+
+  it('causes zero category API calls and omits canonical when category parameter is malformed', async () => {
+    const getCategoriesSpy = vi
+      .spyOn(getCategoriesModule, 'getCategories')
+      .mockResolvedValue(sampleCategories);
+    const getProductsSpy = vi.spyOn(getProductsModule, 'getProducts');
+
+    const metadata = await generateMetadata({
+      searchParams: Promise.resolve({ categoryId: 'abc' }),
+    });
+
+    expect(getCategoriesSpy).not.toHaveBeenCalled();
+    expect(getProductsSpy).not.toHaveBeenCalled();
+    expect(metadata.title).toBe('Category Not Found');
+    expect(metadata.description).toBe(
+      'The requested category could not be found.',
+    );
+    expect(metadata.robots).toEqual({ index: false, follow: true });
+    // Crucial: canonical URL must be omitted, NOT canonicalized to /
+    expect(metadata.alternates?.canonical).toBeUndefined();
+  });
+
+  it('queries categories and becomes nonexistent (noindex, follow) when category is not found or inactive', async () => {
+    const getCategoriesSpy = vi
+      .spyOn(getCategoriesModule, 'getCategories')
+      .mockResolvedValue(sampleCategories);
+    const getProductsSpy = vi.spyOn(getProductsModule, 'getProducts');
+
+    // Test nonexistent ID
+    const metadataNotFound = await generateMetadata({
+      searchParams: Promise.resolve({ categoryId: '999' }),
+    });
+
+    expect(getCategoriesSpy).toHaveBeenCalledTimes(1);
+    expect(getProductsSpy).not.toHaveBeenCalled();
+    expect(metadataNotFound.title).toBe('Category Not Found');
+    expect(metadataNotFound.robots).toEqual({ index: false, follow: true });
+
+    // Test inactive category
+    const metadataInactive = await generateMetadata({
+      searchParams: Promise.resolve({ categoryId: '2' }),
+    });
+
+    expect(metadataInactive.title).toBe('Category Not Found');
+    expect(metadataInactive.robots).toEqual({ index: false, follow: true });
+  });
+
+  it('propagates category API failures unchanged without misclassifying as nonexistent', async () => {
+    const apiError = new Error('Category service timeout');
+    vi.spyOn(getCategoriesModule, 'getCategories').mockRejectedValue(apiError);
+
+    await expect(
+      generateMetadata({
+        searchParams: Promise.resolve({ categoryId: '1' }),
+      }),
+    ).rejects.toThrow('Category service timeout');
+  });
+
+  it('marks empty category pages as noindex, follow while preserving self-canonical', async () => {
+    vi.spyOn(getCategoriesModule, 'getCategories').mockResolvedValue(
+      sampleCategories,
+    );
+    vi.spyOn(getProductsModule, 'getProducts').mockResolvedValue(
+      emptyProductsResult,
+    );
+
+    const metadata = await generateMetadata({
+      searchParams: Promise.resolve({ categoryId: '1' }),
+    });
+
+    expect(metadata.title).toBe('Apparel');
+    // Requirement 6: Do not index empty category pages
+    expect(metadata.robots).toEqual({ index: false, follow: true });
+    expect(metadata.alternates?.canonical).toBe(
+      'https://storefront.test/?categoryId=1',
+    );
+  });
+
+  it('resolves valid non-empty category with unique title, description, and indexable self-canonical', async () => {
+    vi.spyOn(getCategoriesModule, 'getCategories').mockResolvedValue(
+      sampleCategories,
+    );
+    vi.spyOn(getProductsModule, 'getProducts').mockResolvedValue(
+      nonEmptyProductsResult,
+    );
+
+    const metadata = await generateMetadata({
+      searchParams: Promise.resolve({ categoryId: '1', page: '2' }),
+    });
+
+    expect(metadata.title).toBe('Apparel - Page 2');
+    expect(metadata.description).toBe(
+      'Browse our collection of Apparel products - Page 2.',
+    );
+    expect(metadata.robots).toEqual({ index: true, follow: true });
+    expect(metadata.alternates?.canonical).toBe(
+      'https://storefront.test/?categoryId=1&page=2',
+    );
+  });
+
+  it('propagates product check failure when category is valid', async () => {
+    vi.spyOn(getCategoriesModule, 'getCategories').mockResolvedValue(
+      sampleCategories,
+    );
+    vi.spyOn(getProductsModule, 'getProducts').mockRejectedValue(
+      new Error('Product check failed'),
+    );
+
+    await expect(
+      generateMetadata({
+        searchParams: Promise.resolve({ categoryId: '1' }),
+      }),
+    ).rejects.toThrow('Product check failed');
+  });
+});

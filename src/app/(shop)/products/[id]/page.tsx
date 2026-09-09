@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
 import { parsePositiveInt } from '@/lib/list-filters';
 import { formatMoney } from '@/lib/format';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
@@ -10,13 +9,22 @@ import { ProductImage } from '@/features/catalog/components/product-image';
 import { ProductAvailability } from '@/features/catalog/components/product-availability';
 import { AddToCartCta } from '@/features/catalog/components/add-to-cart-cta';
 
+import { createPageMetadata, type PageMetadata } from '@/lib/seo/metadata';
+import { serializeJsonLd } from '@/lib/seo/json-ld';
+import {
+  createBreadcrumbJsonLd,
+  createProductJsonLd,
+} from '@/features/catalog/lib/catalog-json-ld';
+
 type ProductPageProps = {
   params: Promise<{ id: string }>;
 };
 
+export const instant = false;
+
 export async function generateMetadata({
   params,
-}: ProductPageProps): Promise<Metadata> {
+}: ProductPageProps): Promise<PageMetadata> {
   const resolvedParams = await params;
   const productId = parsePositiveInt(resolvedParams.id);
 
@@ -32,23 +40,17 @@ export async function generateMetadata({
   const origin = getStorefrontOrigin();
   const canonicalUrl = `${origin}/products/${product.id}`;
 
-  return {
+  return createPageMetadata({
     title: product.name,
     description:
       product.description?.trim() ||
       `Buy ${product.name} at the storefront for ${formatMoney(product.price, product.currency)}.`,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title: product.name,
-      description:
-        product.description?.trim() ||
-        `View details and availability for ${product.name}.`,
-      url: canonicalUrl,
-      images: product.imageUrl ? [{ url: product.imageUrl }] : [],
-    },
-  };
+    canonicalUrl,
+    origin,
+    imageUrl: product.imageUrl,
+    imageAlt: product.name,
+    openGraphType: 'website',
+  });
 }
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
@@ -68,30 +70,33 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const inventory = await getProductInventory(product.id);
   const isAvailable = (inventory?.availableQuantity ?? 0) > 0;
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.name,
-    description: product.description ?? undefined,
-    image: product.imageUrl ?? undefined,
-    sku: product.sku,
-    offers: {
-      '@type': 'Offer',
-      price: product.price,
-      priceCurrency: product.currency,
-      availability: isAvailable
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/OutOfStock',
-    },
-  };
+  const origin = getStorefrontOrigin();
+  const canonicalUrl = `${origin}/products/${product.id}`;
 
-  const escapedJsonLd = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+  const breadcrumbItems = [{ name: 'Home', url: `${origin}/` }];
+  if (product.categoryName && product.categoryId) {
+    breadcrumbItems.push({
+      name: product.categoryName,
+      url: `${origin}/?categoryId=${product.categoryId}`,
+    });
+  }
+  breadcrumbItems.push({
+    name: product.name,
+    url: canonicalUrl,
+  });
+
+  const productJsonLd = createProductJsonLd(product, canonicalUrl, isAvailable);
+  const breadcrumbJsonLd = createBreadcrumbJsonLd(breadcrumbItems);
 
   return (
     <article className="space-y-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: escapedJsonLd }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
 
       {/* Breadcrumbs */}
