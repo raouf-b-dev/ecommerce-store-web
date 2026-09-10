@@ -56,7 +56,8 @@ If a decision changes or is extended:
 | [ADR-0003](ADR-0003-single-flight-silent-refresh.md)                        | Accepted | Silent one-shot refresh + single-flight on domain 401                               | 2026-09-07 | -          | -             |
 | [ADR-0004](ADR-0004-no-guest-cart.md)                                       | Proposed | No guest line-item basket; login gate on cart and checkout                          | 2026-09-07 | -          | -             |
 | [ADR-0005](ADR-0005-checkout-order-polling.md)                              | Proposed | Checkout completion is own-order polling, not a job-queue API                       | 2026-09-07 | -          | -             |
-| [ADR-0006](ADR-0006-no-proxy-for-auth-or-headers.md)                        | Accepted | No `proxy.ts` for auth or headers; `next.config.ts` `headers()`                     | 2026-09-07 | -          | -             |
+| [ADR-0006](ADR-0006-security-headers-and-client-auth.md)                    | Accepted | Security headers in `next.config.ts`; auth at the client session boundary           | 2026-09-07 | -          | -             |
 | [ADR-0007](ADR-0007-keep-session-alive-for-refresh-token-lifetime.md)       | Accepted | Refresh missing or expiring in-memory access tokens for the refresh-cookie lifetime | 2026-09-07 | -          | -             |
+| [ADR-0008](ADR-0008-resource-404-via-app-router.md)                         | Accepted | Missing resource URLs use App Router `notFound()` before streaming                  | 2026-09-10 | -          | -             |
 
 Cross-link API ADRs when relevant; do not duplicate backend decision records here.
