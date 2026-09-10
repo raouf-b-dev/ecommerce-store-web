@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { Suspense, useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   QueryLoading,
@@ -17,11 +17,7 @@ type RouteProps = {
   children: ReactNode;
 };
 
-/**
- * Non-blocking storefront gate. Public server-rendered content remains visible
- * while the optional browser session bootstraps.
- */
-export function RequirePasswordChanged({ children }: RouteProps) {
+function PasswordChangeWatcher() {
   const { session } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -37,7 +33,23 @@ export function RequirePasswordChanged({ children }: RouteProps) {
     router.replace(getChangePasswordRedirectPath(currentPath));
   }, [session, router, pathname, searchParams]);
 
-  return children;
+  return null;
+}
+
+/**
+ * Non-blocking storefront gate. Public server-rendered content remains visible
+ * while the optional browser session bootstraps. The watcher is isolated in a leaf
+ * Suspense boundary so useSearchParams() does not block static prerendering of children.
+ */
+export function RequirePasswordChanged({ children }: RouteProps) {
+  return (
+    <>
+      <Suspense fallback={null}>
+        <PasswordChangeWatcher />
+      </Suspense>
+      {children}
+    </>
+  );
 }
 
 export function ChangePasswordRoute({ children }: RouteProps) {

@@ -53,7 +53,7 @@ Write an ADR in `docs/architecture/adr/ADR-XXXX-[title].md` when a change affect
 - Mid-request auth recovery (silent refresh / retry policy)
 - Guest vs authenticated cart
 - Checkout completion (order polling vs job-status API)
-- Introducing `proxy.ts` / request interception
+- Introducing a request-interception layer for auth, headers, or resource existence (see [ADR-0006](../architecture/adr/ADR-0006-security-headers-and-client-auth.md), [ADR-0008](../architecture/adr/ADR-0008-resource-404-via-app-router.md))
 
 ### ADR lifecycle states
 

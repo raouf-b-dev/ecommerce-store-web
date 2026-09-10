@@ -1,6 +1,6 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
 import { parsePositiveInt } from '@/lib/list-filters';
 import { formatMoney } from '@/lib/format';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
@@ -9,46 +9,75 @@ import { getProductInventory } from '@/features/catalog/api/get-product-inventor
 import { ProductImage } from '@/features/catalog/components/product-image';
 import { ProductAvailability } from '@/features/catalog/components/product-availability';
 import { AddToCartCta } from '@/features/catalog/components/add-to-cart-cta';
+import type { ProductDetail } from '@/features/catalog/types';
+
+import { createPageMetadata, type PageMetadata } from '@/lib/seo/metadata';
+import { JsonLd } from '@/components/seo/json-ld';
+import {
+  createBreadcrumbJsonLd,
+  createProductJsonLd,
+  type BreadcrumbItem,
+} from '@/features/catalog/lib/catalog-json-ld';
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
 };
 
+/**
+ * Opt this route out of Cache Components instant shells so missing products can
+ * emit a genuine HTTP 404 before the response streams.
+ */
+export const instant = false;
+
 export async function generateMetadata({
   params,
-}: ProductPageProps): Promise<Metadata> {
+}: ProductPageProps): Promise<PageMetadata> {
   const resolvedParams = await params;
   const productId = parsePositiveInt(resolvedParams.id);
 
   if (!productId) {
-    return { title: 'Product Not Found' };
+    notFound();
   }
 
   const product = await getProduct(productId);
-  if (!product || !product.isActive) {
-    return { title: 'Product Not Found' };
+  if (!product) {
+    notFound();
   }
 
   const origin = getStorefrontOrigin();
   const canonicalUrl = `${origin}/products/${product.id}`;
 
-  return {
+  return createPageMetadata({
     title: product.name,
     description:
       product.description?.trim() ||
       `Buy ${product.name} at the storefront for ${formatMoney(product.price, product.currency)}.`,
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title: product.name,
-      description:
-        product.description?.trim() ||
-        `View details and availability for ${product.name}.`,
-      url: canonicalUrl,
-      images: product.imageUrl ? [{ url: product.imageUrl }] : [],
-    },
-  };
+    canonicalUrl,
+    origin,
+    imageUrl: product.imageUrl,
+    imageAlt: product.name,
+    openGraphType: 'website',
+  });
+}
+
+async function ProductJsonLd({
+  product,
+  canonicalUrl,
+}: {
+  product: ProductDetail;
+  canonicalUrl: string;
+}) {
+  const inventory = await getProductInventory(product.id);
+  const isAvailable = (inventory?.availableQuantity ?? 0) > 0;
+
+  return (
+    <JsonLd data={createProductJsonLd(product, canonicalUrl, isAvailable)} />
+  );
+}
+
+async function ProductAvailabilitySlot({ productId }: { productId: number }) {
+  const inventory = await getProductInventory(productId);
+  return <ProductAvailability inventory={inventory} />;
 }
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
@@ -59,42 +88,34 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // Sequential fetch: product visibility is validated first
+  // Resolve existence before any Suspense boundary so notFound() can set HTTP 404.
   const product = await getProduct(productId);
-  if (!product || !product.isActive) {
+  if (!product) {
     notFound();
   }
 
-  const inventory = await getProductInventory(product.id);
-  const isAvailable = (inventory?.availableQuantity ?? 0) > 0;
+  const origin = getStorefrontOrigin();
+  const canonicalUrl = `${origin}/products/${product.id}`;
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
+  const breadcrumbItems: BreadcrumbItem[] = [{ name: 'Home', url: `${origin}/` }];
+  if (product.categoryName && product.categoryId) {
+    breadcrumbItems.push({
+      name: product.categoryName,
+      url: `${origin}/?categoryId=${product.categoryId}`,
+    });
+  }
+  breadcrumbItems.push({
     name: product.name,
-    description: product.description ?? undefined,
-    image: product.imageUrl ?? undefined,
-    sku: product.sku,
-    offers: {
-      '@type': 'Offer',
-      price: product.price,
-      priceCurrency: product.currency,
-      availability: isAvailable
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/OutOfStock',
-    },
-  };
-
-  const escapedJsonLd = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+    url: canonicalUrl,
+  });
 
   return (
     <article className="space-y-8">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: escapedJsonLd }}
-      />
+      <JsonLd data={createBreadcrumbJsonLd(breadcrumbItems)} />
+      <Suspense fallback={null}>
+        <ProductJsonLd product={product} canonicalUrl={canonicalUrl} />
+      </Suspense>
 
-      {/* Breadcrumbs */}
       <nav aria-label="Breadcrumbs" className="text-xs text-muted-foreground">
         <ol className="flex items-center gap-1.5">
           <li>
@@ -128,9 +149,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         </ol>
       </nav>
 
-      {/* Product Detail Grid */}
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-        {/* Left: Product Media */}
         <div className="relative aspect-square w-full overflow-hidden rounded-2xl border bg-muted/20 shadow-xs">
           <ProductImage
             src={product.imageUrl}
@@ -142,7 +161,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           />
         </div>
 
-        {/* Right: Product Info & Actions */}
         <div className="flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             {product.categoryName ? (
@@ -163,7 +181,19 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <span className="text-3xl font-extrabold text-foreground">
                 {formatMoney(product.price, product.currency)}
               </span>
-              <ProductAvailability inventory={inventory} />
+              <Suspense
+                fallback={
+                  <span
+                    className="text-xs text-muted-foreground"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    Checking availability…
+                  </span>
+                }
+              >
+                <ProductAvailabilitySlot productId={product.id} />
+              </Suspense>
             </div>
 
             {product.description ? (

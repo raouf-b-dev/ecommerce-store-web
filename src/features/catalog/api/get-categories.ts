@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { cache } from 'react';
 import { serverClient } from '@/lib/api/server-client';
 import {
   ApiRequestError,
@@ -10,7 +11,7 @@ import type { Category } from '@/features/catalog/types';
 
 const FETCH_TIMEOUT_MS = 10000;
 
-export async function getCategories(): Promise<Category[]> {
+export const getCategories = cache(async (): Promise<Category[]> => {
   try {
     const { data, error, response } = await serverClient.GET(
       '/v1/categories',
@@ -45,4 +46,4 @@ export async function getCategories(): Promise<Category[]> {
       message: 'API unavailable',
     });
   }
-}
+});

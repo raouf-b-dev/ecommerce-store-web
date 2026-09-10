@@ -8,6 +8,7 @@ import {
   buildCatalogQueryString,
   createCatalogFilterHref,
   parseCatalogSearchParams,
+  toCatalogCacheKey,
   toProductsQueryParams,
 } from '@/features/catalog/lib/catalog-params';
 
@@ -163,6 +164,32 @@ describe('catalog-params', () => {
 
       expect(href).toContain('page=2');
       expect(href).toContain('search=keyboard');
+    });
+  });
+
+  describe('toCatalogCacheKey', () => {
+    it('is stable for equal filters built from different object identities', () => {
+      const a = parseCatalogSearchParams({
+        search: 'laptop',
+        categoryId: '2',
+        page: '1',
+        limit: '12',
+        sortBy: 'price',
+        sortOrder: 'asc',
+      });
+      const b = { ...a };
+
+      expect(toCatalogCacheKey(a)).toBe(toCatalogCacheKey(b));
+      expect(JSON.parse(toCatalogCacheKey(a))).toEqual(
+        toProductsQueryParams(a),
+      );
+    });
+
+    it('changes when a filter that affects the API query changes', () => {
+      const base = parseCatalogSearchParams({ categoryId: '2', page: '1' });
+      const nextPage = { ...base, page: 2 };
+
+      expect(toCatalogCacheKey(base)).not.toBe(toCatalogCacheKey(nextPage));
     });
   });
 });

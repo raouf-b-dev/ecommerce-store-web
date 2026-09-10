@@ -120,6 +120,14 @@ export function toProductsQueryParams(
   return query;
 }
 
+/**
+ * Stable primitive key for React `cache()` (Object.is on one string).
+ * Same filters from generateMetadata and page share one HTTP call.
+ */
+export function toCatalogCacheKey(params: CatalogFilterParams): string {
+  return JSON.stringify(toProductsQueryParams(params));
+}
+
 export function buildCatalogQueryString(
   params: Partial<CatalogFilterParams>,
 ): string {

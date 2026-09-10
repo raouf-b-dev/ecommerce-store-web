@@ -28,7 +28,56 @@ test.describe('Catalog storefront', () => {
     await expect(cards.first()).toBeVisible();
   });
 
-  test('navigates pagination unconditionally against seeded catalog and verifies products differ', async ({
+  test('declares correct canonical, title, social metadata, and image routes on homepage', async ({
+    page,
+    request,
+  }) => {
+    await page.goto('/');
+
+    await expect(page).toHaveTitle('Browse Products | Storefront');
+
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveAttribute('href', /https?:\/\/[^/?#]+(?:\/)?$/);
+
+    // Robots should be index, follow
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'index, follow',
+    );
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+      'content',
+      'Browse Products | Storefront',
+    );
+    await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute(
+      'content',
+      'Storefront',
+    );
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      'content',
+      /\/opengraph-image/,
+    );
+
+    // Twitter Card
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
+      'content',
+      'summary_large_image',
+    );
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute(
+      'content',
+      /\/twitter-image/,
+    );
+
+    // Assert social image endpoints return HTTP 200 with image/png
+    const ogResponse = await request.get('/opengraph-image');
+    expect(ogResponse.status()).toBe(200);
+    expect(ogResponse.headers()['content-type']).toContain('image/png');
+
+    const twitterResponse = await request.get('/twitter-image');
+    expect(twitterResponse.status()).toBe(200);
+    expect(twitterResponse.headers()['content-type']).toContain('image/png');
+  });
+
+  test('navigates pagination unconditionally against seeded catalog and verifies products and metadata', async ({
     page,
   }) => {
     await page.goto('/');
@@ -50,13 +99,27 @@ test.describe('Catalog storefront', () => {
     await expect(page).toHaveURL(/(?:[?&])page=2(?:&|$)/);
     await expect(pageTwoLink).toHaveAttribute('aria-current', 'page');
 
+    await expect(page).toHaveTitle('Browse Products - Page 2 | Storefront');
+
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveAttribute(
+      'href',
+      /https?:\/\/[^/]+\/\?page=2$/,
+    );
+
+    // Page 2 should remain indexable (index, follow)
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'index, follow',
+    );
+
     await expect(cards.first()).toBeVisible();
     const pageTwoFirstTitle = await cards.first().locator('h3').textContent();
     expect(pageTwoFirstTitle).toBeTruthy();
     expect(pageTwoFirstTitle?.trim()).not.toBe(pageOneFirstTitle?.trim());
   });
 
-  test('selecting category filters products and round-trips through URL', async ({
+  test('selecting category filters products and round-trips through URL with self-canonical', async ({
     page,
   }) => {
     await page.goto('/');
@@ -66,16 +129,27 @@ test.describe('Catalog storefront', () => {
 
     const categoryLink = categoryNav.locator('a[href*="categoryId="]').first();
     await expect(categoryLink).toBeVisible();
+    const categoryName = (await categoryLink.textContent())?.trim();
     await categoryLink.click();
 
     await expect(page).toHaveURL(/categoryId=\d+/);
     await expect(categoryLink).toHaveAttribute('aria-current', 'page');
 
+    if (categoryName) {
+      await expect(page).toHaveTitle(new RegExp(`${categoryName} \\| Storefront`));
+    }
+
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveAttribute(
+      'href',
+      /https?:\/\/[^/]+\/\?categoryId=\d+$/,
+    );
+
     const cards = page.locator('main a[href^="/products/"]');
     await expect(cards.first()).toBeVisible();
   });
 
-  test('submitting search filters product list and round-trips to URL', async ({
+  test('submitting search filters product list and applies noindex, follow with normalized self-canonical', async ({
     page,
   }) => {
     await page.goto('/');
@@ -85,9 +159,39 @@ test.describe('Catalog storefront', () => {
 
     await expect(page).toHaveURL(/search=Headphones/);
 
+    // Check noindex, follow policy on search
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex, follow',
+    );
+
+    // Check normalized self-canonical
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveAttribute(
+      'href',
+      /https?:\/\/[^/]+\/\?search=Headphones$/,
+    );
+
     const cards = page.locator('main a[href^="/products/"]');
     await expect(cards.first()).toBeVisible();
     await expect(cards.first().locator('h3')).toContainText(/Headphones/i);
+  });
+
+  test('custom sort applies noindex, follow with normalized self-canonical', async ({
+    page,
+  }) => {
+    await page.goto('/?sortBy=price');
+
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex, follow',
+    );
+
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveAttribute(
+      'href',
+      /https?:\/\/[^/]+\/\?sortBy=price$/,
+    );
   });
 
   test('non-matching search renders in-page empty state rather than 404', async ({
@@ -104,7 +208,7 @@ test.describe('Catalog storefront', () => {
     await expect(page.getByText('Product not found')).not.toBeVisible();
   });
 
-  test('navigates to product detail and displays details, availability, and JSON-LD', async ({
+  test('navigates to product detail and displays details, availability, canonical, and structured data', async ({
     page,
   }) => {
     await page.goto('/');
@@ -124,6 +228,13 @@ test.describe('Catalog storefront', () => {
       page.getByRole('heading', { name: productTitle!.trim(), level: 1 }),
     ).toBeVisible();
 
+    // Canonical link tag
+    const canonical = page.locator('link[rel="canonical"]');
+    await expect(canonical).toHaveAttribute(
+      'href',
+      /https?:\/\/[^/]+\/products\/\d+$/,
+    );
+
     // Breadcrumbs
     await expect(
       page.getByRole('navigation', { name: 'Breadcrumbs' }),
@@ -137,22 +248,92 @@ test.describe('Catalog storefront', () => {
     await expect(addToCartBtn).toBeVisible();
     await expect(addToCartBtn).toBeDisabled();
 
-    // Verify JSON-LD Schema.org script
-    const jsonLdScript = page.locator('script[type="application/ld+json"]');
-    await expect(jsonLdScript).toBeAttached();
+    // Open Graph type must be 'website'
+    await expect(page.locator('meta[property="og:type"]')).toHaveAttribute(
+      'content',
+      'website',
+    );
 
-    const jsonText = await jsonLdScript.textContent();
-    expect(jsonText).toBeTruthy();
+    // Verify JSON-LD Schema.org scripts: both Product and BreadcrumbList
+    const jsonLdScripts = page.locator('script[type="application/ld+json"]');
+    await expect(jsonLdScripts).toHaveCount(2);
 
-    const parsed = JSON.parse(jsonText!);
-    expect(parsed['@context']).toBe('https://schema.org');
-    expect(parsed['@type']).toBe('Product');
-    expect(parsed.name).toBe(productTitle!.trim());
+    const scriptContents = await jsonLdScripts.allTextContents();
+    const schemas = scriptContents.map((text) => JSON.parse(text));
+
+    const productSchema = schemas.find((s) => s['@type'] === 'Product');
+    expect(productSchema).toBeDefined();
+    expect(productSchema['@context']).toBe('https://schema.org');
+    expect(productSchema.name).toBe(productTitle!.trim());
+    expect(productSchema['@id']).toMatch(/https?:\/\/[^/]+\/products\/\d+$/);
+    expect(productSchema.url).toMatch(/https?:\/\/[^/]+\/products\/\d+$/);
+
+    const breadcrumbSchema = schemas.find(
+      (s) => s['@type'] === 'BreadcrumbList',
+    );
+    expect(breadcrumbSchema).toBeDefined();
+    expect(breadcrumbSchema['@context']).toBe('https://schema.org');
+    expect(breadcrumbSchema.itemListElement.length).toBeGreaterThanOrEqual(2);
   });
 
-  test('navigating to invalid product ID displays 404 page', async ({
+  test('malformed category parameter emits noindex, follow without a canonical link', async ({
     page,
   }) => {
+    await page.goto('/?categoryId=invalid');
+
+    await expect(page).toHaveTitle('Category Not Found | Storefront');
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex, follow',
+    );
+
+    // Canonical link tag must be omitted on malformed category queries
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  });
+
+  test('sitemap partition returns HTTP 200 with XML content, and robots references it', async ({
+    request,
+  }) => {
+    // 1. Verify robots.txt references /sitemap/0.xml
+    const robotsResponse = await request.get('/robots.txt');
+    expect(robotsResponse.status()).toBe(200);
+    const robotsBody = await robotsResponse.text();
+    expect(robotsBody).toContain('/sitemap/0.xml');
+
+    // 2. Fetch sitemap partition /sitemap/0.xml
+    const sitemapResponse = await request.get('/sitemap/0.xml');
+    expect(sitemapResponse.status()).toBe(200);
+    const contentType = sitemapResponse.headers()['content-type'] ?? '';
+    expect(contentType).toContain('xml');
+
+    const sitemapBody = await sitemapResponse.text();
+    expect(sitemapBody).toContain('/products/');
+    // Product entries expose honest lastmod from list updatedAt
+    expect(sitemapBody).toContain('<lastmod>');
+    // Non-empty categories may appear; empty ones must not be advertised via productCount=0
+    // (exact category IDs depend on seed data — assert shape only when present)
+    if (sitemapBody.includes('categoryId=')) {
+      expect(sitemapBody).toMatch(/categoryId=\d+/);
+    }
+
+    // 3. Out-of-range or malformed sitemap IDs return HTTP 404 (not empty 200)
+    const outOfRangeResponse = await request.get('/sitemap/999.xml');
+    expect(outOfRangeResponse.status()).toBe(404);
+
+    const malformedResponse = await request.get('/sitemap/abc.xml');
+    expect(malformedResponse.status()).toBe(404);
+  });
+
+  test('invalid and missing product IDs return HTTP 404 with product not-found UI', async ({
+    page,
+    request,
+  }) => {
+    const malformed = await request.get('/products/0');
+    expect(malformed.status()).toBe(404);
+
+    const missing = await request.get('/products/999999');
+    expect(missing.status()).toBe(404);
+
     await page.goto('/products/0');
 
     await expect(
@@ -161,6 +342,10 @@ test.describe('Catalog storefront', () => {
     await expect(
       page.getByRole('link', { name: 'Back to catalog' }),
     ).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      /noindex/,
+    );
   });
 
   test('out-of-range page redirects to last valid page while preserving filters', async ({

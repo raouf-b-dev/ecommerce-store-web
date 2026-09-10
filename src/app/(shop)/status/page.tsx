@@ -3,9 +3,11 @@ import type { Metadata } from 'next';
 import { PageHeader } from '@/components/layout/page-header';
 import { HealthStatus } from '@/features/health/components/health-status';
 
+import { NO_INDEX_ROBOTS } from '@/lib/seo/config';
+
 export const metadata: Metadata = {
   title: 'API status',
-  robots: { index: false, follow: false },
+  robots: NO_INDEX_ROBOTS,
 };
 
 export default function StatusPage() {

@@ -20,3 +20,19 @@ test('mobile navigation opens, navigates, and closes on Escape', async ({
   await expect(page.getByRole('heading', { name: 'Products', level: 1 })).toBeVisible();
   await expect(menu).toBeVisible();
 });
+
+test('private routes declare metadata-level noindex, nofollow', async ({
+  page,
+}) => {
+  await page.goto('/status');
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    'content',
+    'noindex, nofollow',
+  );
+
+  await page.goto('/login');
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    'content',
+    'noindex, nofollow',
+  );
+});
