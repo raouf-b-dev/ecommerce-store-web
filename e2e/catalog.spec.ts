@@ -321,9 +321,16 @@ test.describe('Catalog storefront', () => {
     expect(malformedResponse.status()).toBe(404);
   });
 
-  test('navigating to invalid product ID displays 404 page', async ({
+  test('invalid and missing product IDs return HTTP 404 with product not-found UI', async ({
     page,
+    request,
   }) => {
+    const malformed = await request.get('/products/0');
+    expect(malformed.status()).toBe(404);
+
+    const missing = await request.get('/products/999999');
+    expect(missing.status()).toBe(404);
+
     await page.goto('/products/0');
 
     await expect(
@@ -332,6 +339,10 @@ test.describe('Catalog storefront', () => {
     await expect(
       page.getByRole('link', { name: 'Back to catalog' }),
     ).toBeVisible();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      /noindex/,
+    );
   });
 
   test('out-of-range page redirects to last valid page while preserving filters', async ({

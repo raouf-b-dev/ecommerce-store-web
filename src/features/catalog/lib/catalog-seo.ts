@@ -3,7 +3,7 @@ import { buildCanonicalUrl } from '@/lib/seo/canonical';
 import {
   INDEX_FOLLOW_ROBOTS,
   NO_INDEX_FOLLOW_ROBOTS,
-} from '@/lib/seo/constants';
+} from '@/lib/seo/config';
 import { createPageMetadata, type PageMetadata } from '@/lib/seo/metadata';
 import { parsePositiveInt } from '@/lib/list-filters';
 import type { Category, CatalogFilterParams } from '@/features/catalog/types';
