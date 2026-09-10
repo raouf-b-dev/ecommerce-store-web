@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { parsePositiveInt } from '@/lib/list-filters';
@@ -8,12 +9,14 @@ import { getProductInventory } from '@/features/catalog/api/get-product-inventor
 import { ProductImage } from '@/features/catalog/components/product-image';
 import { ProductAvailability } from '@/features/catalog/components/product-availability';
 import { AddToCartCta } from '@/features/catalog/components/add-to-cart-cta';
+import type { ProductDetail } from '@/features/catalog/types';
 
 import { createPageMetadata, type PageMetadata } from '@/lib/seo/metadata';
 import { JsonLd } from '@/components/seo/json-ld';
 import {
   createBreadcrumbJsonLd,
   createProductJsonLd,
+  type BreadcrumbItem,
 } from '@/features/catalog/lib/catalog-json-ld';
 
 type ProductPageProps = {
@@ -57,6 +60,33 @@ export async function generateMetadata({
   });
 }
 
+async function ProductJsonLd({
+  product,
+  canonicalUrl,
+  breadcrumbItems,
+}: {
+  product: ProductDetail;
+  canonicalUrl: string;
+  breadcrumbItems: BreadcrumbItem[];
+}) {
+  const inventory = await getProductInventory(product.id);
+  const isAvailable = (inventory?.availableQuantity ?? 0) > 0;
+
+  return (
+    <>
+      <JsonLd
+        data={createProductJsonLd(product, canonicalUrl, isAvailable)}
+      />
+      <JsonLd data={createBreadcrumbJsonLd(breadcrumbItems)} />
+    </>
+  );
+}
+
+async function ProductAvailabilitySlot({ productId }: { productId: number }) {
+  const inventory = await getProductInventory(productId);
+  return <ProductAvailability inventory={inventory} />;
+}
+
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const resolvedParams = await params;
   const productId = parsePositiveInt(resolvedParams.id);
@@ -71,13 +101,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const inventory = await getProductInventory(product.id);
-  const isAvailable = (inventory?.availableQuantity ?? 0) > 0;
-
   const origin = getStorefrontOrigin();
   const canonicalUrl = `${origin}/products/${product.id}`;
 
-  const breadcrumbItems = [{ name: 'Home', url: `${origin}/` }];
+  const breadcrumbItems: BreadcrumbItem[] = [{ name: 'Home', url: `${origin}/` }];
   if (product.categoryName && product.categoryId) {
     breadcrumbItems.push({
       name: product.categoryName,
@@ -89,13 +116,15 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     url: canonicalUrl,
   });
 
-  const productJsonLd = createProductJsonLd(product, canonicalUrl, isAvailable);
-  const breadcrumbJsonLd = createBreadcrumbJsonLd(breadcrumbItems);
-
   return (
     <article className="space-y-8">
-      <JsonLd data={productJsonLd} />
-      <JsonLd data={breadcrumbJsonLd} />
+      <Suspense fallback={null}>
+        <ProductJsonLd
+          product={product}
+          canonicalUrl={canonicalUrl}
+          breadcrumbItems={breadcrumbItems}
+        />
+      </Suspense>
 
       <nav aria-label="Breadcrumbs" className="text-xs text-muted-foreground">
         <ol className="flex items-center gap-1.5">
@@ -162,7 +191,19 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <span className="text-3xl font-extrabold text-foreground">
                 {formatMoney(product.price, product.currency)}
               </span>
-              <ProductAvailability inventory={inventory} />
+              <Suspense
+                fallback={
+                  <span
+                    className="text-xs text-muted-foreground"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    Checking availability…
+                  </span>
+                }
+              >
+                <ProductAvailabilitySlot productId={product.id} />
+              </Suspense>
             </div>
 
             {product.description ? (

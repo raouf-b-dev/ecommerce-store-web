@@ -33,7 +33,8 @@ export async function generateMetadata({
       const categories = await getCategories();
       const found = categories.find((c) => c.id === parsedParams.categoryId);
       if (found && found.isActive) {
-        // Determine whether valid category has products using deduplicated cached query
+        // Same filter params as CatalogContent → one React cache() / HTTP call.
+        // Replace with CategoryResponseDto.productCount when the API exposes it.
         const productsResult = await getProducts(parsedParams);
         categoryState = {
           status: 'valid',

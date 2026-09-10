@@ -7,48 +7,26 @@ import {
   parseApiErrorBody,
   toApiRequestError,
 } from '@/lib/api/parse-api-error';
-import { toProductsQueryParams } from '@/features/catalog/lib/catalog-params';
+import { toCatalogCacheKey } from '@/features/catalog/lib/catalog-params';
 import type {
   CatalogFilterParams,
   PaginatedProducts,
-  ProductSortBy,
-  SortOrder,
+  ProductsQueryParams,
 } from '@/features/catalog/types';
 
 const FETCH_TIMEOUT_MS = 10000;
 
 /**
- * Internal fetcher cached with React cache().
- * React cache() compares arguments using reference equality (Object.is).
- * By receiving primitive parameters rather than object references, distinct filter objects
- * created separately during SSR (e.g. in generateMetadata and CatalogContent) share
- * the exact same deduplicated request.
+ * Deduplicates identical catalog list requests within one RSC render
+ * (e.g. generateMetadata + CatalogContent) via a stable string cache key.
  */
-const fetchProductsInternal = cache(
-  async (
-    page: number,
-    limit: number,
-    categoryId: number | undefined,
-    search: string | undefined,
-    minPrice: number | undefined,
-    maxPrice: number | undefined,
-    sortBy: ProductSortBy | undefined,
-    sortOrder: SortOrder | undefined,
-  ): Promise<PaginatedProducts> => {
+const fetchProductsByCacheKey = cache(
+  async (cacheKey: string): Promise<PaginatedProducts> => {
+    const query = JSON.parse(cacheKey) as ProductsQueryParams;
+
     try {
       const { data, error, response } = await serverClient.GET('/v1/products', {
-        params: {
-          query: toProductsQueryParams({
-            page,
-            limit,
-            categoryId,
-            search,
-            minPrice,
-            maxPrice,
-            sortBy,
-            sortOrder,
-          }),
-        },
+        params: { query },
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       });
 
@@ -83,14 +61,5 @@ const fetchProductsInternal = cache(
 export async function getProducts(
   params: CatalogFilterParams,
 ): Promise<PaginatedProducts> {
-  return fetchProductsInternal(
-    params.page,
-    params.limit,
-    params.categoryId,
-    params.search,
-    params.minPrice,
-    params.maxPrice,
-    params.sortBy,
-    params.sortOrder,
-  );
+  return fetchProductsByCacheKey(toCatalogCacheKey(params));
 }
