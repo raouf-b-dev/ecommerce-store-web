@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { generateMetadata } from '@/app/(shop)/products/[id]/page';
 import * as getProductModule from '@/features/catalog/api/get-product';
 import * as storefrontOriginModule from '@/lib/storefront-origin';
+import type * as NextNavigation from 'next/navigation';
 import type { ProductDetail } from '@/features/catalog/types';
 
 const notFoundMock = vi.hoisted(() =>
@@ -11,7 +12,7 @@ const notFoundMock = vi.hoisted(() =>
 );
 
 vi.mock('next/navigation', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/navigation')>();
+  const actual = await importOriginal<typeof NextNavigation>();
   return {
     ...actual,
     notFound: notFoundMock,

@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 import { Suspense } from 'react';
 import { FocusMainOnNavigate } from '@/components/layout/focus-main-on-navigate';
-import { THEME_FOUC_SCRIPT } from '@/components/theme/theme-constants';
 import { cn } from '@/lib/utils';
 import { seoConfig } from '@/lib/seo/config';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
+import { ThemeScript } from '@/components/theme/theme-script';
 import { Providers } from '@/app/providers';
 import './globals.css';
 
@@ -31,9 +31,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       className={cn('font-sans', geist.variable)}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_FOUC_SCRIPT }} />
+        <ThemeScript />
       </head>
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen antialiased" suppressHydrationWarning>
         <Providers>
           <Suspense fallback={null}>
             <FocusMainOnNavigate />
