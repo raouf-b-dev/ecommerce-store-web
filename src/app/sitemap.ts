@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next';
 import { notFound } from 'next/navigation';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
 import { getProducts } from '@/features/catalog/api/get-products';
+import { ApiRequestError } from '@/lib/api/parse-api-error';
+import type { PaginatedProducts } from '@/features/catalog/types';
 import {
   getSitemapPartitions,
   PRODUCTS_PER_SITEMAP,
@@ -56,44 +58,56 @@ export default async function sitemap(props: {
   const maxPage = Math.ceil(endProductIndex / API_PAGE_LIMIT);
 
   // Fetch initial page with deterministic sorting
-  const firstResult = await getProducts({
-    page: startPage,
-    limit: API_PAGE_LIMIT,
-    sortBy: 'id',
-    sortOrder: 'asc',
-  });
+  let allResults: PaginatedProducts[] = [];
+  try {
+    const firstResult = await getProducts({
+      page: startPage,
+      limit: API_PAGE_LIMIT,
+      sortBy: 'id',
+      sortOrder: 'asc',
+    });
 
-  // Handle stale manifests: if the catalog shrunk and startPage exceeds current totalPages,
-  // return 404 rather than an empty 200 sitemap.
-  const effectiveTotalPages = Math.max(1, firstResult.totalPages);
-  if (startPage > effectiveTotalPages) {
-    notFound();
+    // Handle stale manifests: if the catalog shrunk and startPage exceeds current totalPages,
+    // return 404 rather than an empty 200 sitemap.
+    const effectiveTotalPages = Math.max(1, firstResult.totalPages);
+    if (startPage > effectiveTotalPages) {
+      notFound();
+    }
+
+    const totalPages = firstResult.totalPages;
+    const lastPageToFetch = Math.min(maxPage, totalPages);
+
+    // Bounded parallel fetch for remaining pages within this partition (at most 9 concurrent requests)
+    const remainingPages: number[] = [];
+    for (let p = startPage + 1; p <= lastPageToFetch; p++) {
+      remainingPages.push(p);
+    }
+
+    const remainingResults =
+      remainingPages.length > 0
+        ? await Promise.all(
+            remainingPages.map((page) =>
+              getProducts({
+                page,
+                limit: API_PAGE_LIMIT,
+                sortBy: 'id',
+                sortOrder: 'asc',
+              }),
+            ),
+          )
+        : [];
+
+    allResults = [firstResult, ...remainingResults];
+  } catch (error) {
+    // If the catalog API is unreachable (e.g. during CI build-time):
+    // Partition 0 safely falls back to empty products so the root sitemap (with homepage) still builds.
+    // Non-zero partitions re-throw to avoid falsely emitting 200 responses for missing slices.
+    if (partitionId === 0 && error instanceof ApiRequestError) {
+      allResults = [];
+    } else {
+      throw error;
+    }
   }
-
-  const totalPages = firstResult.totalPages;
-  const lastPageToFetch = Math.min(maxPage, totalPages);
-
-  // Bounded parallel fetch for remaining pages within this partition (at most 9 concurrent requests)
-  const remainingPages: number[] = [];
-  for (let p = startPage + 1; p <= lastPageToFetch; p++) {
-    remainingPages.push(p);
-  }
-
-  const remainingResults =
-    remainingPages.length > 0
-      ? await Promise.all(
-          remainingPages.map((page) =>
-            getProducts({
-              page,
-              limit: API_PAGE_LIMIT,
-              sortBy: 'id',
-              sortOrder: 'asc',
-            }),
-          ),
-        )
-      : [];
-
-  const allResults = [firstResult, ...remainingResults];
 
   // Collect products for this partition
   const productEntries: MetadataRoute.Sitemap = [];

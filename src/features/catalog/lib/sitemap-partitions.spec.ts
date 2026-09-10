@@ -5,6 +5,7 @@ import {
   PRODUCTS_PER_SITEMAP,
 } from '@/features/catalog/lib/sitemap-partitions';
 import * as getProductsModule from '@/features/catalog/api/get-products';
+import { ApiRequestError } from '@/lib/api/parse-api-error';
 
 vi.mock('next/cache', () => ({
   unstable_cache: <T extends (...args: never[]) => unknown>(fn: T): T => fn,
@@ -70,7 +71,7 @@ describe('sitemap-partitions', () => {
   });
 
   describe('error propagation', () => {
-    it('propagates API failures unchanged instead of returning a degraded single partition', async () => {
+    it('propagates non-API failures unchanged', async () => {
       const apiError = new Error('Database connection failed');
       vi.spyOn(getProductsModule, 'getProducts').mockRejectedValue(apiError);
 
@@ -80,6 +81,15 @@ describe('sitemap-partitions', () => {
       await expect(getSitemapPartitions()).rejects.toThrow(
         'Database connection failed',
       );
+    });
+
+    it('falls back to partition 0 when catalog API is unavailable for build safety', async () => {
+      vi.spyOn(getProductsModule, 'getProducts').mockRejectedValue(
+        new ApiRequestError({ statusCode: 503, message: 'API unavailable' }),
+      );
+
+      const partitions = await discoverSitemapPartitions();
+      expect(partitions).toEqual([{ id: 0 }]);
     });
 
     it('getSitemapPartitions returns discovered partitions', async () => {

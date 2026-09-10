@@ -5,6 +5,7 @@ import sitemap, {
 } from '@/app/sitemap';
 import * as getProductsModule from '@/features/catalog/api/get-products';
 import * as storefrontOriginModule from '@/lib/storefront-origin';
+import { ApiRequestError } from '@/lib/api/parse-api-error';
 import type { PaginatedProducts } from '@/features/catalog/types';
 import type * as sitemapPartitionsModule from '@/features/catalog/lib/sitemap-partitions';
 
@@ -56,12 +57,21 @@ describe('sitemap and generateSitemaps', () => {
       expect(sitemaps).toEqual([{ id: 0 }, { id: 1 }, { id: 2 }]);
     });
 
-    it('propagates API failures unchanged instead of returning a degraded single partition', async () => {
+    it('propagates unexpected non-API failures unchanged', async () => {
       vi.spyOn(getProductsModule, 'getProducts').mockRejectedValue(
         new Error('API offline'),
       );
 
       await expect(generateSitemaps()).rejects.toThrow('API offline');
+    });
+
+    it('falls back to partition 0 when catalog API is unavailable for build safety', async () => {
+      vi.spyOn(getProductsModule, 'getProducts').mockRejectedValue(
+        new ApiRequestError({ statusCode: 503, message: 'API unavailable' }),
+      );
+
+      const sitemaps = await generateSitemaps();
+      expect(sitemaps).toEqual([{ id: 0 }]);
     });
   });
 
@@ -323,6 +333,34 @@ describe('sitemap and generateSitemaps', () => {
 
       await expect(sitemap({ id: Promise.resolve('0') })).rejects.toThrow(
         'Product fetch failed',
+      );
+    });
+
+    it('partition 0 emits homepage without crashing when catalog API is unavailable', async () => {
+      vi.spyOn(getProductsModule, 'getProducts').mockRejectedValue(
+        new ApiRequestError({ statusCode: 503, message: 'API unavailable' }),
+      );
+
+      const entries = await sitemap({ id: Promise.resolve('0') });
+      expect(entries).toEqual([
+        {
+          url: origin,
+          changeFrequency: 'daily',
+          priority: 1.0,
+        },
+      ]);
+    });
+
+    it('re-throws when product fetch fails on partition > 0 even for ApiRequestError', async () => {
+      vi.spyOn(getProductsModule, 'getProducts').mockImplementation(async (params) => {
+        if (params.limit === 1) {
+          return { items: [], total: 1500, page: 1, limit: 1, totalPages: 15 };
+        }
+        throw new ApiRequestError({ statusCode: 503, message: 'API unavailable' });
+      });
+
+      await expect(sitemap({ id: Promise.resolve('1') })).rejects.toThrow(
+        ApiRequestError,
       );
     });
   });
