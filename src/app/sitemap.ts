@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { notFound } from 'next/navigation';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
 import { getProducts } from '@/features/catalog/api/get-products';
+import { getCategories } from '@/features/catalog/api/get-categories';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
 import type { PaginatedProducts } from '@/features/catalog/types';
 import {
@@ -25,9 +26,8 @@ export async function generateSitemaps(): Promise<Array<{ id: number }>> {
  * - Strictly validates partition ID as a non-negative integer within bounds.
  * - Enforces deterministic sorting (sortBy: 'id', sortOrder: 'asc') to avoid duplicate/missing entries during generation.
  * - Handles stale manifests: if the catalog shrunk and startPage > totalPages, returns 404 rather than an empty 200 sitemap.
- * - Omits category URLs from sitemaps until a backend productCount/hasProducts contract exists on CategoryResponseDto.
- *   Category links remain fully discoverable to search crawlers via internal navigation links.
- * - Omits lastModified until the catalog API provides an accurate updatedAt timestamp.
+ * - Partition 0 best-effort enriches with non-empty category URLs via `productCount` (omits them if categories fail).
+ * - Sets `lastModified` from product list `updatedAt`.
  */
 export default async function sitemap(props: {
   id: Promise<string>;
@@ -115,6 +115,7 @@ export default async function sitemap(props: {
     for (const item of result.items) {
       productEntries.push({
         url: `${origin}/products/${item.id}`,
+        lastModified: new Date(item.updatedAt),
         changeFrequency: 'daily',
         priority: 0.8,
       });
@@ -123,18 +124,31 @@ export default async function sitemap(props: {
 
   const staticEntries: MetadataRoute.Sitemap = [];
 
-  // Partition 0 includes the storefront homepage.
-  // Category URLs are intentionally omitted from sitemaps for now: the catalog API
-  // does not provide productCount or hasProducts on CategoryResponseDto, so global emptiness
-  // across a multi-partition catalog cannot be inferred without N+1 queries.
-  // Adding category URLs to the sitemap requires a backend productCount/hasProducts contract.
-  // Category links remain naturally crawlable through standard header and storefront navigation.
+  // Partition 0 includes the storefront homepage and non-empty category URLs.
   if (partitionId === 0) {
     staticEntries.push({
       url: origin,
       changeFrequency: 'daily',
       priority: 1.0,
     });
+
+    try {
+      const categories = await getCategories();
+      for (const category of categories) {
+        if (category.isActive && category.productCount > 0) {
+          staticEntries.push({
+            url: `${origin}/?categoryId=${category.id}`,
+            changeFrequency: 'daily',
+            priority: 0.7,
+          });
+        }
+      }
+    } catch (error) {
+      // Best-effort: omit category URLs when the category API is down; keep products/homepage.
+      if (!(error instanceof ApiRequestError)) {
+        throw error;
+      }
+    }
   }
 
   return [...staticEntries, ...productEntries];

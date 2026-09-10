@@ -28,7 +28,7 @@ export interface paths {
         };
         /**
          * List products
-         * @description Retrieves a paginated list of products with optional filters and sorting.
+         * @description Paginated catalog. Anonymous and customer callers only see active products (`isActive` is forced to true). Operators with `view_all_products` may include inactive items.
          */
         get: operations["ProductsController_findAll_v1"];
         put?: never;
@@ -50,7 +50,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get product by ID */
+        /**
+         * Get product by ID
+         * @description Returns a product. Shoppers receive HTTP 404 for inactive products. Operators with `view_all_products` can load inactive items.
+         */
         get: operations["ProductsController_findOne_v1"];
         put?: never;
         post?: never;
@@ -111,7 +114,7 @@ export interface paths {
         };
         /**
          * List categories
-         * @description Returns the catalog category reference list.
+         * @description Catalog category list. Anonymous and customer callers only see active categories. Operators with `view_all_products` may include inactive items.
          */
         get: operations["CategoriesController_findAll_v1"];
         put?: never;
@@ -133,7 +136,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get category by ID */
+        /**
+         * Get category by ID
+         * @description Returns a category. Shoppers receive HTTP 404 for inactive categories. Operators with `view_all_products` can load inactive items.
+         */
         get: operations["CategoriesController_findOne_v1"];
         put?: never;
         post?: never;
@@ -1235,6 +1241,8 @@ export interface components {
             isActive: boolean;
             /** @example 2025-08-25T12:34:56.000Z */
             createdAt: string;
+            /** @example 2025-08-25T12:34:56.000Z */
+            updatedAt: string;
         };
         PaginatedProductsResponseDto: {
             items: components["schemas"]["ProductListItemResponseDto"][];
@@ -1270,10 +1278,10 @@ export interface components {
             isActive: boolean;
             /** @example 2025-08-25T12:34:56.000Z */
             createdAt: string;
-            /** @example High-end gaming laptop */
-            description?: string | null;
             /** @example 2025-08-25T12:34:56.000Z */
             updatedAt: string;
+            /** @example High-end gaming laptop */
+            description?: string | null;
         };
         UpdateProductDto: {
             /**
@@ -1321,6 +1329,11 @@ export interface components {
             description?: string | null;
             /** @example true */
             isActive: boolean;
+            /**
+             * @description Number of active products in this category
+             * @example 12
+             */
+            productCount: number;
         };
         UpdateCategoryDto: {
             /**
@@ -2855,15 +2868,8 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedProductsResponseDto"];
                 };
             };
-            /** @description Unauthorized. */
+            /** @description Invalid or expired authentication token. */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Admin access required. */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2936,15 +2942,8 @@ export interface operations {
                     "application/json": components["schemas"]["ProductDetailResponseDto"];
                 };
             };
-            /** @description Unauthorized. */
+            /** @description Invalid or expired authentication token. */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Admin access required. */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3185,15 +3184,8 @@ export interface operations {
                     "application/json": components["schemas"]["CategoryResponseDto"][];
                 };
             };
-            /** @description Unauthorized. */
+            /** @description Invalid or expired authentication token. */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Admin access required. */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3273,15 +3265,8 @@ export interface operations {
                     "application/json": components["schemas"]["CategoryResponseDto"];
                 };
             };
-            /** @description Unauthorized. */
+            /** @description Invalid or expired authentication token. */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Admin access required. */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };

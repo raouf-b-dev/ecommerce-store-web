@@ -307,11 +307,14 @@ test.describe('Catalog storefront', () => {
     expect(contentType).toContain('xml');
 
     const sitemapBody = await sitemapResponse.text();
-    // Verify products are included and category URLs are omitted pending backend contract
-    expect(sitemapBody).not.toContain('categoryId=');
     expect(sitemapBody).toContain('/products/');
-    // Accurate timestamp omission: lastmod must not be present
-    expect(sitemapBody).not.toContain('<lastmod>');
+    // Product entries expose honest lastmod from list updatedAt
+    expect(sitemapBody).toContain('<lastmod>');
+    // Non-empty categories may appear; empty ones must not be advertised via productCount=0
+    // (exact category IDs depend on seed data — assert shape only when present)
+    if (sitemapBody.includes('categoryId=')) {
+      expect(sitemapBody).toMatch(/categoryId=\d+/);
+    }
 
     // 3. Out-of-range or malformed sitemap IDs return HTTP 404 (not empty 200)
     const outOfRangeResponse = await request.get('/sitemap/999.xml');

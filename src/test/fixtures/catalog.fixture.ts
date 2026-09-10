@@ -18,6 +18,7 @@ export function createMockProductListItem(
     sku: 'TEST-001',
     isActive: true,
     createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
     ...overrides,
   };
 }
@@ -62,6 +63,7 @@ export function createMockCategory(
     name: 'Electronics',
     slug: 'electronics',
     isActive: true,
+    productCount: 1,
     ...overrides,
   };
 }

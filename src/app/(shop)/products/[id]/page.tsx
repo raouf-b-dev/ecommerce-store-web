@@ -63,22 +63,15 @@ export async function generateMetadata({
 async function ProductJsonLd({
   product,
   canonicalUrl,
-  breadcrumbItems,
 }: {
   product: ProductDetail;
   canonicalUrl: string;
-  breadcrumbItems: BreadcrumbItem[];
 }) {
   const inventory = await getProductInventory(product.id);
   const isAvailable = (inventory?.availableQuantity ?? 0) > 0;
 
   return (
-    <>
-      <JsonLd
-        data={createProductJsonLd(product, canonicalUrl, isAvailable)}
-      />
-      <JsonLd data={createBreadcrumbJsonLd(breadcrumbItems)} />
-    </>
+    <JsonLd data={createProductJsonLd(product, canonicalUrl, isAvailable)} />
   );
 }
 
@@ -118,12 +111,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   return (
     <article className="space-y-8">
+      <JsonLd data={createBreadcrumbJsonLd(breadcrumbItems)} />
       <Suspense fallback={null}>
-        <ProductJsonLd
-          product={product}
-          canonicalUrl={canonicalUrl}
-          breadcrumbItems={breadcrumbItems}
-        />
+        <ProductJsonLd product={product} canonicalUrl={canonicalUrl} />
       </Suspense>
 
       <nav aria-label="Breadcrumbs" className="text-xs text-muted-foreground">

@@ -6,7 +6,6 @@ import { CatalogShellSkeleton } from '@/features/catalog/components/catalog-shel
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
 import { parseCatalogSearchParams } from '@/features/catalog/lib/catalog-params';
 import { getCategories } from '@/features/catalog/api/get-categories';
-import { getProducts } from '@/features/catalog/api/get-products';
 import {
   buildCatalogMetadata,
   isCategoryIdMalformed,
@@ -33,13 +32,10 @@ export async function generateMetadata({
       const categories = await getCategories();
       const found = categories.find((c) => c.id === parsedParams.categoryId);
       if (found && found.isActive) {
-        // Same filter params as CatalogContent → one React cache() / HTTP call.
-        // Replace with CategoryResponseDto.productCount when the API exposes it.
-        const productsResult = await getProducts(parsedParams);
         categoryState = {
           status: 'valid',
           category: found,
-          hasProducts: productsResult.total > 0,
+          hasProducts: found.productCount > 0,
         };
       } else {
         categoryState = { status: 'nonexistent' };

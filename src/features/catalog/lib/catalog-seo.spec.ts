@@ -24,6 +24,7 @@ describe('catalog-seo', () => {
     slug: 'electronics',
     description: 'Gadgets and devices',
     isActive: true,
+    productCount: 4,
   };
 
   describe('isCategoryIdMalformed', () => {

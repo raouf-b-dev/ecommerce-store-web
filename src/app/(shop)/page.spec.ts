@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { generateMetadata } from '@/app/(shop)/page';
 import * as getCategoriesModule from '@/features/catalog/api/get-categories';
-import * as getProductsModule from '@/features/catalog/api/get-products';
 import * as storefrontOriginModule from '@/lib/storefront-origin';
-import type { Category, PaginatedProducts } from '@/features/catalog/types';
+import type { Category } from '@/features/catalog/types';
 
 describe('HomePage generateMetadata orchestration', () => {
   const origin = 'https://storefront.test';
@@ -15,6 +14,7 @@ describe('HomePage generateMetadata orchestration', () => {
       slug: 'apparel',
       description: 'Clothing and apparel',
       isActive: true,
+      productCount: 3,
     },
     {
       id: 2,
@@ -22,35 +22,17 @@ describe('HomePage generateMetadata orchestration', () => {
       slug: 'archived',
       description: 'Inactive items',
       isActive: false,
+      productCount: 0,
+    },
+    {
+      id: 3,
+      name: 'Empty',
+      slug: 'empty',
+      description: 'No products yet',
+      isActive: true,
+      productCount: 0,
     },
   ];
-
-  const emptyProductsResult: PaginatedProducts = {
-    items: [],
-    total: 0,
-    page: 1,
-    limit: 12,
-    totalPages: 0,
-  };
-
-  const nonEmptyProductsResult: PaginatedProducts = {
-    items: [
-      {
-        id: 10,
-        name: 'T-Shirt',
-        slug: 't-shirt',
-        price: 20,
-        currency: 'USD',
-        sku: 'TSH-1',
-        isActive: true,
-        createdAt: '2026-01-01T00:00:00.000Z',
-      },
-    ],
-    total: 1,
-    page: 1,
-    limit: 12,
-    totalPages: 1,
-  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -63,14 +45,12 @@ describe('HomePage generateMetadata orchestration', () => {
     const getCategoriesSpy = vi
       .spyOn(getCategoriesModule, 'getCategories')
       .mockResolvedValue(sampleCategories);
-    const getProductsSpy = vi.spyOn(getProductsModule, 'getProducts');
 
     const metadata = await generateMetadata({
       searchParams: Promise.resolve({ page: '1' }),
     });
 
     expect(getCategoriesSpy).not.toHaveBeenCalled();
-    expect(getProductsSpy).not.toHaveBeenCalled();
     expect(metadata.title).toBe('Browse Products');
     expect(metadata.robots).toEqual({ index: true, follow: true });
     expect(metadata.alternates?.canonical).toBe('https://storefront.test/');
@@ -80,14 +60,12 @@ describe('HomePage generateMetadata orchestration', () => {
     const getCategoriesSpy = vi
       .spyOn(getCategoriesModule, 'getCategories')
       .mockResolvedValue(sampleCategories);
-    const getProductsSpy = vi.spyOn(getProductsModule, 'getProducts');
 
     const metadata = await generateMetadata({
       searchParams: Promise.resolve({ categoryId: 'abc' }),
     });
 
     expect(getCategoriesSpy).not.toHaveBeenCalled();
-    expect(getProductsSpy).not.toHaveBeenCalled();
     expect(metadata.title).toBe('Category Not Found');
     expect(metadata.description).toBe(
       'The requested category could not be found.',
@@ -101,7 +79,6 @@ describe('HomePage generateMetadata orchestration', () => {
     const getCategoriesSpy = vi
       .spyOn(getCategoriesModule, 'getCategories')
       .mockResolvedValue(sampleCategories);
-    const getProductsSpy = vi.spyOn(getProductsModule, 'getProducts');
 
     // Test nonexistent ID
     const metadataNotFound = await generateMetadata({
@@ -109,7 +86,6 @@ describe('HomePage generateMetadata orchestration', () => {
     });
 
     expect(getCategoriesSpy).toHaveBeenCalledTimes(1);
-    expect(getProductsSpy).not.toHaveBeenCalled();
     expect(metadataNotFound.title).toBe('Category Not Found');
     expect(metadataNotFound.robots).toEqual({ index: false, follow: true });
 
@@ -137,28 +113,22 @@ describe('HomePage generateMetadata orchestration', () => {
     vi.spyOn(getCategoriesModule, 'getCategories').mockResolvedValue(
       sampleCategories,
     );
-    vi.spyOn(getProductsModule, 'getProducts').mockResolvedValue(
-      emptyProductsResult,
-    );
 
     const metadata = await generateMetadata({
-      searchParams: Promise.resolve({ categoryId: '1' }),
+      searchParams: Promise.resolve({ categoryId: '3' }),
     });
 
-    expect(metadata.title).toBe('Apparel');
+    expect(metadata.title).toBe('Empty');
     // Requirement 6: Do not index empty category pages
     expect(metadata.robots).toEqual({ index: false, follow: true });
     expect(metadata.alternates?.canonical).toBe(
-      'https://storefront.test/?categoryId=1',
+      'https://storefront.test/?categoryId=3',
     );
   });
 
   it('resolves valid non-empty category with unique title, description, and indexable self-canonical', async () => {
     vi.spyOn(getCategoriesModule, 'getCategories').mockResolvedValue(
       sampleCategories,
-    );
-    vi.spyOn(getProductsModule, 'getProducts').mockResolvedValue(
-      nonEmptyProductsResult,
     );
 
     const metadata = await generateMetadata({
@@ -173,20 +143,5 @@ describe('HomePage generateMetadata orchestration', () => {
     expect(metadata.alternates?.canonical).toBe(
       'https://storefront.test/?categoryId=1&page=2',
     );
-  });
-
-  it('propagates product check failure when category is valid', async () => {
-    vi.spyOn(getCategoriesModule, 'getCategories').mockResolvedValue(
-      sampleCategories,
-    );
-    vi.spyOn(getProductsModule, 'getProducts').mockRejectedValue(
-      new Error('Product check failed'),
-    );
-
-    await expect(
-      generateMetadata({
-        searchParams: Promise.resolve({ categoryId: '1' }),
-      }),
-    ).rejects.toThrow('Product check failed');
   });
 });

@@ -4,9 +4,10 @@ import sitemap, {
   PRODUCTS_PER_SITEMAP,
 } from '@/app/sitemap';
 import * as getProductsModule from '@/features/catalog/api/get-products';
+import * as getCategoriesModule from '@/features/catalog/api/get-categories';
 import * as storefrontOriginModule from '@/lib/storefront-origin';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
-import type { PaginatedProducts } from '@/features/catalog/types';
+import type { Category, PaginatedProducts } from '@/features/catalog/types';
 import type * as sitemapPartitionsModule from '@/features/catalog/lib/sitemap-partitions';
 
 vi.mock('@/features/catalog/lib/sitemap-partitions', async (importOriginal) => {
@@ -23,10 +24,37 @@ vi.mock('@/features/catalog/lib/sitemap-partitions', async (importOriginal) => {
 describe('sitemap and generateSitemaps', () => {
   const origin = 'https://storefront.test';
 
+  const sampleCategories: Category[] = [
+    {
+      id: 1,
+      name: 'Apparel',
+      slug: 'apparel',
+      isActive: true,
+      productCount: 5,
+    },
+    {
+      id: 2,
+      name: 'Empty',
+      slug: 'empty',
+      isActive: true,
+      productCount: 0,
+    },
+    {
+      id: 3,
+      name: 'Inactive',
+      slug: 'inactive',
+      isActive: false,
+      productCount: 10,
+    },
+  ];
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(storefrontOriginModule, 'getStorefrontOrigin').mockReturnValue(
       origin,
+    );
+    vi.spyOn(getCategoriesModule, 'getCategories').mockResolvedValue(
+      sampleCategories,
     );
   });
 
@@ -76,7 +104,7 @@ describe('sitemap and generateSitemaps', () => {
   });
 
   describe('sitemap generation', () => {
-    it('includes homepage, products, completely omits lastModified, and omits category URLs in partition 0', async () => {
+    it('includes homepage, non-empty categories, products with lastModified in partition 0', async () => {
       const pageResult: PaginatedProducts = {
         items: [
           {
@@ -89,6 +117,7 @@ describe('sitemap and generateSitemaps', () => {
             isActive: true,
             categoryId: 1,
             createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-02-01T12:00:00.000Z',
           },
         ],
         total: 1,
@@ -103,26 +132,28 @@ describe('sitemap and generateSitemaps', () => {
 
       const entries = await sitemap({ id: Promise.resolve('0') });
 
-      // Check homepage
       expect(entries[0]).toEqual({
         url: origin,
         changeFrequency: 'daily',
         priority: 1.0,
       });
-      expect(entries[0]).not.toHaveProperty('lastModified');
 
-      // Check product entry
-      expect(entries[1]).toEqual({
+      expect(entries.some((e) => e.url === `${origin}/?categoryId=1`)).toBe(
+        true,
+      );
+      expect(entries.some((e) => e.url.includes('categoryId=2'))).toBe(false);
+      expect(entries.some((e) => e.url.includes('categoryId=3'))).toBe(false);
+
+      const productEntry = entries.find((e) =>
+        e.url.includes('/products/101'),
+      );
+      expect(productEntry).toEqual({
         url: `${origin}/products/101`,
+        lastModified: new Date('2026-02-01T12:00:00.000Z'),
         changeFrequency: 'daily',
         priority: 0.8,
       });
-      expect(entries[1]).not.toHaveProperty('lastModified');
 
-      // Category URLs are intentionally omitted from sitemaps pending backend productCount contract
-      expect(entries.some((e) => e.url.includes('categoryId='))).toBe(false);
-
-      // Verifies deterministic ordering with sortBy: 'id' and sortOrder: 'asc'
       expect(getProductsSpy).toHaveBeenCalledWith({
         page: 1,
         limit: 100,
@@ -131,7 +162,7 @@ describe('sitemap and generateSitemaps', () => {
       });
     });
 
-    it('partition 0 with empty catalog returns only homepage', async () => {
+    it('partition 0 with empty catalog returns homepage and non-empty category URLs', async () => {
       vi.spyOn(getProductsModule, 'getProducts').mockResolvedValue({
         items: [],
         total: 0,
@@ -142,13 +173,45 @@ describe('sitemap and generateSitemaps', () => {
 
       const entries = await sitemap({ id: Promise.resolve('0') });
 
-      expect(entries).toEqual([
-        {
-          url: origin,
-          changeFrequency: 'daily',
-          priority: 1.0,
-        },
-      ]);
+      expect(entries[0]).toEqual({
+        url: origin,
+        changeFrequency: 'daily',
+        priority: 1.0,
+      });
+      expect(entries.some((e) => e.url === `${origin}/?categoryId=1`)).toBe(
+        true,
+      );
+    });
+
+    it('omits category URLs when category fetch fails but keeps products', async () => {
+      vi.spyOn(getCategoriesModule, 'getCategories').mockRejectedValue(
+        new ApiRequestError({ statusCode: 503, message: 'Categories down' }),
+      );
+      vi.spyOn(getProductsModule, 'getProducts').mockResolvedValue({
+        items: [
+          {
+            id: 101,
+            name: 'Classic Tee',
+            slug: 'classic-tee',
+            price: 25,
+            currency: 'USD',
+            sku: 'TSH-01',
+            isActive: true,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+        total: 1,
+        page: 1,
+        limit: 100,
+        totalPages: 1,
+      });
+
+      const entries = await sitemap({ id: Promise.resolve('0') });
+
+      expect(entries.some((e) => e.url === origin)).toBe(true);
+      expect(entries.some((e) => e.url.includes('/products/101'))).toBe(true);
+      expect(entries.some((e) => e.url.includes('categoryId='))).toBe(false);
     });
 
     it('partition > 0 contains only bounded product entries and skips homepage and categories', async () => {
@@ -163,6 +226,7 @@ describe('sitemap and generateSitemaps', () => {
             sku: 'BAT-01',
             isActive: true,
             createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-03-01T00:00:00.000Z',
           },
         ],
         total: 1050,
@@ -174,23 +238,25 @@ describe('sitemap and generateSitemaps', () => {
       const getProductsSpy = vi
         .spyOn(getProductsModule, 'getProducts')
         .mockResolvedValue(pageResult);
+      const getCategoriesSpy = vi.spyOn(
+        getCategoriesModule,
+        'getCategories',
+      );
 
       const entries = await sitemap({ id: Promise.resolve('1') });
 
-      // Must not contain homepage or category URLs
       expect(entries.some((e) => e.url === origin)).toBe(false);
       expect(entries.some((e) => e.url.includes('categoryId='))).toBe(false);
+      expect(getCategoriesSpy).not.toHaveBeenCalled();
 
-      // Contains partition 1 product
       expect(entries).toHaveLength(1);
       expect(entries[0]).toEqual({
         url: `${origin}/products/2001`,
+        lastModified: new Date('2026-03-01T00:00:00.000Z'),
         changeFrequency: 'daily',
         priority: 0.8,
       });
-      expect(entries[0]).not.toHaveProperty('lastModified');
 
-      // Verifies bounded starting page with deterministic sort
       expect(getProductsSpy).toHaveBeenCalledWith({
         page: 11,
         limit: 100,
@@ -218,15 +284,12 @@ describe('sitemap and generateSitemaps', () => {
         totalPages: 1,
       });
 
-      // Total 10 products means only partition 0 exists (partitionCount = 1). Partition 1 is out of range.
       await expect(sitemap({ id: Promise.resolve('1') })).rejects.toThrow();
     });
 
     it('handles stale manifests: returns 404 when cached partition startPage exceeds API totalPages', async () => {
-      // Suppose partition manifest discovery previously returned 2 partitions because total was 1500 products
       vi.spyOn(getProductsModule, 'getProducts').mockImplementation(async (params) => {
         if (params.limit === 1) {
-          // Discovery returns 2 partitions (id: 0, id: 1)
           return {
             items: [],
             total: 1500,
@@ -235,7 +298,6 @@ describe('sitemap and generateSitemaps', () => {
             totalPages: 15,
           };
         }
-        // But when partition 1 fetches page 11, the catalog has shrunk to 500 products (totalPages: 5)
         return {
           items: [],
           total: 500,
@@ -245,7 +307,6 @@ describe('sitemap and generateSitemaps', () => {
         };
       });
 
-      // Partition 1 startPage is 11, but current totalPages is 5 -> must trigger notFound (404)
       await expect(sitemap({ id: Promise.resolve('1') })).rejects.toThrow();
     });
 
@@ -271,6 +332,7 @@ describe('sitemap and generateSitemaps', () => {
                 sku: `SKU-${params.page}`,
                 isActive: true,
                 createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
               },
             ],
             total: 300,
@@ -282,20 +344,17 @@ describe('sitemap and generateSitemaps', () => {
       );
 
       const entries = await sitemap({ id: Promise.resolve('0') });
-      // Partition 0 pages 1, 2, 3 should all be fetched with deterministic sorting
       expect(calls).toEqual([
         { page: 1, sortBy: 'id', sortOrder: 'asc' },
         { page: 2, sortBy: 'id', sortOrder: 'asc' },
         { page: 3, sortBy: 'id', sortOrder: 'asc' },
       ]);
-      // Products from all pages should be present in entries
       expect(entries.some((e) => e.url.includes('/products/100'))).toBe(true);
       expect(entries.some((e) => e.url.includes('/products/200'))).toBe(true);
       expect(entries.some((e) => e.url.includes('/products/300'))).toBe(true);
     });
 
-    it('omits category URLs from partition 0 even when categories have products only in partition 1+', async () => {
-      // Partition 0 only has products for category 1
+    it('includes non-empty category URLs from productCount even when products are only in later partitions', async () => {
       vi.spyOn(getProductsModule, 'getProducts').mockResolvedValue({
         items: [
           {
@@ -308,20 +367,34 @@ describe('sitemap and generateSitemaps', () => {
             isActive: true,
             categoryId: 1,
             createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
           },
         ],
-        total: 1500, // Multi-partition catalog
+        total: 1500,
         page: 1,
         limit: 100,
         totalPages: 15,
       });
+      vi.spyOn(getCategoriesModule, 'getCategories').mockResolvedValue([
+        {
+          id: 1,
+          name: 'Apparel',
+          slug: 'apparel',
+          isActive: true,
+          productCount: 5,
+        },
+        {
+          id: 5,
+          name: 'Later Only',
+          slug: 'later-only',
+          isActive: true,
+          productCount: 20,
+        },
+      ]);
 
       const entries = await sitemap({ id: Promise.resolve('0') });
 
-      // Omission policy: Category 5 (whose products only appear in partition 1)
-      // is not mistakenly advertised or falsely evaluated against partition 0.
-      // Category URLs are omitted until backend provides productCount contract.
-      expect(entries.some((e) => e.url.includes('categoryId='))).toBe(false);
+      expect(entries.some((e) => e.url.includes('categoryId=5'))).toBe(true);
       expect(entries.some((e) => e.url === origin)).toBe(true);
       expect(entries.some((e) => e.url.includes('/products/101'))).toBe(true);
     });
@@ -342,13 +415,12 @@ describe('sitemap and generateSitemaps', () => {
       );
 
       const entries = await sitemap({ id: Promise.resolve('0') });
-      expect(entries).toEqual([
-        {
-          url: origin,
-          changeFrequency: 'daily',
-          priority: 1.0,
-        },
-      ]);
+      expect(entries[0]).toEqual({
+        url: origin,
+        changeFrequency: 'daily',
+        priority: 1.0,
+      });
+      expect(entries.some((e) => e.url.includes('categoryId=1'))).toBe(true);
     });
 
     it('re-throws when product fetch fails on partition > 0 even for ApiRequestError', async () => {
