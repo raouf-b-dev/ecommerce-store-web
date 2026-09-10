@@ -58,7 +58,7 @@ flowchart TD
 
 - Public catalog is RSC and does not require a session.
 - Cart, checkout, and account are client-gated because the access token is in memory.
-- Do not put session checks in `proxy.ts`.
+- Missing catalog resources use App Router `notFound()` before streaming ([ADR-0008](adr/ADR-0008-resource-404-via-app-router.md)).
 
 ## Auth and session
 
@@ -100,21 +100,27 @@ src/
   app/
     layout.tsx
     providers.tsx
-    loading.tsx
     error.tsx
     not-found.tsx
     global-error.tsx
     globals.css
+    robots.ts
+    sitemap.ts
+    opengraph-image.tsx
+    twitter-image.tsx
     (shop)/
       layout.tsx
       page.tsx
-      loading.tsx
       error.tsx
       status/page.tsx
+      products/[id]/
+        page.tsx
+        not-found.tsx
     (auth)/
       layout.tsx
       login/page.tsx
       register/page.tsx
+      change-password/page.tsx
     (account)/
       layout.tsx
       account/page.tsx
@@ -122,14 +128,18 @@ src/
     layout/       # chrome, skip, mobile nav, focus helper
     theme/        # provider, store, toggle, toaster
     feedback/     # QueryStateAlert, ActionErrorAlert
+    seo/          # JsonLd primitive
     ui/           # shadcn primitives
   features/
     auth/         # typed API operations, forms, schemas, redirect safety
+    catalog/      # RSC list/detail, filters, feature SEO
     health/       # /status diagnostics
   lib/
     format.ts
     list-filters.ts
+    storefront-origin.ts
     utils.ts
+    seo/          # config, metadata factory, canonical, json-ld serialize
     api/
       browser-client.ts
       silent-refresh.ts
