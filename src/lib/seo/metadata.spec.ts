@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createPageMetadata } from '@/lib/seo/metadata';
-import { NO_INDEX_ROBOTS } from '@/lib/seo/constants';
+import { NO_INDEX_ROBOTS } from '@/lib/seo/config';
 
 describe('createPageMetadata', () => {
   it('creates basic metadata without duplicating brand template and defaults to website type', () => {

@@ -1,3 +1,5 @@
+import { seoConfig } from '@/lib/seo/config';
+
 export function renderSocialCard() {
   return (
     <div
@@ -37,7 +39,7 @@ export function renderSocialCard() {
           marginBottom: 16,
         }}
       >
-        Storefront
+        {seoConfig.siteName}
       </div>
       <div
         style={{
@@ -48,7 +50,7 @@ export function renderSocialCard() {
           lineHeight: 1.4,
         }}
       >
-        Customer storefront for the E-commerce Store API
+        {seoConfig.description}
       </div>
     </div>
   );

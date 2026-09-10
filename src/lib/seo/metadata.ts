@@ -1,10 +1,5 @@
 import type { Metadata } from 'next';
-import {
-  DEFAULT_OG_IMAGE_PATH,
-  DEFAULT_SITE_DESCRIPTION,
-  DEFAULT_SITE_NAME,
-  DEFAULT_TWITTER_IMAGE_PATH,
-} from '@/lib/seo/constants';
+import { seoConfig } from '@/lib/seo/config';
 import { isValidAbsoluteHttpUrl } from '@/lib/seo/image-url';
 
 export interface CreatePageMetadataOptions {
@@ -44,12 +39,12 @@ export function createPageMetadata(
 ): PageMetadata {
   const {
     title,
-    description = DEFAULT_SITE_DESCRIPTION,
+    description = seoConfig.description,
     canonicalUrl,
     robots,
     origin,
     imageUrl,
-    imageAlt = title ?? DEFAULT_SITE_NAME,
+    imageAlt = title ?? seoConfig.siteName,
     openGraphType = 'website',
   } = options;
 
@@ -69,14 +64,14 @@ export function createPageMetadata(
   } else if (origin) {
     ogImages = [
       {
-        url: `${origin}${DEFAULT_OG_IMAGE_PATH}`,
+        url: `${origin}${seoConfig.defaultOgImagePath}`,
         alt: imageAlt,
         width: 1200,
         height: 630,
         type: 'image/png',
       },
     ];
-    twitterImages = [`${origin}${DEFAULT_TWITTER_IMAGE_PATH}`];
+    twitterImages = [`${origin}${seoConfig.defaultTwitterImagePath}`];
   }
 
   const metadata: PageMetadata = {
@@ -93,7 +88,7 @@ export function createPageMetadata(
     openGraph: {
       ...(title ? { title } : {}),
       description,
-      siteName: DEFAULT_SITE_NAME,
+      siteName: seoConfig.siteName,
       type: openGraphType,
       ...(canonicalUrl ? { url: canonicalUrl } : {}),
       ...(ogImages ? { images: ogImages } : {}),
