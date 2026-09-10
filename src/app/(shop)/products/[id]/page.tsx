@@ -10,7 +10,7 @@ import { ProductAvailability } from '@/features/catalog/components/product-avail
 import { AddToCartCta } from '@/features/catalog/components/add-to-cart-cta';
 
 import { createPageMetadata, type PageMetadata } from '@/lib/seo/metadata';
-import { serializeJsonLd } from '@/lib/seo/json-ld';
+import { JsonLd } from '@/components/seo/json-ld';
 import {
   createBreadcrumbJsonLd,
   createProductJsonLd,
@@ -20,6 +20,10 @@ type ProductPageProps = {
   params: Promise<{ id: string }>;
 };
 
+/**
+ * Opt this route out of Cache Components instant shells so missing products can
+ * emit a genuine HTTP 404 before the response streams.
+ */
 export const instant = false;
 
 export async function generateMetadata({
@@ -29,12 +33,12 @@ export async function generateMetadata({
   const productId = parsePositiveInt(resolvedParams.id);
 
   if (!productId) {
-    return { title: 'Product Not Found' };
+    notFound();
   }
 
   const product = await getProduct(productId);
-  if (!product || !product.isActive) {
-    return { title: 'Product Not Found' };
+  if (!product) {
+    notFound();
   }
 
   const origin = getStorefrontOrigin();
@@ -61,9 +65,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // Sequential fetch: product visibility is validated first
+  // Resolve existence before any Suspense boundary so notFound() can set HTTP 404.
   const product = await getProduct(productId);
-  if (!product || !product.isActive) {
+  if (!product) {
     notFound();
   }
 
@@ -90,16 +94,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   return (
     <article className="space-y-8">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
-      />
+      <JsonLd data={productJsonLd} />
+      <JsonLd data={breadcrumbJsonLd} />
 
-      {/* Breadcrumbs */}
       <nav aria-label="Breadcrumbs" className="text-xs text-muted-foreground">
         <ol className="flex items-center gap-1.5">
           <li>
@@ -133,9 +130,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         </ol>
       </nav>
 
-      {/* Product Detail Grid */}
       <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-        {/* Left: Product Media */}
         <div className="relative aspect-square w-full overflow-hidden rounded-2xl border bg-muted/20 shadow-xs">
           <ProductImage
             src={product.imageUrl}
@@ -147,7 +142,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           />
         </div>
 
-        {/* Right: Product Info & Actions */}
         <div className="flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             {product.categoryName ? (

@@ -4,6 +4,20 @@ import * as getProductModule from '@/features/catalog/api/get-product';
 import * as storefrontOriginModule from '@/lib/storefront-origin';
 import type { ProductDetail } from '@/features/catalog/types';
 
+const notFoundMock = vi.hoisted(() =>
+  vi.fn(() => {
+    throw new Error('NEXT_HTTP_ERROR_FALLBACK;404');
+  }),
+);
+
+vi.mock('next/navigation', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/navigation')>();
+  return {
+    ...actual,
+    notFound: notFoundMock,
+  };
+});
+
 describe('ProductDetailPage generateMetadata', () => {
   const origin = 'https://storefront.test';
 
@@ -43,11 +57,9 @@ describe('ProductDetailPage generateMetadata', () => {
       'https://storefront.test/products/10',
     );
 
-    // Requirement 5: Open Graph type must be 'website', NOT 'article'
     expect(metadata.openGraph?.type).toBe('website');
     expect(metadata.openGraph?.url).toBe('https://storefront.test/products/10');
 
-    // Requirement 7: Valid image URL is emitted
     expect(metadata.openGraph?.images).toEqual([
       {
         url: 'https://cdn.test/keyboard.jpg',
@@ -69,7 +81,6 @@ describe('ProductDetailPage generateMetadata', () => {
       params: Promise.resolve({ id: '10' }),
     });
 
-    // Fallback image preserves dimensions and MIME type
     expect(metadata.openGraph?.images).toEqual([
       {
         url: 'https://storefront.test/opengraph-image',
@@ -84,33 +95,28 @@ describe('ProductDetailPage generateMetadata', () => {
     ]);
   });
 
-  it('returns Product Not Found for non-positive or malformed ID', async () => {
+  it('calls notFound for non-positive or malformed ID', async () => {
     const getProductSpy = vi.spyOn(getProductModule, 'getProduct');
 
-    const metadata = await generateMetadata({
-      params: Promise.resolve({ id: 'abc' }),
-    });
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({ id: 'abc' }),
+      }),
+    ).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404');
 
     expect(getProductSpy).not.toHaveBeenCalled();
-    expect(metadata.title).toBe('Product Not Found');
+    expect(notFoundMock).toHaveBeenCalledOnce();
   });
 
-  it('returns Product Not Found when product is missing or inactive', async () => {
+  it('calls notFound when product is missing', async () => {
     vi.spyOn(getProductModule, 'getProduct').mockResolvedValue(null);
 
-    const notFoundMeta = await generateMetadata({
-      params: Promise.resolve({ id: '999' }),
-    });
-    expect(notFoundMeta.title).toBe('Product Not Found');
+    await expect(
+      generateMetadata({
+        params: Promise.resolve({ id: '999' }),
+      }),
+    ).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404');
 
-    vi.spyOn(getProductModule, 'getProduct').mockResolvedValue({
-      ...activeProduct,
-      isActive: false,
-    });
-
-    const inactiveMeta = await generateMetadata({
-      params: Promise.resolve({ id: '10' }),
-    });
-    expect(inactiveMeta.title).toBe('Product Not Found');
+    expect(notFoundMock).toHaveBeenCalledOnce();
   });
 });
