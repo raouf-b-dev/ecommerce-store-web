@@ -44,7 +44,7 @@ A feature phase is not done until its **Done when** checks pass.
 
 ## Stack
 
-Pin **latest stable** at scaffold time. Do not add backward-compat shims for Pages Router, `middleware.ts`, or implicit App Router fetch cache.
+Pin **latest stable** at scaffold time. Do not add backward-compat shims for Pages Router or implicit App Router fetch cache.
 
 | Concern                    | Choice                                                                                                                                                                                                                                                 |
 | :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -74,7 +74,7 @@ These decisions are locked here so phases do not fork.
 | Rule                       | Detail                                                                                                                                                                                                                                         |
 | :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | No BFF                     | No Next Route Handlers or Server Actions that forward cookies/tokens to the API. Storefront UI communicates directly with the API.                                                                                                             |
-| No `proxy.ts` until needed | Security headers belong in `next.config.ts` `headers()`. Do **not** add `proxy.ts` (or `middleware.ts`) for headers or auth. Add Proxy only for a real rewrite/redirect that cannot live in `next.config`.                                     |
+| Security headers & auth placement | Security headers in `next.config.ts` `headers()`. Static redirects in `redirects()`. Client session gates for protected routes ([ADR-0006](architecture/adr/ADR-0006-security-headers-and-client-auth.md)). Resource 404s via App Router `notFound()` before streaming ([ADR-0008](architecture/adr/ADR-0008-resource-404-via-app-router.md)). |
 | Two HTTP clients           | **Browser** client: cookies + Bearer + 401 recovery. **Server** client: `import 'server-only'`, no `credentials`, no Bearer, no login redirect. Do not one-file both with `typeof window` branches.                                            |
 | RSC freshness              | With `cacheComponents`, wrap catalog fetch UI in `<Suspense>` so chrome is the static shell. Deduplicate `generateMetadata` + page with React `cache()`. After cart/checkout mutations, `router.refresh()` so RSC inventory/HTML is not stale. |
 | 401 / force-password       | The `openapi-fetch` browser interceptor redirects via `window.location.assign` on low-level unrecoverable auth failures. Form success (login, logout, change-password) uses `router.push` + `router.refresh()`.                                       |
@@ -166,8 +166,8 @@ The following patterns belong to administrative consoles and are explicitly **ex
 
 **Scope:**
 
-- [x] Scaffold with `create-next-app@latest`: App Router, TypeScript, ESLint, Tailwind v4, `src/` directory. **No** Pages Router. **No** `middleware.ts`. **No** `proxy.ts` unless a later phase proves a rewrite need.
-- [x] `next.config.ts`: `cacheComponents: true`; `reactCompiler: true` if current stable docs mark it stable; `typedRoutes` on. Do not set `experimental.ppr`. Security headers via `headers()` (CSP/frame/etc.) - not Proxy.
+- [x] Scaffold with `create-next-app@latest`: App Router, TypeScript, ESLint, Tailwind v4, `src/` directory. **No** Pages Router. Security headers via `next.config.ts` `headers()` (ADR-0006).
+- [x] `next.config.ts`: `cacheComponents: true`; `reactCompiler: true` if current stable docs mark it stable; `typedRoutes` on. Do not set `experimental.ppr`. Security headers via `headers()` (CSP/frame/etc.).
 - [x] Path aliases (`@/*` → `src/*`), strict TypeScript (`strict`, `noUncheckedIndexedAccess`, `forceConsistentCasingInFileNames`). Keep the TypeScript major `create-next-app` installs. `engines` Node `>=24` / npm `>=11`; `.nvmrc` = `24`.
 - [x] Prettier (local format; not a merge gate unless you choose otherwise). ESLint flat config: `typescript-eslint`, `react-hooks` (React 19), `jsx-a11y`, `consistent-type-imports`. Scripts: `dev`, `build`, `lint`, `lint:fix`, `typecheck`, `test`, `test:watch`, `test:e2e`. Lint is `eslint .`, not `next lint`.
 - [x] shadcn/ui init for Next + Tailwind v4 (Zod major that the current `@hookform/resolvers` supports). Class utility `cn()` via the `cn` package. Primitives under `src/components/ui/`. Add Sonner.
@@ -220,7 +220,7 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 - Roadmap phase numbers belong **only** in this file. Other docs describe behavior without phase IDs.
 - ADR bodies are immutable; index and status may change.
 - Server Components by default; `"use client"` only for interactivity
-- `src/app` = thin routes (layouts, `page.tsx`, `loading.tsx`, `error.tsx`, metadata). Feature code lives in `src/features/<name>/`
+- `src/app` = thin routes (layouts, `page.tsx`, `error.tsx`, `not-found.tsx`, metadata). Prefer `<Suspense>` holes over route-segment `loading.tsx` on hard-404 detail routes. Feature code lives in `src/features/<name>/`
 - Typical feature shape (no barrels):
 
   ```text
@@ -241,7 +241,7 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 - TkDodo query-key factories per **client** feature (`all` / `lists()` / `list(filters)` / `details()` / `detail(id)`)
 - Client lists (orders, not catalog): URL search params as source of truth; `placeholderData: keepPreviousData`; `staleTime` ~45s; enums `satisfies` generated unions
 - QueryClient lives in a **client** `Providers` (`getQueryClient()` singleton reuse in browser, per-render isolation on server). Skip retry on `429`; else `failureCount < 2`. Session: never retry `isClientError`. No `throwOnError`.
-- Server catalog fetchers: wrap with React `cache()` so `generateMetadata` and the page share one HTTP call. Wrap async catalog UI in `<Suspense>` (Cache Components static shell). Prefer that over a page-only `loading.tsx` for list/detail holes.
+- Server catalog fetchers: wrap with React `cache()` so `generateMetadata` and the page share one HTTP call. Wrap async catalog UI in `<Suspense>` (Cache Components static shell). Prefer that over route-segment `loading.tsx` for list/detail holes (ADR-0008).
 - Handle Query `isError` with `QueryStateAlert` (`hasData` = last good data). RSC uses `error.tsx` / `not-found.tsx` instead.
 - Form pattern (RHF + Zod current major) aligned to DTOs. `throwApiErrorFromResponse` in browser `api/` only. `applyApiFormErrors` + `matchField`; skip OCC `409` fields. `ActionErrorAlert` on mutations.
 - RFC 9110 helpers - prefer predicates over `error as ApiRequestError`
@@ -249,10 +249,10 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 - Env: `NEXT_PUBLIC_*` only in the browser
 - `params` / `searchParams` / `cookies()` / `headers()` are async
 - `"use cache"` only if catalog HTML can be stale vs stock. Default: request-time RSC (no `"use cache"` on product/inventory reads)
-- No `proxy.ts` unless a rewrite/redirect cannot live in `next.config.ts`. Never auth in Proxy.
+- Security headers in `next.config.ts`; auth at the client boundary ([ADR-0006](architecture/adr/ADR-0006-security-headers-and-client-auth.md)). Resource 404s via App Router `notFound()` ([ADR-0008](architecture/adr/ADR-0008-resource-404-via-app-router.md)).
 - Theme: Light/Dark/System, FOUC script, `useSyncExternalStore`, `ThemeAwareToaster`. Key `store-ui-theme`
 - Storefront scrolls the document. Avoid viewport-locked `h-screen overflow-hidden` shells.
-- Loading: `QueryLoading` / `role="status"` / `aria-busy` on client fetches. RSC: `<Suspense>` holes (+ optional `loading.tsx`). No skeleton requirement in v1
+- Loading: `QueryLoading` / `role="status"` / `aria-busy` on client fetches. RSC: `<Suspense>` holes. No skeleton requirement in v1
 - React Compiler: do not add `useMemo`/`useCallback` by habit
 - Treat rendered API strings as untrusted. No `dangerouslySetInnerHTML`
 - Tests: RTL + hook-mocked specs for **client** components; Playwright for RSC routes and journeys
@@ -267,7 +267,9 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 | ADR-0003 | Single-flight silent refresh + one domain retry                                            | 3     |
 | ADR-0004 | No guest cart; login/register gate on cart and checkout                                    | 6     |
 | ADR-0005 | Checkout completion is order-resource polling, not a job-queue API                         | 7     |
-| ADR-0006 | Do not add `proxy.ts` for auth or headers; `next.config.ts` `headers()` for CSP/etc.       | 0 / 2 |
+| ADR-0006 | Security headers in `next.config.ts`; auth at the client boundary                          | 0 / 2 |
+| ADR-0007 | Keep session alive for refresh-token lifetime                                              | 3     |
+| ADR-0008 | Missing resource URLs use App Router `notFound()` before streaming                         | 5     |
 
 **Scope checklist:**
 
@@ -291,7 +293,7 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 - [x] Root layout: skip link to `#main`; `<main id="main" tabIndex={-1}>`; `html` lang; metadata defaults. Branding is not an `h1`. **Normal document scroll** (no `h-screen overflow-hidden`).
 - [x] Storefront chrome: header, footer, mobile nav (shadcn `Sheet` + `SheetTitle`; Esc closes; close on navigate).
 - [x] Route groups: `(shop)` public chrome; `(account)` later guards; `(auth)` without shopping chrome.
-- [x] `loading.tsx` / `error.tsx` / `not-found.tsx` / `global-error.tsx` (`error.tsx` must be a Client Component). **Do not** add a class-based `route-error-boundary`.
+- [x] `error.tsx` / `not-found.tsx` / `global-error.tsx` (`error.tsx` must be a Client Component). Catalog list uses in-page `<Suspense>`. **Do not** add a class-based `route-error-boundary`.
 - [x] Small client `FocusMainOnNavigate` using `usePathname()` - do not import React Router helpers.
 - [x] Shared feedback components exist for later Query use (`QueryStateAlert`, `QueryLoading`, `QueryListRegion`, `ActionErrorAlert`). Do not use them on RSC catalog pages.
 - [x] `src/lib/format.ts` + URL parse helpers + `cn()`.
@@ -392,7 +394,7 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 - [x] Do **not** put `"use cache"` on product/inventory reads in v1 (stale stock). `cacheComponents` still streams a static shell
 - [x] Do **not** hydrate catalog into TanStack Query
 - [x] Tests: URL parsers and SEO helpers (unit); Playwright for list → detail, canonicals, robots meta tags, and filter round-trip
-- [ ] [P0] Resolve production soft-404 on `/products/[id]` by blocking navigation until product existence is known. Acceptance criteria: run against `next start` (production server) and require `/products/999` and malformed IDs to return `HTTP 404 Not Found` with `noindex`, while valid active products (e.g. `/products/8`) render correctly with `HTTP 200 OK`. Must not stream an HTTP 200 OK with delayed client-side not-found UI.
+- [x] [P0] Product detail missing/malformed IDs return `HTTP 404` with `noindex` via App Router `notFound()` before streaming ([ADR-0008](architecture/adr/ADR-0008-resource-404-via-app-router.md)); `instant = false` on product detail; valid products return `200`.
 
 **Done when:** Seeded catalog is browsable without a session; SEO tags exist on detail; filters round-trip through the URL to the API; tests green.
 
@@ -598,7 +600,7 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 
 ## Out of scope (v1)
 
-- Pages Router, `middleware.ts`, `proxy.ts` as an auth or header dump, `getServerSideProps`, implicit fetch cache as the caching model
+- Pages Router, request-interception layers for auth/headers/resource checks, `getServerSideProps`, implicit fetch cache as the caching model
 - TanStack Query `HydrationBoundary` for public catalog (RSC already rendered it)
 - `nuqs` / `useSearchParams` as the product-list filter engine
 - Class-based error boundaries next to `error.tsx`
@@ -615,4 +617,4 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 - Global client store for server data (Zustand/Redux)
 - Barrel files and cross-feature adapter shims
 - Heavy administrative data tables, operator charts, or administrative landing gates
-- Skeleton loaders as a v1 requirement (use `loading.tsx` / `QueryLoading`)
+- Skeleton loaders as a v1 requirement (use `<Suspense>` / `QueryLoading`)
