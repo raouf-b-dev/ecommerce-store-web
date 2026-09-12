@@ -24,8 +24,8 @@ Catalog detail pages need a real `404` for missing or inactive products (shopper
 
 ## 3. Alternatives Considered
 
-1. **Accept soft 404 + `noindex` only:** Rejected — fails monitoring and status-based SEO expectations.
-2. **Disable `cacheComponents`:** Rejected — loses static-shell benefits for catalog chrome.
+1. **Accept soft 404 + `noindex` only:** Rejected - fails monitoring and status-based SEO expectations.
+2. **Disable `cacheComponents`:** Rejected - loses static-shell benefits for catalog chrome.
 
 ## 4. Consequences
 
