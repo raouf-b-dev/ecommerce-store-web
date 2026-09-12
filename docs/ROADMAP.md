@@ -408,15 +408,15 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 
 **Scope:**
 
-- [ ] Accept ADR-0004. Guest add-to-cart → `/login?redirect=` + `safeRedirectPath`. No local guest basket
-- [ ] Cart route metadata exports `robots: NO_INDEX_ROBOTS` to prevent indexing before and after authentication. Unblock `/cart` in `robots.ts` once this lands.
-- [ ] Create/load cart after session exists; persist **cart id** in `localStorage` (namespaced key; not a credential). Clear it on logout. Do **not** persist line items locally
-- [ ] Add / update quantity / remove / clear via OpenAPI. Client components only. Feature `api/` uses `throwApiErrorFromResponse` only. On mutation success: invalidate cart queries **and** `router.refresh()` so RSC inventory on open product pages is not stale.
-- [ ] Query cache: TkDodo keys; `placeholderData: keepPreviousData`; invalidate `detail(cartId)` (and header badge) on mutation success
-- [ ] Map API errors with `ActionErrorAlert` / `getErrorMessage` (stock, ownership, validation, `429`). No client stock engine
-- [ ] Cart page + header count. Empty state. `QueryListRegion` while fetching
-- [ ] Component tests for cart controls and guest redirect (hook-mocked)
-- [ ] Playwright: sign in → add item → see line (seeded in-stock SKU); authenticated worker `workers: 1`
+- [x] Accept ADR-0004. Guest add-to-cart → `/login?redirect=` + `safeRedirectPath`. No local guest basket
+- [x] Cart route metadata exports `robots: NO_INDEX_ROBOTS` to prevent indexing before and after authentication. Unblock `/cart` in `robots.ts` once this lands.
+- [x] Create/load cart after session exists; persist **cart id** in `localStorage` (namespaced key; not a credential). Clear it on logout. Do **not** persist line items locally
+- [x] Add / update quantity / remove / clear via OpenAPI. Client components only. Feature `api/` uses `throwApiErrorFromResponse` only. On mutation success: invalidate cart queries **and** `router.refresh()` so RSC inventory on open product pages is not stale.
+- [x] Query cache: TkDodo keys; `placeholderData: keepPreviousData`; invalidate `detail(cartId)` (and header badge) on mutation success
+- [x] Map API errors with `ActionErrorAlert` / `getErrorMessage` (stock, ownership, validation, `429`). No client stock engine
+- [x] Cart page + header count. Empty state. `QueryListRegion` while fetching
+- [x] Component tests for cart controls and guest redirect (hook-mocked)
+- [x] Playwright: sign in → add item → see line (seeded in-stock SKU); authenticated worker `workers: 1`
 
 **Done when:** Seeded customer can build a cart against the API; signed-out add-to-cart never writes a fake cart; tests green.
 
