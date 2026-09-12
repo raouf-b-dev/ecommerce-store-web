@@ -13,6 +13,7 @@ describe('format', () => {
 
   it('falls back when currency is missing or invalid', () => {
     expect(formatMoney(10, null)).toBe('10');
+    expect(formatMoney(10, undefined)).toBe('10');
     expect(formatMoney(10, 'not-a-code')).toBe('10 not-a-code');
   });
 
