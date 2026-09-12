@@ -19,8 +19,8 @@ The storefront needs static security headers and shopper route protection. Putti
 
 ## 3. Alternatives Considered
 
-1. **Server-side session gate on every protected URL:** Rejected — no access token on the request; would always look logged out or require a BFF cookie.
-2. **Headers set only from a request interceptor:** Rejected — `next.config.ts` `headers()` is the documented place for static response headers.
+1. **Server-side session gate on every protected URL:** Rejected - no access token on the request; would always look logged out or require a BFF cookie.
+2. **Headers set only from a request interceptor:** Rejected - `next.config.ts` `headers()` is the documented place for static response headers.
 
 ## 4. Consequences
 

@@ -1,11 +1,15 @@
 const SHOPPER_LOCALE = 'en-US';
 
+/**
+ * Presentation-only money formatter. Callers must pass the currency from the API
+ * (product.currency, cart.currency, order.currency). Do not invent store currency here.
+ */
 export function formatMoney(
   amount: number,
-  currency?: string | null,
+  currency: string | null | undefined,
   options?: { maximumFractionDigits?: number },
 ): string {
-  if (!currency?.trim()) {
+  if (currency === null || currency === undefined || currency === '') {
     return String(amount);
   }
 

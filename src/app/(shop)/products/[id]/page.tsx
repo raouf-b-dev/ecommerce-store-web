@@ -8,7 +8,7 @@ import { getProduct } from '@/features/catalog/api/get-product';
 import { getProductInventory } from '@/features/catalog/api/get-product-inventory';
 import { ProductImage } from '@/features/catalog/components/product-image';
 import { ProductAvailability } from '@/features/catalog/components/product-availability';
-import { AddToCartCta } from '@/features/catalog/components/add-to-cart-cta';
+import { AddToCartCta } from '@/features/cart/components/add-to-cart-cta';
 import type { ProductDetail } from '@/features/catalog/types';
 
 import { createPageMetadata, type PageMetadata } from '@/lib/seo/metadata';
@@ -78,6 +78,25 @@ async function ProductJsonLd({
 async function ProductAvailabilitySlot({ productId }: { productId: number }) {
   const inventory = await getProductInventory(productId);
   return <ProductAvailability inventory={inventory} />;
+}
+
+async function AddToCartSlot({
+  productId,
+  productName,
+}: {
+  productId: number;
+  productName: string;
+}) {
+  const inventory = await getProductInventory(productId);
+  const isAvailable = (inventory?.availableQuantity ?? 0) > 0;
+  return (
+    <AddToCartCta
+      productId={productId}
+      productName={productName}
+      isAvailable={isAvailable}
+      availableQuantity={inventory?.availableQuantity ?? 0}
+    />
+  );
 }
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
@@ -207,7 +226,16 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           </div>
 
           <div className="border-t pt-6">
-            <AddToCartCta />
+            <Suspense
+              fallback={
+                <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+              }
+            >
+              <AddToCartSlot
+                productId={product.id}
+                productName={product.name}
+              />
+            </Suspense>
           </div>
         </div>
       </div>

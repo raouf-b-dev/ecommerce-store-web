@@ -36,7 +36,7 @@ describe('robots', () => {
     expect(rules?.allow).toEqual(['/']);
 
     // Unfinished feature routes remain disallowed
-    expect(rules?.disallow).toContain('/cart');
+    expect(rules?.disallow).not.toContain('/cart');
     expect(rules?.disallow).toContain('/checkout');
 
     // Existing private routes are NOT disallowed so crawlers can observe page-level noindex

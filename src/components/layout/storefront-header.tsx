@@ -3,6 +3,7 @@ import { MobileNav } from '@/components/layout/mobile-nav';
 import { StorefrontNav } from '@/components/layout/storefront-nav';
 import { StorefrontSessionLinks } from '@/components/layout/storefront-session-links';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
+import { CartHeaderBadge } from '@/features/cart/components/cart-header-badge';
 
 type StorefrontHeaderProps = {
   variant?: 'shop' | 'auth';
@@ -23,9 +24,12 @@ export function StorefrontHeader({ variant = 'shop' }: StorefrontHeaderProps) {
         </div>
         <div className="flex items-center gap-3">
           {showNav ? (
-            <div className="hidden lg:block">
-              <StorefrontSessionLinks />
-            </div>
+            <>
+              <CartHeaderBadge />
+              <div className="hidden lg:block">
+                <StorefrontSessionLinks />
+              </div>
+            </>
           ) : null}
           <ThemeToggle />
         </div>

@@ -46,7 +46,7 @@ test.describe('Catalog storefront', () => {
     );
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
       'content',
-      'Browse Products | Storefront',
+      'Browse Products',
     );
     await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute(
       'content',
@@ -243,10 +243,10 @@ test.describe('Catalog storefront', () => {
     // Stock availability indicator
     await expect(page.getByText(/In stock|Out of stock/i)).toBeVisible();
 
-    // Add to cart preview button
+    // Add to cart CTA is active and enabled
     const addToCartBtn = page.getByRole('button', { name: /Add to cart/i });
     await expect(addToCartBtn).toBeVisible();
-    await expect(addToCartBtn).toBeDisabled();
+    await expect(addToCartBtn).toBeEnabled();
 
     // Open Graph type must be 'website'
     await expect(page.locator('meta[property="og:type"]')).toHaveAttribute(
@@ -311,7 +311,7 @@ test.describe('Catalog storefront', () => {
     // Product entries expose honest lastmod from list updatedAt
     expect(sitemapBody).toContain('<lastmod>');
     // Non-empty categories may appear; empty ones must not be advertised via productCount=0
-    // (exact category IDs depend on seed data — assert shape only when present)
+    // (exact category IDs depend on seed data - assert shape only when present)
     if (sitemapBody.includes('categoryId=')) {
       expect(sitemapBody).toMatch(/categoryId=\d+/);
     }

@@ -2365,14 +2365,14 @@ export interface components {
         CartItemResponseDto: {
             /**
              * @description Cart item ID
-             * @example item-123
+             * @example 10
              */
-            id: string;
+            id: number;
             /**
              * @description Product ID
-             * @example prod-123
+             * @example 5
              */
-            productId: string;
+            productId: number;
             /**
              * @description Product name
              * @example Wireless Headphones
@@ -2383,6 +2383,11 @@ export interface components {
              * @example 99.99
              */
             price: number;
+            /**
+             * @description ISO 4217 currency snapshotted from the product at add time
+             * @example USD
+             */
+            currency: string;
             /**
              * @description Quantity
              * @example 2
@@ -2397,24 +2402,19 @@ export interface components {
              * @description Product image URL
              * @example https://example.com/image.jpg
              */
-            imageUrl: string;
+            imageUrl: string | null;
         };
         CartResponseDto: {
             /**
              * @description Cart ID
-             * @example cart-123
+             * @example 1
              */
-            id: string;
+            id: number;
             /**
              * @description User ID
              * @example 123
              */
-            userId?: string;
-            /**
-             * @description Session ID
-             * @example session-abc-xyz
-             */
-            sessionId?: string;
+            userId?: number;
             /** @description Cart items */
             items: components["schemas"]["CartItemResponseDto"][];
             /**
@@ -2427,6 +2427,11 @@ export interface components {
              * @example 299.97
              */
             totalAmount: number;
+            /**
+             * @description ISO 4217 currency for cart totals. Null when the cart has no items.
+             * @example USD
+             */
+            currency: string | null;
             /**
              * Format: date-time
              * @description Cart creation date
@@ -4648,13 +4653,12 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            /** @description Cart cleared successfully. */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CartResponseDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -4673,13 +4677,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            /** @description Item added to cart successfully. */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CartResponseDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -4695,13 +4698,12 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            /** @description Item removed from cart successfully. */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CartResponseDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -4721,13 +4723,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            /** @description Cart item quantity updated successfully. */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CartResponseDto"];
-                };
+                content?: never;
             };
         };
     };

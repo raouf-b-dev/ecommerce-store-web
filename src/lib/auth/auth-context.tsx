@@ -32,6 +32,7 @@ import {
   getSessionRefetchInterval,
   getSessionRefetchOnFocusOrReconnect,
 } from '@/lib/auth/session-query-policy';
+import { clearStoredCartId } from '@/features/cart/lib/cart-storage';
 
 export const AUTH_SESSION_QUERY_KEY = ['auth', 'session'] as const;
 
@@ -139,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function clearLocalSession() {
     clearAccessToken();
+    clearStoredCartId();
     queryClient.setQueryData(AUTH_SESSION_QUERY_KEY, null);
     queryClient.removeQueries({
       predicate: (query) => query.queryKey[0] !== 'auth',

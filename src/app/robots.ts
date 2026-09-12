@@ -10,12 +10,12 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     rules: {
       userAgent: '*',
       allow: ['/'],
-      // Keep unfinished feature routes disallowed until Phase 6 (Cart) and Phase 7 (Checkout) land
+      // Keep unfinished feature routes disallowed until Phase 7 (Checkout) lands
       // with page-level noindex metadata.
-      // Note: Existing private routes (/account, /login, /register, /change-password, /status)
+      // Note: Existing private routes (/account, /login, /register, /change-password, /status, /cart)
       // are deliberately omitted from disallow so search engine crawlers can fetch the pages,
       // discover the metadata-level `noindex, nofollow` directive, and de-index them from search results.
-      disallow: ['/cart', '/checkout'],
+      disallow: ['/checkout'],
     },
     sitemap: partitions.map((p) => `${origin}/sitemap/${p.id}.xml`),
   };
