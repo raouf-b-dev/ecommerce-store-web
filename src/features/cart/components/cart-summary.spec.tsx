@@ -52,4 +52,21 @@ describe('CartSummary', () => {
       expect(mockMutateClear).toHaveBeenCalled();
     });
   });
+
+  it('renders a link to /checkout', () => {
+    render(
+      <CartSummary
+        subtotal={100}
+        totalAmount={100}
+        currency="USD"
+        itemCount={1}
+      />,
+    );
+
+    const checkoutLink = screen.getByRole('link', {
+      name: /proceed to checkout/i,
+    });
+    expect(checkoutLink).toBeInTheDocument();
+    expect(checkoutLink).toHaveAttribute('href', '/checkout');
+  });
 });
