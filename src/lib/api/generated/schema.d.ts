@@ -202,7 +202,7 @@ export interface paths {
         put?: never;
         /**
          * Initiate checkout process
-         * @description Starts the asynchronous checkout process. Returns a jobId to track progress via the checkout queue.
+         * @description Starts the asynchronous checkout process. Returns an orderId and jobId. Order progress is tracked via order polling (GET /v1/orders/{id}).
          */
         post: operations["OrdersController_checkout_v1"];
         delete?: never;
@@ -2379,7 +2379,7 @@ export interface components {
              */
             productName: string;
             /**
-             * @description Product price
+             * @description Unit price snapshotted at add time
              * @example 99.99
              */
             price: number;
@@ -2433,22 +2433,20 @@ export interface components {
              */
             currency: string | null;
             /**
-             * Format: date-time
-             * @description Cart creation date
-             * @example 2025-10-31T10:00:00Z
+             * @description Cart creation date (ISO 8601)
+             * @example 2025-10-31T10:00:00.000Z
              */
             createdAt: string;
             /**
-             * Format: date-time
-             * @description Last update date
-             * @example 2025-10-31T12:30:00Z
+             * @description Last update date (ISO 8601)
+             * @example 2025-10-31T12:30:00.000Z
              */
             updatedAt: string;
         };
         AddCartItemDto: {
             /**
              * @description Product ID
-             * @example prod-123
+             * @example 5
              */
             productId: number;
             /**
@@ -3520,6 +3518,13 @@ export interface operations {
             };
             /** @description Conflict - a request with this idempotency key is already in progress. Response includes Retry-After: 2. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Service unavailable - idempotency store unavailable. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
