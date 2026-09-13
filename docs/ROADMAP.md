@@ -119,7 +119,7 @@ The storefront's core modules are organized under `src/lib/` and `src/components
 | `src/lib/format.ts` | Formatting helpers: `formatMoney`, `formatDate`, `formatDateTime`, `formatStatusLabel` (defaulting to `en-US` locale). | Universal |
 | `src/lib/list-filters.ts` | URL query parsing: typed numeric and boolean query parameter helpers (`parsePositiveInt`, `parseNonNegativeNumber`, `parseIsActiveParam`). | Universal |
 | `src/lib/utils.ts` | Class utility: re-exports `cn` from the `cn` package. | Universal |
-| `src/components/ui/status-badge.tsx` *(planned)* | Visual badges for order and product status (Phase 7/8). | Universal |
+| `src/components/ui/status-badge.tsx` | Visual badges for order status (OpenAPI `OrderStatus`). Reused in checkout confirmation and Phase 8 orders. | Universal |
 | `scripts/generate-api-client.js` | Script generating `src/lib/api/generated/schema.d.ts` from live OpenAPI/Swagger documentation. | Build tooling |
 | `scripts/generate-env.js` | Template initialization: generates `.env.local` and `.secrets` from `.env.example` and `.secrets.example`. | Build tooling |
 | `e2e/global-setup.ts` *(planned)* + `e2e/README.md` | Playwright test setup: supports local test database seeding via `E2E_SKIP_DB_SEED`, accounts for login throttle (~61s), and manages test secrets (Phase 9). | Testing harness |
@@ -145,9 +145,9 @@ The following patterns belong to administrative consoles and are explicitly **ex
 | **2**  | App shell                                 | `[x]`  |  `[P0]`  | Layouts, chrome, error/loading, theme, health page                 |
 | **3**  | Authentication and session                | `[x]`  |  `[P0]`  | Login, register, silent refresh, customer chrome                   |
 | **4**  | Forced password change                    | `[x]`  |  `[P0]`  | Seeded customer `mustChangePassword` (do not skip)                 |
-| **5**  | Catalog                                   | `[ ]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
-| **6**  | Cart                                      | `[ ]`  |  `[P0]`  | Authenticated cart mutations + tests                               |
-| **7**  | Checkout                                  | `[ ]`  |  `[P0]`  | Idempotency + order polling + confirmation                         |
+| **5**  | Catalog                                   | `[x]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
+| **6**  | Cart                                      | `[x]`  |  `[P0]`  | Authenticated cart mutations + tests                               |
+| **7**  | Checkout                                  | `[x]`  |  `[P0]`  | Idempotency + order polling + confirmation                         |
 | **8**  | Orders and account                        | `[ ]`  |  `[P0]`  | Own orders, profile read, address book                             |
 | **9**  | Quality sweep                             | `[ ]`  |  `[P0]`  | Full journey, a11y, consistency, CI e2e policy                     |
 | **10** | Standalone mock preview                   | `[ ]`  |  `[P1]`  | MSW `dev:mock` (Playwright still needs a live API)                 |
@@ -430,16 +430,16 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 
 **Scope:**
 
-- [ ] Accept ADR-0005
-- [ ] Checkout is a protected route. Empty cart cannot start checkout (API will reject; UX disables)
-- [ ] Checkout route metadata exports `robots: NO_INDEX_ROBOTS` to prevent indexing. Unblock `/checkout` in `robots.ts` once this lands.
-- [ ] Form matching the checkout command: `cartId`, shipping address (prefill from default address when Phase 8 exists; until then, fields aligned to `ShippingAddressDto`), `paymentMethod` as the OpenAPI enum (`satisfies` - no invented `COD`), optional notes
-- [ ] Send `Idempotency-Key` (and keep body fallback only if the DTO still has it). Generate once per **attempt**; reuse on retry of that attempt; new attempt → new key. Persist the in-flight key in `sessionStorage`
-- [ ] Handle validation via `applyApiFormErrors`; **409** in-progress (`Retry-After`); **503** fail-closed; **429** banner. Disable submit while `isPending`.
-- [ ] On 201: keep `orderId`. Poll `GET` order (TanStack Query `refetchInterval`) until a **documented** status that means SAGA success (`confirmed` or later fulfillment) or failure (`payment_failed`, `cancelled`). Surface API messages. Do not poll `jobId` (no public route)
-- [ ] Confirmation UI with order id and `StatusBadge`. Out of scope: live payment gateway elements / Stripe Elements (mock payment gateway in v1)
-- [ ] Component tests: validation, 409/503 messaging, polling terminal states (mocked)
-- [ ] Playwright: happy-path checkout on seeded in-stock data (wait for confirmed; mock gateway is enough)
+- [x] Accept ADR-0005
+- [x] Checkout is a protected route. Empty cart cannot start checkout (API will reject; UX disables)
+- [x] Checkout route metadata exports `robots: NO_INDEX_ROBOTS` to prevent indexing. Unblock `/checkout` in `robots.ts` once this lands.
+- [x] Form matching the checkout command: `cartId`, shipping address (prefill from default address when Phase 8 exists; until then, fields aligned to `ShippingAddressDto`), `paymentMethod` as the OpenAPI enum (`satisfies` - no invented `COD`), optional notes
+- [x] Send `Idempotency-Key` (and keep body fallback only if the DTO still has it). Generate once per **attempt**; reuse on retry of that attempt; new attempt → new key. Persist the in-flight key in `sessionStorage`
+- [x] Handle validation via `applyApiFormErrors`; **409** in-progress (`Retry-After`); **503** fail-closed; **429** banner. Disable submit while `isPending`.
+- [x] On 201: keep `orderId`. Poll `GET` order (TanStack Query `refetchInterval`) until a **documented** status that means SAGA success (`confirmed` or later fulfillment) or failure (`payment_failed`, `cancelled`). Surface API messages. Do not poll `jobId` (no public route)
+- [x] Confirmation UI with order id and `StatusBadge`. Out of scope: live payment gateway elements / Stripe Elements (mock payment gateway in v1)
+- [x] Component tests: validation, 409/503 messaging, polling terminal states (mocked)
+- [x] Playwright: happy-path checkout on seeded in-stock data (wait for confirmed; mock gateway is enough)
 
 **Done when:** One seeded checkout completes end-to-end; retrying the same idempotency key does not create a second order; polling shows a real order status; tests green.
 
