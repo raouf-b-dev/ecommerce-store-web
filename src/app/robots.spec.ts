@@ -35,15 +35,13 @@ describe('robots', () => {
     // Requirement 7: Allow: / already covers /products/
     expect(rules?.allow).toEqual(['/']);
 
-    // Unfinished feature routes remain disallowed
-    expect(rules?.disallow).not.toContain('/cart');
-    expect(rules?.disallow).toContain('/checkout');
-
-    // Existing private routes are NOT disallowed so crawlers can observe page-level noindex
-    expect(rules?.disallow).not.toContain('/login');
-    expect(rules?.disallow).not.toContain('/register');
-    expect(rules?.disallow).not.toContain('/account');
-    expect(rules?.disallow).not.toContain('/status');
+    // Private routes are NOT disallowed so crawlers can observe page-level noindex
+    expect(rules?.disallow ?? []).not.toContain('/cart');
+    expect(rules?.disallow ?? []).not.toContain('/checkout');
+    expect(rules?.disallow ?? []).not.toContain('/login');
+    expect(rules?.disallow ?? []).not.toContain('/register');
+    expect(rules?.disallow ?? []).not.toContain('/account');
+    expect(rules?.disallow ?? []).not.toContain('/status');
   });
 
   it('maps multiple partitions dynamically to sitemap array', async () => {

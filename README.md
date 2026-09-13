@@ -28,15 +28,16 @@
 
 ## What this is
 
-Intended Next.js App Router storefront for the NestJS ecommerce API (catalog, cart, checkout, orders, account). The app shell (chrome, theme, diagnostics) is in place; shopper features follow [`docs/ROADMAP.md`](docs/ROADMAP.md).
+Next.js App Router storefront for the NestJS ecommerce API. Catalog, cart, and checkout are wired against the live OpenAPI contract. Orders and account work are tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-When it exists, this app should handle UI, routing, and client caching only. Pricing, stock, checkout, auth, and permissions stay in the API.
+This app handles UI, routing, and client caching only. Pricing, stock, checkout orchestration, auth, and permissions stay in the API.
 
 **Current limits**
 
 | Topic            | Status                                                                 |
 | :--------------- | :--------------------------------------------------------------------- |
-| Application code | App shell on port **3100**. Catalog and checkout are not wired yet. Build order: [`docs/ROADMAP.md`](docs/ROADMAP.md). |
+| Application code | Port **3100**. Catalog, cart, and checkout are live (mock payments). Orders/account still outstanding — see [`docs/ROADMAP.md`](docs/ROADMAP.md). |
+| Payments         | API mock Stripe adapter (no live card UI / Stripe Elements).           |
 | Hosted demo      | None.                                                                  |
 
 ---
@@ -137,11 +138,17 @@ src/
   components/
     layout/               # header, footer, skip link, mobile nav
     theme/                # light/dark/system
-    feedback/             # Query/action alerts for later client features
-    ui/                   # shadcn primitives
-  features/health/        # /status diagnostics
+    feedback/             # QueryStateAlert, QueryLoading, ActionErrorAlert
+    ui/                   # shadcn primitives + StatusBadge
+  features/
+    auth/                 # login, register, change-password
+    catalog/              # RSC list/detail, SEO
+    cart/                 # authenticated cart
+    checkout/             # idempotent checkout + order polling
+    health/               # /status diagnostics
   lib/
     api/generated/        # OpenAPI schema.d.ts
+    api/browser-client.ts # session + mutations
     api/server-client.ts  # RSC OpenAPI client
     format.ts
     list-filters.ts

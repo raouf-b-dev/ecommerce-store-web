@@ -9,8 +9,8 @@ Read this file first for fast orientation. It summarizes `ecommerce-store-web` w
 - Language: TypeScript (strict, `noUncheckedIndexedAccess`)
 - Styling: Tailwind CSS v4 + shadcn/ui (Radix) + Sonner
 - Theme: Light / Dark / System via `useSyncExternalStore`, storage key `store-ui-theme`, FOUC script in the root layout
-- Public reads: React Server Components (unauthenticated catalog, when wired). Health diagnostics use the server OpenAPI client.
-- Client data: TanStack Query for session (wired), cart, checkout, and orders
+- Public reads: React Server Components (unauthenticated catalog). Health diagnostics use the server OpenAPI client.
+- Client data: TanStack Query for session, cart, and checkout (orders/account next)
 - Forms: React Hook Form + Zod v4
 - API: `openapi-fetch` + generated `src/lib/api/generated/schema.d.ts`
 - Tests: Vitest, Testing Library, Playwright
@@ -41,9 +41,12 @@ This repository is the customer storefront for `ecommerce-store-api`.
 - `src/app/providers.tsx` - Theme + browser QueryClient + Auth + Toaster
 - `src/components/layout/` - skip link, header, footer, mobile nav, chrome, focus helper
 - `src/components/theme/` - theme store, provider, toggle, FOUC script constant, toaster
-- `src/components/feedback/` - `QueryStateAlert`, `QueryLoading`, `QueryListRegion`, `ActionErrorAlert` (client Query later; not for RSC catalog)
-- `src/components/ui/` - shadcn primitives (button, input, field, label, card, alert, sheet, segmented-control)
-- `src/features/auth/` - login/register API, forms, generated-type aliases, schemas, redirect safety
+- `src/components/feedback/` - `QueryStateAlert`, `QueryLoading`, `QueryListRegion`, `ActionErrorAlert` (not for RSC catalog)
+- `src/components/ui/` - shadcn primitives + `StatusBadge`
+- `src/features/auth/` - login/register/change-password API, forms, schemas, redirect safety
+- `src/features/catalog/` - RSC product list/detail, filters, SEO
+- `src/features/cart/` - authenticated cart (TanStack Query)
+- `src/features/checkout/` - checkout form, idempotency, order polling, confirmation
 - `src/features/health/` - diagnostics `/status` (server OpenAPI health + readiness)
 - `src/lib/format.ts` - money/date helpers (`en-US` until i18n)
 - `src/lib/list-filters.ts` - shared URL parsers
@@ -55,7 +58,7 @@ This repository is the customer storefront for `ecommerce-store-api`.
 - `src/lib/auth/` - AuthProvider, layout guards, in-memory access token, JWT-exp refresh policy
 - `src/lib/api/generated/schema.d.ts` - generated OpenAPI types (`npm run api:generate`)
 - `src/test/setup.ts` - Vitest Testing Library setup
-- `e2e/` - Playwright (auth/session restore, home chrome, skip link, theme, mobile nav, `/status`)
+- `e2e/` - Playwright (auth/session, catalog, cart, checkout, shell, `/status`)
 - `scripts/` - `generate-api-client.js`, `generate-env.js`
 - `docs/` - roadmap, API integration, AI conventions, ADRs
 
@@ -63,10 +66,11 @@ This repository is the customer storefront for `ecommerce-store-api`.
 
 | Surface                              | How it talks to the API                                                               |
 | :----------------------------------- | :------------------------------------------------------------------------------------ |
-| Public catalog                       | RSC. No access token. `import 'server-only'` client when fetchers exist.              |
+| Public catalog                       | RSC. No access token. `import 'server-only'` client.                                  |
 | Diagnostics `/status`                | RSC via `server-client.ts`. Unauthenticated health/readiness.                         |
-| Session                              | Browser `openapi-fetch` + TanStack Query. Implemented with refresh-cookie keep-alive. |
-| Cart, checkout, orders, account data | Browser `openapi-fetch` + TanStack Query when wired.                                  |
+| Session                              | Browser `openapi-fetch` + TanStack Query. Refresh-cookie keep-alive.                  |
+| Cart, checkout                       | Browser `openapi-fetch` + TanStack Query (wired).                                     |
+| Orders, account                      | Browser `openapi-fetch` + TanStack Query (not wired yet).                             |
 | Next Server Actions / Route Handlers | Do not use them to proxy the ecommerce API.                                           |
 
 ## Auth

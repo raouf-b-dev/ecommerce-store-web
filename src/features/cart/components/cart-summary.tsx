@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
@@ -68,16 +69,13 @@ export function CartSummary({
       </CardContent>
       <CardFooter className="flex flex-col gap-3 pt-2">
         <Button
-          disabled
-          aria-disabled="true"
+          asChild
           className="w-full font-medium"
           size="lg"
+          disabled={itemCount === 0}
         >
-          Proceed to Checkout
+          <Link href="/checkout">Proceed to Checkout</Link>
         </Button>
-        <p className="text-center text-xs text-muted-foreground">
-          Checkout will be enabled soon.
-        </p>
 
         <Button
           type="button"
