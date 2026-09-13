@@ -15,7 +15,7 @@ Backend context: [ecommerce-store-api ARCHITECTURE.md](https://github.com/raouf-
 | Boundary       | Pricing, stock, checkout, auth, and permissions live in the API.        |
 | Data access    | Typed client from OpenAPI (`openapi-fetch` + generated schema). No BFF. |
 | Public catalog | Unauthenticated RSC. Do not attach a Bearer token.                      |
-| Client data    | TanStack Query for session, cart, checkout, and orders (when wired).    |
+| Client data    | TanStack Query for session, cart, and checkout (orders not wired yet).  |
 | Auth           | In-memory access token + HttpOnly refresh cookie on the API origin.     |
 | Cart           | Authenticated only (`manage_own_cart`). No guest line-item basket.      |
 | Checkout       | Idempotency as OpenAPI documents; poll own order for SAGA completion.   |
@@ -28,11 +28,15 @@ src/app/layout.tsx
     Providers (Theme + QueryClient + Auth + ThemeAwareToaster)
   Suspense > FocusMainOnNavigate
     (shop)/layout.tsx   # skip + header/footer + main#main
-      (shop)/page.tsx   # home
+      (shop)/page.tsx   # home / catalog
+      (shop)/products/[id]/page.tsx
+      (shop)/cart/      # ProtectedRoute
+      (shop)/checkout/  # ProtectedRoute + order polling
       (shop)/status/page.tsx
     (auth)/layout.tsx   # GuestRoute + minimal auth chrome
       login/page.tsx
       register/page.tsx
+      change-password/page.tsx
     (account)/layout.tsx  # StorefrontChrome + ProtectedRoute
       account/page.tsx
 ```
@@ -116,6 +120,12 @@ src/
       products/[id]/
         page.tsx
         not-found.tsx
+      cart/
+        layout.tsx
+        page.tsx
+      checkout/
+        layout.tsx
+        page.tsx
     (auth)/
       layout.tsx
       login/page.tsx
@@ -127,12 +137,14 @@ src/
   components/
     layout/       # chrome, skip, mobile nav, focus helper
     theme/        # provider, store, toggle, toaster
-    feedback/     # QueryStateAlert, ActionErrorAlert
+    feedback/     # QueryStateAlert, QueryLoading, ActionErrorAlert
     seo/          # JsonLd primitive
-    ui/           # shadcn primitives
+    ui/           # shadcn primitives + StatusBadge
   features/
     auth/         # typed API operations, forms, schemas, redirect safety
     catalog/      # RSC list/detail, filters, feature SEO
+    cart/         # authenticated cart Query + mutations
+    checkout/     # idempotent checkout, order polling, confirmation
     health/       # /status diagnostics
   lib/
     format.ts
@@ -152,9 +164,13 @@ src/
     auth/         # provider, guards, in-memory token, refresh policy
   test/
     setup.ts
+    fixtures/
 e2e/
   auth.spec.ts
   session.spec.ts
+  catalog.spec.ts
+  cart.spec.ts
+  checkout.spec.ts
   smoke.spec.ts
   shell.spec.ts
 scripts/
