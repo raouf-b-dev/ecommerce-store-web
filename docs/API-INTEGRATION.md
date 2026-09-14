@@ -101,9 +101,11 @@ Checkout is an **async SAGA** on the API. Before coding:
 
 ## Account
 
-- Own orders: `view_own_orders`. Bind list query fields the DTO allows for a self scope; do not expose admin name/email search as shopper chrome.
-- Profile read: `GET` user by id with `view_own_profile`. If PATCH remains `manage_users`, keep the profile read-only.
-- Addresses: list on user detail; writes with `manage_own_addresses`. Always use the session user id.
+- Own orders: `view_own_orders`. Bind list query fields the DTO allows for a self scope; do not expose admin name/email search as shopper chrome. Routes: `/orders`, `/orders/[id]`.
+- Profile read: `GET` user by id with `view_own_profile`. Profile remains read-only while `PATCH /v1/users/{id}` requires `manage_users`.
+- Addresses: list on user detail; writes with `manage_own_addresses`. Always use the session user id. Address `type` is honored by the API on add/update.
+- Order payment panel: `GET /v1/payments/orders/{orderId}` (`view_own_payments`); `200` + `null` means no payment yet.
+- Checkout uses the account profile to preview the default address; when none exists it forces a custom shipping address.
 
 ## Error UX (client mapping only)
 

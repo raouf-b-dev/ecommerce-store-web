@@ -15,7 +15,7 @@ Backend context: [ecommerce-store-api ARCHITECTURE.md](https://github.com/raouf-
 | Boundary       | Pricing, stock, checkout, auth, and permissions live in the API.        |
 | Data access    | Typed client from OpenAPI (`openapi-fetch` + generated schema). No BFF. |
 | Public catalog | Unauthenticated RSC. Do not attach a Bearer token.                      |
-| Client data    | TanStack Query for session, cart, and checkout (orders not wired yet).  |
+| Client data    | TanStack Query for session, cart, checkout, orders, and account.        |
 | Auth           | In-memory access token + HttpOnly refresh cookie on the API origin.     |
 | Cart           | Authenticated only (`manage_own_cart`). No guest line-item basket.      |
 | Checkout       | Idempotency as OpenAPI documents; poll own order for SAGA completion.   |
@@ -38,7 +38,9 @@ src/app/layout.tsx
       register/page.tsx
       change-password/page.tsx
     (account)/layout.tsx  # StorefrontChrome + ProtectedRoute
-      account/page.tsx
+      account/page.tsx    # profile + address book
+      orders/page.tsx
+      orders/[id]/page.tsx
 ```
 
 The browser session is global so shopper chrome can reflect login state. Catalog
@@ -55,7 +57,7 @@ flowchart TD
   Visit["Any URL"] --> Kind{"Route kind"}
   Kind -->|public shop| Rsc["RSC catalog pages"]
   Kind -->|auth forms| AuthLayout["auth layout, no shopping chrome"]
-  Kind -->|account cart checkout| ClientGate["client ProtectedRoute"]
+  Kind -->|account cart checkout orders| ClientGate["client ProtectedRoute"]
   ClientGate -->|no session| Login["/login?redirect=..."]
   ClientGate -->|session| Page["feature page + Query"]
 ```
@@ -134,17 +136,21 @@ src/
     (account)/
       layout.tsx
       account/page.tsx
+      orders/page.tsx
+      orders/[id]/page.tsx
   components/
     layout/       # chrome, skip, mobile nav, focus helper
     theme/        # provider, store, toggle, toaster
     feedback/     # QueryStateAlert, QueryLoading, ActionErrorAlert
     seo/          # JsonLd primitive
-    ui/           # shadcn primitives + StatusBadge
+    ui/           # shadcn primitives + StatusBadge + alert-dialog
   features/
     auth/         # typed API operations, forms, schemas, redirect safety
     catalog/      # RSC list/detail, filters, feature SEO
     cart/         # authenticated cart Query + mutations
     checkout/     # idempotent checkout, order polling, confirmation
+    orders/       # own order list/detail + payment panel
+    account/      # read-only profile + address book
     health/       # /status diagnostics
   lib/
     format.ts
