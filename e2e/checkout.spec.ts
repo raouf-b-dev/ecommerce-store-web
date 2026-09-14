@@ -80,6 +80,9 @@ test.describe('Checkout Flow', () => {
     await expect(page.getByText(/ORD-\d+/)).toBeVisible();
     await expect(page.getByText('Confirmed').first()).toBeVisible();
     await expect(
+      page.getByRole('link', { name: /view order details/i }),
+    ).toBeVisible();
+    await expect(
       page.getByRole('link', { name: /continue shopping/i }),
     ).toBeVisible();
   });
