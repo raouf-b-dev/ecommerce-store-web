@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/components/layout/page-header';
-import { AccountSessionSummary } from '@/features/auth/components/account-session-summary';
+import { AccountContent } from '@/features/account/components/account-content';
 
 export const metadata: Metadata = {
   title: 'Account',
@@ -11,13 +10,5 @@ export const metadata: Metadata = {
 export const instant = false;
 
 export default function AccountPage() {
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Account"
-        description="You are signed in. Profile and address book will land in a later delivery."
-      />
-      <AccountSessionSummary />
-    </div>
-  );
+  return <AccountContent />;
 }
