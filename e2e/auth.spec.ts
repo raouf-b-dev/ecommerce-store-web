@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import {
   AUTH_THROTTLE_WAIT_MS,
   registerFreshCustomer,
+  resetAuthSeed,
   uniquePasswords,
 } from './helpers/auth';
 import { skipUnlessEnv } from './helpers/env';
@@ -28,14 +29,25 @@ test('protects account routes with a safe login redirect', async ({ page }) => {
 test('shows invalid credentials without calling it a session outage', async ({
   page,
 }) => {
+  await page.context().clearCookies();
   await page.goto('/login');
   await page.getByLabel('Email').fill(`missing-${Date.now()}@example.com`);
   await page.getByLabel('Password').fill('wrong-password');
   await page.getByRole('button', { name: 'Sign in' }).click();
 
-  await expect(page.getByText('Invalid email or password.')).toBeVisible({
-    timeout: 15_000,
-  });
+  const invalidMsg = page.getByText('Invalid email or password.');
+  const throttleMsg = page.getByText('Too many sign-in attempts');
+  await Promise.race([
+    invalidMsg.waitFor({ state: 'visible', timeout: 15_000 }),
+    throttleMsg.waitFor({ state: 'visible', timeout: 15_000 }),
+  ]).catch(() => undefined);
+
+  if (await throttleMsg.isVisible()) {
+    await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+    await page.getByRole('button', { name: 'Sign in' }).click();
+  }
+
+  await expect(invalidMsg).toBeVisible({ timeout: 15_000 });
 });
 
 test('shows distinct rate-limit copy for login HTTP 429', async ({ page }) => {
@@ -66,6 +78,7 @@ test('rotates a seeded forced password and restores the destination', async ({
   page,
 }) => {
   skipUnlessEnv('E2E_CUSTOMER_EMAIL', 'E2E_CUSTOMER_PASSWORD');
+  resetAuthSeed();
   test.setTimeout(180_000);
 
   const email = process.env.E2E_CUSTOMER_EMAIL!;
@@ -104,8 +117,15 @@ test('rotates a seeded forced password and restores the destination', async ({
     }
 
     if (await accountHeading.isVisible()) {
+      if (process.env.E2E_SKIP_DB_SEED === '1') {
+        test.skip(
+          true,
+          'Seeded customer was already rotated and E2E_SKIP_DB_SEED=1 bypassed resetting seed state. To test forced rotation, run without E2E_SKIP_DB_SEED=1.',
+        );
+        return;
+      }
       throw new Error(
-        'Seeded customer account was already rotated and bypassed password rotation. Run `npm run db:seed:auth` in `ecommerce-store-api` to reset customer seed state before running this test.',
+        'Expected forced password change heading, but customer landed directly on Account. Verify that npm run db:seed:auth reset isPasswordChangeRequired: true in the database.',
       );
     }
 

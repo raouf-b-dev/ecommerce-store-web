@@ -389,7 +389,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                       <CheckCircle2 className="size-3" /> Auto-Completing
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs text-foreground/80 dark:text-foreground/80">
                     Instant sandbox simulation: creates a Stripe PaymentIntent and
                     auto-completes via delayed asynchronous webhook.
                   </p>
@@ -464,7 +464,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                  <span className="font-medium text-emerald-800 dark:text-emerald-300">
                     Free
                   </span>
                 </div>

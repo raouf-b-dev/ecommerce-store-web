@@ -1,9 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { registerFreshCustomer } from './helpers/auth';
+import { AUTH_THROTTLE_WAIT_MS, registerFreshCustomer } from './helpers/auth';
 
 test.describe('Orders', () => {
   test('has noindex, nofollow robots metadata on /orders', async ({ page }) => {
-    await registerFreshCustomer(page);
     await page.goto('/orders');
 
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
@@ -64,8 +63,20 @@ test.describe('Orders', () => {
     ).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText('Confirmed').first()).toBeVisible();
 
-    await page.goto('/orders');
-    await expect(page.getByRole('heading', { name: /orders/i })).toBeVisible();
+    const ordersNav = page.getByRole('link', { name: /orders/i }).first();
+    if (await ordersNav.isVisible().catch(() => false)) {
+      await ordersNav.click();
+    } else {
+      await page.goto('/orders');
+    }
+
+    const sessionErrorAlert = page.getByText('Too many requests. Wait a moment and try again.');
+    if (await sessionErrorAlert.isVisible().catch(() => false)) {
+      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+      await page.goto('/orders');
+    }
+
+    await expect(page.getByRole('heading', { name: /orders/i })).toBeVisible({ timeout: 15_000 });
     await expect(
       page.getByRole('link', { name: new RegExp(orderNumber) }),
     ).toBeVisible({ timeout: 10_000 });

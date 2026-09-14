@@ -291,7 +291,7 @@ export function CheckoutConfirmation({
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Shipping</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                <span className="text-emerald-800 dark:text-emerald-300 font-medium">
                   Free
                 </span>
               </div>

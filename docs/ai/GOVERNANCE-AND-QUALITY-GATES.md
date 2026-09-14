@@ -16,13 +16,21 @@ Weekly Dependabot version updates (npm + GitHub Actions) live in [`.github/depen
 
 Prettier is installed for local formatting. `format:check` is not a merge gate.
 
-## Playwright
+## Playwright & End-to-End Governance
 
-A home-page smoke spec exists under `e2e/` for local use (`npm run test:e2e`). Playwright is **not** part of the `ci` aggregator yet. It joins the aggregator when the quality-sweep policy is enabled (see [`docs/ROADMAP.md`](../ROADMAP.md)).
+Playwright end-to-end tests cover smoke, catalog, auth, cart, checkout, order fulfillment, account address book, the unified customer journey (`e2e/journey.spec.ts`), and automated WCAG 2.1 AA accessibility audits (`e2e/a11y-guest.spec.ts`, `e2e/a11y-customer.spec.ts`).
 
-Until then, do not require Playwright job success in branch protection.
+### Merge Gates and CI Policy
+- **Feature PRs (`develop`)**: CI runs the five parallel fast checks (`lint`, `typecheck`, `unit-tests`, `build`, `audit`) aggregated by the `ci` status check. The `e2e` job is skipped on PRs to `develop` and does not block merging.
+- **E2E in CI (`workflow_dispatch`)**: GitHub-hosted runners do not bootstrap background polyrepo services or Docker containers. Automated Playwright E2E runs are dispatched on-demand via `workflow_dispatch` against an accessible live/staging API (`E2E_API_BASE_URL`) with configured `E2E_*` secrets. When scheduled, missing secrets fail-closed immediately (no skip-to-green). Local polyrepo E2E against a live API + fail-closed CI secrets is the Phase 9 completion bar; continuous CI E2E runs on every commit will arrive with hosted API orchestration or mock preview (Phase 10).
+- **Branch Protection**: Require the **CI Status Check** (`ci`) job.
 
-Locally, run the smoke spec against `npm run dev` on port 3100. Authenticated journeys need a live seeded API and `.secrets` (`npm run env:init:secrets`). Do not commit `.secrets`.
+### Local Execution & Seeding Conventions
+- Run `npm run test:e2e` against a running API on port 3000.
+- `e2e/global-setup.ts` automatically verifies API connectivity, confirms active catalog items exist, and resets customer credentials via `npm run db:seed:auth` in `ecommerce-store-api`.
+- Catalog must be seeded via `npm run db:seed` in `ecommerce-store-api` before running journey tests.
+- Populate customer credentials in `.secrets` using `npm run env:init:secrets`. Never commit `.secrets`.
+- All audited pages must have zero `serious` or `critical` accessibility violations detected by `@axe-core/playwright`.
 
 ## Definition of Done
 

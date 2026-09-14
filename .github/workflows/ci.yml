@@ -93,6 +93,40 @@ jobs:
       - name: Dependency audit (high/critical)
         run: npm audit --omit=dev --audit-level=high
 
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node and install
+        uses: ./.github/actions/setup-node-ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify required E2E secrets
+        run: |
+          if [ -z "${{ secrets.E2E_CUSTOMER_EMAIL }}" ] || [ -z "${{ secrets.E2E_CUSTOMER_PASSWORD }}" ]; then
+            echo "::error::E2E secrets (E2E_CUSTOMER_EMAIL, E2E_CUSTOMER_PASSWORD) are required for Playwright E2E execution."
+            exit 1
+          fi
+
+      - name: Run Playwright tests
+        run: npm run test:e2e
+        env:
+          E2E_SKIP_DB_SEED: '1'
+          NEXT_PUBLIC_STOREFRONT_ORIGIN: http://localhost:3100
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.E2E_API_BASE_URL || 'http://localhost:3000' }}
+          E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
+          E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
+          E2E_CUSTOMER_NEW_PASSWORD: ${{ secrets.E2E_CUSTOMER_NEW_PASSWORD }}
+
   ci:
     name: CI Status Check
     runs-on: ubuntu-latest

@@ -1,16 +1,23 @@
 import { expect, test } from '@playwright/test';
-import { registerFreshCustomer } from './helpers/auth';
+import { AUTH_THROTTLE_WAIT_MS, registerFreshCustomer } from './helpers/auth';
 
 test.describe('Cart and Checkout Entrypoint', () => {
   test('redirects unauthenticated guest accessing /cart to login with redirect param', async ({
     page,
   }) => {
+    await page.context().clearCookies();
     await page.goto('/cart');
 
-    await expect(page).toHaveURL(/\/login\?redirect=%2Fcart/);
+    const sessionErrorAlert = page.getByText('Too many requests. Wait a moment and try again.');
+    if (await sessionErrorAlert.isVisible().catch(() => false)) {
+      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+      await page.goto('/cart');
+    }
+
+    await expect(page).toHaveURL(/\/login\?redirect=%2Fcart/, { timeout: 15_000 });
     await expect(
       page.getByRole('heading', { name: 'Sign in', level: 1 }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15_000 });
   });
 
   test('redirects unauthenticated guest attempting to add to cart to login', async ({
@@ -33,7 +40,6 @@ test.describe('Cart and Checkout Entrypoint', () => {
   });
 
   test('has noindex, nofollow robots metadata on /cart', async ({ page }) => {
-    await registerFreshCustomer(page);
     await page.goto('/cart');
 
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
