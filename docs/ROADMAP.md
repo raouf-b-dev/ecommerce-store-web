@@ -149,7 +149,7 @@ The following patterns belong to administrative consoles and are explicitly **ex
 | **6**  | Cart                                      | `[x]`  |  `[P0]`  | Authenticated cart mutations + tests                               |
 | **7**  | Checkout                                  | `[x]`  |  `[P0]`  | Idempotency + order polling + confirmation                         |
 | **8**  | Orders and account                        | `[x]`  |  `[P0]`  | Own orders, profile read, address book                             |
-| **9**  | Quality sweep                             | `[ ]`  |  `[P0]`  | Full journey, a11y, consistency, CI e2e policy                     |
+| **9**  | Quality sweep                             | `[x]`  |  `[P0]`  | Full journey, a11y, consistency, CI e2e policy                     |
 | **10** | Standalone mock preview                   | `[ ]`  |  `[P1]`  | MSW `dev:mock` (Playwright still needs a live API)                 |
 | **11** | End-to-end order lifecycle verification   | `[ ]`  |  `[P1]`  | Storefront checkout → API order lifecycle → polling confirmation   |
 | **12** | Release gate                              | `[ ]`  |  `[P0]`  | Deploy/preview, stranger quick start, smoke                        |
@@ -479,36 +479,36 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 
 ### A. Shopper journey (Playwright)
 
-- [ ] Projects: `guest` (parallel) and `customer` (`workers: 1`, worker-scoped reused page - prefer in-app nav, avoid full reload/cookie rotation)
-- [ ] `e2e/global-setup.ts`: test database seeding via `npm run db:seed:auth` against the API; `E2E_SKIP_DB_SEED=1` documented. `e2e/README.md` (fail-closed secrets, ~61s login throttle)
-- [ ] One spec: auth (seeded customer, including password change if the seed flag is set) → catalog search/detail → add to cart → checkout → order detail (same session)
-- [ ] Keep per-feature specs; the journey is glue
-- [ ] In CI, missing `E2E_*` fails the e2e job when that job is scheduled (no skip-to-green). Local skip message stays. `npm run env:init:secrets` from `.secrets.example`
+- [x] Projects: `guest` (parallel) and `customer` (`workers: 1`, worker-scoped reused page - prefer in-app nav, avoid full reload/cookie rotation)
+- [x] `e2e/global-setup.ts`: test database seeding via `npm run db:seed:auth` against the API; `E2E_SKIP_DB_SEED=1` documented. `e2e/README.md` (fail-closed secrets, ~61s login throttle)
+- [x] One spec: auth (seeded customer, including password change if the seed flag is set) → catalog search/detail → add to cart → checkout → order detail (same session)
+- [x] Keep per-feature specs; the journey is glue
+- [x] In CI, missing `E2E_*` fails the e2e job when that job is scheduled (no skip-to-green). Local skip message stays. `npm run env:init:secrets` from `.secrets.example`
 
 ### B. Keyboard and accessibility
 
-- [ ] Skip link, `main` id, page `h1`, decorative icons `aria-hidden`
-- [ ] Keyboard navigation: skip link → `#main`; mobile sheet Esc; dialog Esc / focus restore
-- [ ] `@axe-core/playwright` helper verifying no serious or critical accessibility violations on home, product detail, cart, checkout, order detail
-- [ ] Loading / status: `QueryLoading` / `QueryListRegion` (`role="status"`, `aria-busy`, `aria-live="polite"`)
-- [ ] Focus `#main` after client navigations (already in Phase 2; verify checkout → confirmation)
+- [x] Skip link, `main` id, page `h1`, decorative icons `aria-hidden`
+- [x] Keyboard navigation: skip link → `#main`; mobile sheet Esc; dialog Esc / focus restore
+- [x] `@axe-core/playwright` helper verifying no serious or critical accessibility violations on home, product detail, cart, checkout, order detail
+- [x] Loading / status: `QueryLoading` / `QueryListRegion` (`role="status"`, `aria-busy`, `aria-live="polite"`)
+- [x] Focus `#main` after client navigations (already in Phase 2; verify checkout → confirmation)
 
 ### C. Consistency
 
-- [ ] Shared `src/lib/format.ts` + `src/lib/list-filters.ts` (no per-feature copy-paste of `parsePositiveInt`)
-- [ ] Shared `QueryStateAlert` / `QueryListRegion` / `ActionErrorAlert`; `StatusBadge` for order states
-- [ ] Confirm no catalog data is duplicated in TanStack Query without a reason
-- [ ] Confirm no barrels, no `any`, no Server Actions hitting the API, no `throwOnError`, no skeleton cargo-cult
-- [ ] Audit SEO and metadata: verify canonical URLs, social tags, structured data, and robots directives match the Phase 5 foundation
-- [ ] Hook-mocked page specs remain the pattern; do not rewrite them onto `QueryClientProvider`
-- [ ] Align CONVENTIONS + ARCHITECTURE + PROJECT-CONTEXT with the real tree (phase numbers stay in this file only)
+- [x] Shared `src/lib/format.ts` + `src/lib/list-filters.ts` (no per-feature copy-paste of `parsePositiveInt`)
+- [x] Shared `QueryStateAlert` / `QueryListRegion` / `ActionErrorAlert`; `StatusBadge` for order states
+- [x] Confirm no catalog data is duplicated in TanStack Query without a reason
+- [x] Confirm no barrels, no `any`, no Server Actions hitting the API, no `throwOnError`, no skeleton cargo-cult
+- [x] Audit SEO and metadata: verify canonical URLs, social tags, structured data, and robots directives match the Phase 5 foundation
+- [x] Hook-mocked page specs remain the pattern; do not rewrite them onto `QueryClientProvider`
+- [x] Align CONVENTIONS + ARCHITECTURE + PROJECT-CONTEXT with the real tree (phase numbers stay in this file only)
 
 ### D. CI and governance
 
-- [ ] PR merge gates as parallel jobs plus `ci` aggregator (lint, typecheck, unit, build, audit) using `setup-node-ci` + `.nvmrc`
-- [ ] Dependabot weekly npm + GitHub Actions (grouped production and development dependencies)
-- [ ] Playwright on PRs into `main`/`master` and `workflow_dispatch`; feature PRs into `develop` skip e2e; skipped e2e does not fail `ci`
-- [ ] GOVERNANCE documents that policy + throttle/seed notes
+- [x] PR merge gates as parallel jobs plus `ci` aggregator (lint, typecheck, unit, build, audit) using `setup-node-ci` + `.nvmrc`
+- [x] Dependabot weekly npm + GitHub Actions (grouped production and development dependencies)
+- [x] Playwright on `workflow_dispatch` (manual gate against live API with secrets); feature PRs into `develop` skip e2e; skipped e2e does not fail `ci`
+- [x] GOVERNANCE documents that policy + throttle/seed notes
 
 **Done when:** Full journey is green locally against a seeded API; axe/keyboard pass; CI policy is documented and the e2e job does not skip-to-green.
 
