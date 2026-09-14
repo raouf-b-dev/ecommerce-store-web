@@ -172,13 +172,23 @@ src/
     setup.ts
     fixtures/
 e2e/
+  global-setup.ts
   auth.spec.ts
   session.spec.ts
   catalog.spec.ts
   cart.spec.ts
   checkout.spec.ts
+  orders.spec.ts
+  account.spec.ts
+  journey.spec.ts
+  a11y-guest.spec.ts
+  a11y-customer.spec.ts
   smoke.spec.ts
   shell.spec.ts
+  helpers/
+    auth.ts
+    axe.ts
+    env.ts
 scripts/
   generate-api-client.js
   generate-env.js
