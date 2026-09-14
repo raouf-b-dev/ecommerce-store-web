@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
@@ -29,7 +29,11 @@ import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
 import { formatMoney } from '@/lib/format';
 import { hasHttpStatus } from '@/lib/api/parse-api-error';
 import { applyApiFormErrors } from '@/lib/api/form-api-errors';
+import { useAuth } from '@/lib/auth/auth-context';
 import { useCart } from '@/features/cart/hooks/use-cart';
+import { useUserProfile } from '@/features/account/hooks/use-user-profile';
+import { parseSessionUserId } from '@/features/account/lib/parse-session-user-id';
+import { formatAddressLines } from '@/features/account/lib/format-address';
 import { useCheckoutMutation } from '@/features/checkout/hooks/use-checkout-mutation';
 import {
   checkoutFormSchema,
@@ -45,6 +49,11 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
+  const { session } = useAuth();
+  const userId = parseSessionUserId(session?.userId);
+  const { user: profile, isLoading: isProfileLoading } = useUserProfile(userId);
+  const defaultAddress = profile?.addresses.find((address) => address.isDefault);
+
   const { cart, itemCount, totalAmount, isLoading: isCartLoading } = useCart();
   const currency = cart?.currency ?? 'USD';
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -83,6 +92,15 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     control: form.control,
     name: 'useDefaultAddress',
   });
+
+  useEffect(() => {
+    if (isProfileLoading || !profile) {
+      return;
+    }
+    if (!defaultAddress) {
+      form.setValue('useDefaultAddress', false);
+    }
+  }, [isProfileLoading, profile, defaultAddress, form]);
 
   const onSubmit = async (values: CheckoutFormValues) => {
     setGeneralError(null);
@@ -155,22 +173,56 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
             <CardContent className="space-y-4 pt-6">
               {/* Address Toggle Option */}
               <div className="space-y-3">
-                <div className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/40 transition-colors">
+                <div
+                  className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
+                    defaultAddress
+                      ? 'hover:bg-muted/40'
+                      : 'opacity-60'
+                  }`}
+                >
                   <input
                     id="address-option-saved"
                     type="radio"
                     name="addressOption"
                     className="mt-1 size-4 text-primary accent-primary"
                     checked={useDefaultAddress}
+                    disabled={!defaultAddress}
                     onChange={() => form.setValue('useDefaultAddress', true)}
                   />
-                  <label htmlFor="address-option-saved" className="cursor-pointer">
+                  <label
+                    htmlFor="address-option-saved"
+                    className={defaultAddress ? 'cursor-pointer' : 'cursor-not-allowed'}
+                  >
                     <span className="block text-sm font-medium text-foreground">
                       Use saved address on file
                     </span>
-                    <span className="block text-xs text-muted-foreground">
-                      We will automatically use your account&apos;s primary address.
-                    </span>
+                    {defaultAddress && profile ? (
+                      <span className="mt-1 block space-y-0.5 text-xs text-muted-foreground">
+                        <span className="block font-medium text-foreground">
+                          {profile.firstName} {profile.lastName}
+                        </span>
+                        {formatAddressLines(defaultAddress).map((line) => (
+                          <span key={line} className="block">
+                            {line}
+                          </span>
+                        ))}
+                      </span>
+                    ) : (
+                      <span className="block text-xs text-muted-foreground">
+                        {isProfileLoading
+                          ? 'Loading your saved address…'
+                          : 'No default address found. Enter a custom address below or '}
+                        {!isProfileLoading && !defaultAddress ? (
+                          <Link
+                            href="/account"
+                            className="font-medium text-foreground underline underline-offset-4"
+                          >
+                            add one in Account
+                          </Link>
+                        ) : null}
+                        {!isProfileLoading && !defaultAddress ? '.' : null}
+                      </span>
+                    )}
                   </label>
                 </div>
 

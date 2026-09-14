@@ -22,7 +22,8 @@ import {
 import { StatusBadge } from '@/components/ui/status-badge';
 import { formatDateTime, formatMoney } from '@/lib/format';
 import { useOrderPolling } from '@/features/checkout/hooks/use-order-polling';
-import { TERMINAL_FAILURE_STATUSES } from '@/features/checkout/types';
+import { TERMINAL_FAILURE_STATUSES } from '@/features/orders/lib/order-status';
+import { buildOrderDetailHref } from '@/features/orders/lib/order-list-filters';
 
 interface CheckoutConfirmationProps {
   orderId: number;
@@ -303,6 +304,11 @@ export function CheckoutConfirmation({
         </CardContent>
 
         <CardFooter className="flex justify-end gap-3 border-t pt-4">
+          <Button asChild variant="outline" size="lg" className="font-medium">
+            <Link href={buildOrderDetailHref(order.id)}>
+              View Order Details
+            </Link>
+          </Button>
           <Button asChild size="lg" className="font-medium">
             <Link href="/products">
               Continue Shopping <ArrowRight className="ml-2 size-4" />

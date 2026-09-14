@@ -6,6 +6,8 @@ import type { ReactNode } from 'react';
 import { CheckoutForm } from './checkout-form';
 import * as cartHooks from '@/features/cart/hooks/use-cart';
 import * as checkoutMutationHook from '@/features/checkout/hooks/use-checkout-mutation';
+import * as authContext from '@/lib/auth/auth-context';
+import * as userProfileHook from '@/features/account/hooks/use-user-profile';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
 import {
   createMockCart,
@@ -13,6 +15,11 @@ import {
   createMockUseCartResult,
 } from '@/test/fixtures/cart.fixture';
 import { createMockUseCheckoutMutationResult } from '@/test/fixtures/checkout.fixture';
+import {
+  createMockAddress,
+  createMockUseUserProfileResult,
+  createMockUserDetail,
+} from '@/test/fixtures/account.fixture';
 
 vi.mock('@/features/cart/hooks/use-cart', () => ({
   useCart: vi.fn(),
@@ -20,6 +27,14 @@ vi.mock('@/features/cart/hooks/use-cart', () => ({
 
 vi.mock('@/features/checkout/hooks/use-checkout-mutation', () => ({
   useCheckoutMutation: vi.fn(),
+}));
+
+vi.mock('@/lib/auth/auth-context', () => ({
+  useAuth: vi.fn(),
+}));
+
+vi.mock('@/features/account/hooks/use-user-profile', () => ({
+  useUserProfile: vi.fn(),
 }));
 
 function createWrapper() {
@@ -37,12 +52,73 @@ function createWrapper() {
   };
 }
 
+function mockCartWithItems() {
+  const mockCart = createMockCart({
+    id: 1,
+    currency: 'USD',
+    totalAmount: 150,
+    itemCount: 1,
+    items: [
+      createMockCartItem({
+        id: 10,
+        productId: 100,
+        productName: 'Mechanical Keyboard',
+        price: 150,
+        currency: 'USD',
+        quantity: 1,
+        subtotal: 150,
+      }),
+    ],
+  });
+
+  vi.mocked(cartHooks.useCart).mockReturnValue(
+    createMockUseCartResult({
+      cart: mockCart,
+      cartId: 1,
+      itemCount: 1,
+      totalAmount: 150,
+      subtotal: 150,
+      items: mockCart.items,
+    }),
+  );
+
+  return mockCart;
+}
+
 describe('CheckoutForm', () => {
   const mockOnOrderCreated = vi.fn();
   const mockSubmitCheckout = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    vi.mocked(authContext.useAuth).mockReturnValue({
+      status: 'authenticated',
+      session: {
+        userId: '1',
+        email: 'alice@store.local',
+        role: 'CUSTOMER',
+        permissions: [],
+        mustChangePassword: false,
+      },
+      sessionError: null,
+      isAuthenticated: true,
+      mustChangePassword: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      changePassword: vi.fn(),
+      logout: vi.fn(),
+      clearLocalSession: vi.fn(),
+      retrySession: vi.fn(),
+    });
+
+    vi.mocked(userProfileHook.useUserProfile).mockReturnValue(
+      createMockUseUserProfileResult({
+        user: createMockUserDetail({
+          addresses: [createMockAddress({ isDefault: true })],
+        }),
+      }),
+    );
 
     vi.mocked(checkoutMutationHook.useCheckoutMutation).mockReturnValue(
       createMockUseCheckoutMutationResult({
@@ -74,34 +150,7 @@ describe('CheckoutForm', () => {
   });
 
   it('renders form with saved address selected by default when cart has items', () => {
-    const mockCartWithItems = createMockCart({
-      id: 1,
-      currency: 'USD',
-      totalAmount: 150,
-      itemCount: 1,
-      items: [
-        createMockCartItem({
-          id: 10,
-          productId: 100,
-          productName: 'Mechanical Keyboard',
-          price: 150,
-          currency: 'USD',
-          quantity: 1,
-          subtotal: 150,
-        }),
-      ],
-    });
-
-    vi.mocked(cartHooks.useCart).mockReturnValue(
-      createMockUseCartResult({
-        cart: mockCartWithItems,
-        cartId: 1,
-        itemCount: 1,
-        totalAmount: 150,
-        subtotal: 150,
-        items: mockCartWithItems.items,
-      }),
-    );
+    mockCartWithItems();
 
     render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
       wrapper: createWrapper(),
@@ -115,28 +164,48 @@ describe('CheckoutForm', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows address preview text when profile has a default address', () => {
+    mockCartWithItems();
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
+      wrapper: createWrapper(),
+    });
+
+    expect(screen.getByText('Alice Smith')).toBeInTheDocument();
+    expect(screen.getByText('123 Main Street')).toBeInTheDocument();
+    expect(screen.getByText('New York, NY 10001')).toBeInTheDocument();
+    expect(screen.getByLabelText(/use saved address on file/i)).toBeEnabled();
+    expect(screen.getByLabelText(/use saved address on file/i)).toBeChecked();
+  });
+
+  it('disables saved radio and selects custom when profile has no default', async () => {
+    mockCartWithItems();
+    vi.mocked(userProfileHook.useUserProfile).mockReturnValue(
+      createMockUseUserProfileResult({
+        user: createMockUserDetail({
+          addresses: [createMockAddress({ isDefault: false })],
+        }),
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
+      wrapper: createWrapper(),
+    });
+
+    const savedRadio = screen.getByLabelText(/use saved address on file/i);
+    const customRadio = screen.getByLabelText(/ship to a custom address/i);
+
+    expect(savedRadio).toBeDisabled();
+
+    await waitFor(() => {
+      expect(customRadio).toBeChecked();
+    });
+  });
+
   it('submits checkout when default address is used', async () => {
     const user = userEvent.setup();
     mockSubmitCheckout.mockResolvedValue({ orderId: 42, jobId: 'job-42' });
-
-    const mockCart = createMockCart({
-      id: 1,
-      currency: 'USD',
-      totalAmount: 50,
-      itemCount: 1,
-      items: [createMockCartItem({ price: 50, subtotal: 50 })],
-    });
-
-    vi.mocked(cartHooks.useCart).mockReturnValue(
-      createMockUseCartResult({
-        cart: mockCart,
-        cartId: 1,
-        itemCount: 1,
-        totalAmount: 50,
-        subtotal: 50,
-        items: mockCart.items,
-      }),
-    );
+    mockCartWithItems();
 
     render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
       wrapper: createWrapper(),
@@ -163,25 +232,7 @@ describe('CheckoutForm', () => {
         message: 'Conflict',
       }),
     );
-
-    const mockCart = createMockCart({
-      id: 1,
-      currency: 'USD',
-      totalAmount: 50,
-      itemCount: 1,
-      items: [createMockCartItem({ price: 50, subtotal: 50 })],
-    });
-
-    vi.mocked(cartHooks.useCart).mockReturnValue(
-      createMockUseCartResult({
-        cart: mockCart,
-        cartId: 1,
-        itemCount: 1,
-        totalAmount: 50,
-        subtotal: 50,
-        items: mockCart.items,
-      }),
-    );
+    mockCartWithItems();
 
     render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
       wrapper: createWrapper(),
@@ -206,25 +257,7 @@ describe('CheckoutForm', () => {
         errors: ['customerNotes must be shorter than or equal to 500 characters'],
       }),
     );
-
-    const mockCart = createMockCart({
-      id: 1,
-      currency: 'USD',
-      totalAmount: 50,
-      itemCount: 1,
-      items: [createMockCartItem({ price: 50, subtotal: 50 })],
-    });
-
-    vi.mocked(cartHooks.useCart).mockReturnValue(
-      createMockUseCartResult({
-        cart: mockCart,
-        cartId: 1,
-        itemCount: 1,
-        totalAmount: 50,
-        subtotal: 50,
-        items: mockCart.items,
-      }),
-    );
+    mockCartWithItems();
 
     render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
       wrapper: createWrapper(),
