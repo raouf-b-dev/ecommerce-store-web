@@ -60,7 +60,7 @@ This repository is the customer storefront for `ecommerce-store-api`.
 - `src/lib/auth/` - AuthProvider, layout guards, in-memory access token, JWT-exp refresh policy
 - `src/lib/api/generated/schema.d.ts` - generated OpenAPI types (`npm run api:generate`)
 - `src/test/setup.ts` - Vitest Testing Library setup
-- `e2e/` - Playwright (auth/session, catalog, cart, checkout, orders, account, shell, `/status`)
+- `e2e/` - Playwright multi-project (guest / customer): smoke, catalog, auth, cart, checkout, orders, account, journey, a11y
 - `scripts/` - `generate-api-client.js`, `generate-env.js`
 - `docs/` - roadmap, API integration, AI conventions, ADRs
 
