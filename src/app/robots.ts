@@ -10,7 +10,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     rules: {
       userAgent: '*',
       allow: ['/'],
-      // Note: Private routes (/account, /login, /register, /change-password, /status, /cart, /checkout)
+      // Note: Private routes (/account, /orders, /login, /register, /change-password, /status, /cart, /checkout)
       // are deliberately omitted from disallow so search engine crawlers can fetch the pages,
       // discover the metadata-level `noindex, nofollow` directive, and de-index them from search results.
     },

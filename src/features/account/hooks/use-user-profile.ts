@@ -1,0 +1,36 @@
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+import { getUserRequest } from '@/features/account/api/account-api';
+import { accountKeys } from '@/features/account/hooks/account-keys';
+import type { UserDetailResponseDto } from '@/features/account/types';
+
+export type UseUserProfileResult = {
+  user: UserDetailResponseDto | undefined;
+  isLoading: boolean;
+  isFetching: boolean;
+  isError: boolean;
+  error: unknown;
+  refetch: () => Promise<unknown>;
+};
+
+export function useUserProfile(
+  userId: number | undefined,
+): UseUserProfileResult {
+  const enabled = typeof userId === 'number' && userId > 0;
+
+  const query = useQuery({
+    queryKey: accountKeys.detail(userId),
+    queryFn: () => getUserRequest(userId!),
+    enabled,
+  });
+
+  return {
+    user: query.data,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: async () => query.refetch(),
+  };
+}

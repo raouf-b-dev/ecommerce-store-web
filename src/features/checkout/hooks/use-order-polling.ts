@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getOrderRequest } from '@/features/checkout/api/checkout-api';
-import { checkoutKeys } from '@/features/checkout/hooks/checkout-keys';
-import { cartKeys } from '@/features/cart/hooks/cart-keys';
-import { clearStoredCartId } from '@/features/cart/lib/cart-storage';
+import { getOrderRequest } from '@/features/orders/api/orders-api';
+import { orderKeys } from '@/features/orders/hooks/order-keys';
 import {
   isSuccessStatus,
   isTerminalStatus,
-  type OrderDetailResponseDto,
-} from '@/features/checkout/types';
+} from '@/features/orders/lib/order-status';
+import type { OrderDetailResponseDto } from '@/features/orders/types';
+import { cartKeys } from '@/features/cart/hooks/cart-keys';
+import { clearStoredCartId } from '@/features/cart/lib/cart-storage';
 
 export const POLLING_INTERVAL_MS = 2000;
 export const POLLING_TIMEOUT_MS = 60000;
@@ -46,7 +46,7 @@ export function useOrderPolling(
   const isTimedOut = Boolean(orderId && timedOutOrderId === orderId);
 
   const query = useQuery({
-    queryKey: checkoutKeys.detail(orderId),
+    queryKey: orderKeys.detail(orderId),
     queryFn: () => getOrderRequest(orderId!),
     enabled: Boolean(orderId),
     refetchInterval: (q) => {

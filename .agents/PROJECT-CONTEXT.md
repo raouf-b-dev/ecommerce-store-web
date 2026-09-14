@@ -10,7 +10,7 @@ Read this file first for fast orientation. It summarizes `ecommerce-store-web` w
 - Styling: Tailwind CSS v4 + shadcn/ui (Radix) + Sonner
 - Theme: Light / Dark / System via `useSyncExternalStore`, storage key `store-ui-theme`, FOUC script in the root layout
 - Public reads: React Server Components (unauthenticated catalog). Health diagnostics use the server OpenAPI client.
-- Client data: TanStack Query for session, cart, and checkout (orders/account next)
+- Client data: TanStack Query for session, cart, checkout, orders, and account
 - Forms: React Hook Form + Zod v4
 - API: `openapi-fetch` + generated `src/lib/api/generated/schema.d.ts`
 - Tests: Vitest, Testing Library, Playwright
@@ -47,6 +47,8 @@ This repository is the customer storefront for `ecommerce-store-api`.
 - `src/features/catalog/` - RSC product list/detail, filters, SEO
 - `src/features/cart/` - authenticated cart (TanStack Query)
 - `src/features/checkout/` - checkout form, idempotency, order polling, confirmation
+- `src/features/orders/` - own order list/detail, payment panel (TanStack Query)
+- `src/features/account/` - read-only profile + address book CRUD (TanStack Query)
 - `src/features/health/` - diagnostics `/status` (server OpenAPI health + readiness)
 - `src/lib/format.ts` - money/date helpers (`en-US` until i18n)
 - `src/lib/list-filters.ts` - shared URL parsers
@@ -58,7 +60,7 @@ This repository is the customer storefront for `ecommerce-store-api`.
 - `src/lib/auth/` - AuthProvider, layout guards, in-memory access token, JWT-exp refresh policy
 - `src/lib/api/generated/schema.d.ts` - generated OpenAPI types (`npm run api:generate`)
 - `src/test/setup.ts` - Vitest Testing Library setup
-- `e2e/` - Playwright (auth/session, catalog, cart, checkout, shell, `/status`)
+- `e2e/` - Playwright (auth/session, catalog, cart, checkout, orders, account, shell, `/status`)
 - `scripts/` - `generate-api-client.js`, `generate-env.js`
 - `docs/` - roadmap, API integration, AI conventions, ADRs
 
@@ -69,8 +71,7 @@ This repository is the customer storefront for `ecommerce-store-api`.
 | Public catalog                       | RSC. No access token. `import 'server-only'` client.                                  |
 | Diagnostics `/status`                | RSC via `server-client.ts`. Unauthenticated health/readiness.                         |
 | Session                              | Browser `openapi-fetch` + TanStack Query. Refresh-cookie keep-alive.                  |
-| Cart, checkout                       | Browser `openapi-fetch` + TanStack Query (wired).                                     |
-| Orders, account                      | Browser `openapi-fetch` + TanStack Query (not wired yet).                             |
+| Cart, checkout, orders, account      | Browser `openapi-fetch` + TanStack Query (wired).                                     |
 | Next Server Actions / Route Handlers | Do not use them to proxy the ecommerce API.                                           |
 
 ## Auth

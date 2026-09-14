@@ -2,10 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CheckoutConfirmation } from './checkout-confirmation';
 import * as pollingHook from '@/features/checkout/hooks/use-order-polling';
-import {
-  createMockOrderDetail,
-  createMockUseOrderPollingResult,
-} from '@/test/fixtures/checkout.fixture';
+import { createMockUseOrderPollingResult } from '@/test/fixtures/checkout.fixture';
+import { createMockOrderDetail } from '@/test/fixtures/orders.fixture';
 
 vi.mock('@/features/checkout/hooks/use-order-polling', () => ({
   useOrderPolling: vi.fn(),
@@ -79,6 +77,9 @@ describe('CheckoutConfirmation', () => {
     expect(screen.getByText('Ergonomic Desk Chair')).toBeInTheDocument();
     expect(screen.getByText(/456 Oak Avenue/)).toBeInTheDocument();
     expect(screen.getByText('alice@store.local')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /view order details/i }),
+    ).toHaveAttribute('href', '/orders/123');
     expect(screen.getByRole('link', { name: /continue shopping/i })).toBeInTheDocument();
   });
 });
