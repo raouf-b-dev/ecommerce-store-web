@@ -55,6 +55,7 @@ type AddressFormDialogProps = {
   ) => Promise<void>;
   isPending: boolean;
   error?: string | null;
+  onCloseAutoFocus?: (event: Event) => void;
 };
 
 function emptyDefaults(): AddAddressFormValues {
@@ -106,6 +107,7 @@ export function AddressFormDialog({
   onSubmit,
   isPending,
   error,
+  onCloseAutoFocus,
 }: AddressFormDialogProps) {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -161,7 +163,10 @@ export function AddressFormDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="max-h-[90vh] overflow-y-auto data-[size=default]:max-w-lg data-[size=default]:sm:max-w-lg">
+      <AlertDialogContent
+        className="max-h-[90vh] overflow-y-auto data-[size=default]:max-w-lg data-[size=default]:sm:max-w-lg"
+        onCloseAutoFocus={onCloseAutoFocus}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>

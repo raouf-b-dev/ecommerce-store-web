@@ -13,8 +13,8 @@ import type { AddressResponseDto } from '@/features/account/types';
 
 type AddressCardProps = {
   address: AddressResponseDto;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit: (event?: React.MouseEvent<HTMLButtonElement>) => void;
+  onDelete: (event?: React.MouseEvent<HTMLButtonElement>) => void;
   onSetDefault: () => void;
   setDefaultPending?: boolean;
   deletePending?: boolean;

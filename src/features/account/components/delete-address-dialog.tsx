@@ -21,6 +21,7 @@ type DeleteAddressDialogProps = {
   onConfirm: () => Promise<void>;
   isPending: boolean;
   error?: string | null;
+  onCloseAutoFocus?: (event: Event) => void;
 };
 
 export function DeleteAddressDialog({
@@ -30,6 +31,7 @@ export function DeleteAddressDialog({
   onConfirm,
   isPending,
   error,
+  onCloseAutoFocus,
 }: DeleteAddressDialogProps) {
   const handleOpenChange = (nextOpen: boolean) => {
     if (isPending && !nextOpen) {
@@ -40,7 +42,7 @@ export function DeleteAddressDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete address?</AlertDialogTitle>
           <AlertDialogDescription>

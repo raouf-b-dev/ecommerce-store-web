@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   QueryListRegion,
   QueryStateAlert,
@@ -94,7 +94,22 @@ export function AddressBook({ userId }: AddressBookProps) {
   const formPending =
     formMode === 'add' ? addAddress.isPending : updateAddress.isPending;
 
-  function openAdd() {
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  const handleCloseAutoFocus = (event: Event) => {
+    event.preventDefault();
+    triggerRef.current?.focus();
+  };
+
+  function openAdd(e?: React.MouseEvent<HTMLButtonElement>) {
+    if (e?.currentTarget) {
+      triggerRef.current = e.currentTarget;
+    } else if (
+      typeof document !== 'undefined' &&
+      document.activeElement instanceof HTMLElement
+    ) {
+      triggerRef.current = document.activeElement;
+    }
     setFormMode('add');
     setEditingAddress(null);
     addAddress.reset();
@@ -102,7 +117,18 @@ export function AddressBook({ userId }: AddressBookProps) {
     setFormOpen(true);
   }
 
-  function openEdit(address: AddressResponseDto) {
+  function openEdit(
+    address: AddressResponseDto,
+    e?: React.MouseEvent<HTMLButtonElement>,
+  ) {
+    if (e?.currentTarget) {
+      triggerRef.current = e.currentTarget;
+    } else if (
+      typeof document !== 'undefined' &&
+      document.activeElement instanceof HTMLElement
+    ) {
+      triggerRef.current = document.activeElement;
+    }
     setFormMode('edit');
     setEditingAddress(address);
     addAddress.reset();
@@ -110,7 +136,18 @@ export function AddressBook({ userId }: AddressBookProps) {
     setFormOpen(true);
   }
 
-  function openDelete(address: AddressResponseDto) {
+  function openDelete(
+    address: AddressResponseDto,
+    e?: React.MouseEvent<HTMLButtonElement>,
+  ) {
+    if (e?.currentTarget) {
+      triggerRef.current = e.currentTarget;
+    } else if (
+      typeof document !== 'undefined' &&
+      document.activeElement instanceof HTMLElement
+    ) {
+      triggerRef.current = document.activeElement;
+    }
     setDeleteError(null);
     deleteAddress.reset();
     setDeletingAddress(address);
@@ -212,8 +249,8 @@ export function AddressBook({ userId }: AddressBookProps) {
               <li key={address.id}>
                 <AddressCard
                   address={address}
-                  onEdit={() => openEdit(address)}
-                  onDelete={() => openDelete(address)}
+                  onEdit={(e) => openEdit(address, e)}
+                  onDelete={(e) => openDelete(address, e)}
                   onSetDefault={() => {
                     void handleSetDefault(address);
                   }}
@@ -241,6 +278,7 @@ export function AddressBook({ userId }: AddressBookProps) {
           initialAddress={editingAddress}
           onSubmit={handleFormSubmit}
           isPending={formPending}
+          onCloseAutoFocus={handleCloseAutoFocus}
         />
       ) : null}
 
@@ -256,6 +294,7 @@ export function AddressBook({ userId }: AddressBookProps) {
         onConfirm={handleDeleteConfirm}
         isPending={deleteAddress.isPending}
         error={deleteError}
+        onCloseAutoFocus={handleCloseAutoFocus}
       />
     </section>
   );
