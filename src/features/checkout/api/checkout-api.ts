@@ -3,7 +3,6 @@ import { throwApiErrorFromResponse } from '@/lib/api/throw-api-error';
 import type {
   CheckoutDto,
   CheckoutResponseDto,
-  OrderDetailResponseDto,
 } from '@/features/checkout/types';
 
 export async function checkoutRequest(
@@ -22,28 +21,6 @@ export async function checkoutRequest(
 
   if (error || !data || !response.ok) {
     return await throwApiErrorFromResponse(response, 'Checkout request failed.');
-  }
-
-  return data;
-}
-
-export async function getOrderRequest(
-  orderId: number,
-): Promise<OrderDetailResponseDto> {
-  const { data, error, response } = await browserClient.GET(
-    '/v1/orders/{id}',
-    {
-      params: {
-        path: { id: orderId },
-      },
-    },
-  );
-
-  if (error || !data || !response.ok) {
-    return await throwApiErrorFromResponse(
-      response,
-      'Failed to load order details.',
-    );
   }
 
   return data;
