@@ -183,7 +183,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         <div className="flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             {product.categoryName ? (
-              <span className="inline-flex rounded-md bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              <span className="inline-flex rounded-md bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
                 {product.categoryName}
               </span>
             ) : null}
