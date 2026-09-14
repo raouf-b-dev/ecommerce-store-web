@@ -1,13 +1,20 @@
 import { expect, test } from '@playwright/test';
-import { registerFreshCustomer } from './helpers/auth';
+import { AUTH_THROTTLE_WAIT_MS, registerFreshCustomer } from './helpers/auth';
 
 test.describe('Account address book', () => {
   test('redirects unauthenticated guest accessing /account to login', async ({
     page,
   }) => {
+    await page.context().clearCookies();
     await page.goto('/account');
 
-    await expect(page).toHaveURL(/\/login\?redirect=%2Faccount/);
+    const sessionErrorAlert = page.getByText('Too many requests. Wait a moment and try again.');
+    if (await sessionErrorAlert.isVisible().catch(() => false)) {
+      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+      await page.goto('/account');
+    }
+
+    await expect(page).toHaveURL(/\/login\?redirect=%2Faccount/, { timeout: 15_000 });
   });
 
   test('authenticated customer can add then delete an address', async ({
