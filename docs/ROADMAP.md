@@ -148,7 +148,7 @@ The following patterns belong to administrative consoles and are explicitly **ex
 | **5**  | Catalog                                   | `[x]`  |  `[P0]`  | RSC list/detail, categories, query parity, SEO                     |
 | **6**  | Cart                                      | `[x]`  |  `[P0]`  | Authenticated cart mutations + tests                               |
 | **7**  | Checkout                                  | `[x]`  |  `[P0]`  | Idempotency + order polling + confirmation                         |
-| **8**  | Orders and account                        | `[ ]`  |  `[P0]`  | Own orders, profile read, address book                             |
+| **8**  | Orders and account                        | `[x]`  |  `[P0]`  | Own orders, profile read, address book                             |
 | **9**  | Quality sweep                             | `[ ]`  |  `[P0]`  | Full journey, a11y, consistency, CI e2e policy                     |
 | **10** | Standalone mock preview                   | `[ ]`  |  `[P1]`  | MSW `dev:mock` (Playwright still needs a live API)                 |
 | **11** | End-to-end order lifecycle verification   | `[ ]`  |  `[P1]`  | Storefront checkout → API order lifecycle → polling confirmation   |
@@ -458,12 +458,12 @@ Optional later: `.agents/skills/` for custom agent tooling if needed.
 
 **Scope:**
 
-- [ ] Order list: bind pagination + `status` (and any other **own-order-safe** query fields from OpenAPI) via URL parsers. `keepPreviousData`. Do not send admin-only filters as shopper chrome. `StatusBadge` + `formatDateTime`
-- [ ] Order detail: lines, status, shipping, payment fields the DTO already returns (`view_own_payments` if a nested/list operation exists - discover in Swagger; skip if not)
-- [ ] Account: profile read + address book add/edit/delete/set-default. Address management UX: `isDefault` on add only; Set default is a card action; confirm delete; `ActionErrorAlert` inside the dialog; block close while `isPending`
-- [ ] `401`/`403` UX (API still enforces access)
-- [ ] Tests: empty/error order list; address schema + form validation tests; hook-mocked pages
-- [ ] Playwright: open an order after Phase 7 checkout **or** a seeded customer order; address add then delete (leave the seeded home address)
+- [x] Order list: bind pagination + `status` (and any other **own-order-safe** query fields from OpenAPI) via URL parsers. `keepPreviousData`. Do not send admin-only filters as shopper chrome. `StatusBadge` + `formatDateTime`
+- [x] Order detail: lines, status, shipping, payment fields the DTO already returns (`view_own_payments` if a nested/list operation exists - discover in Swagger; skip if not)
+- [x] Account: profile read + address book add/edit/delete/set-default. Address management UX: `isDefault` on add only; Set default is a card action; confirm delete; `ActionErrorAlert` inside the dialog; block close while `isPending`
+- [x] `401`/`403` UX (API still enforces access)
+- [x] Tests: empty/error order list; address schema + form validation tests; hook-mocked pages
+- [x] Playwright: open an order after Phase 7 checkout **or** a seeded customer order; address add then delete (leave the seeded home address)
 
 **Done when:** Customer can view their orders and manage their address book through the API; profile is honest about what the contract allows; tests green.
 
