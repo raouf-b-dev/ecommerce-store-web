@@ -1,7 +1,7 @@
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { checkoutRequest } from '@/features/checkout/api/checkout-api';
-import { checkoutKeys } from '@/features/checkout/hooks/checkout-keys';
+import { orderKeys } from '@/features/orders/hooks/order-keys';
 import { getStoredCartId } from '@/features/cart/lib/cart-storage';
 import {
   clearInFlightKey,
@@ -60,7 +60,7 @@ export function useCheckoutMutation(
     onSuccess: (data) => {
       clearInFlightKey();
       queryClient.invalidateQueries({
-        queryKey: checkoutKeys.detail(data.orderId),
+        queryKey: orderKeys.all,
       });
       router.refresh();
       options?.onSuccess?.(data);

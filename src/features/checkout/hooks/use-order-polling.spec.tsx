@@ -3,13 +3,12 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useOrderPolling } from './use-order-polling';
-import * as checkoutApi from '@/features/checkout/api/checkout-api';
+import * as ordersApi from '@/features/orders/api/orders-api';
 import * as cartStorage from '@/features/cart/lib/cart-storage';
-import { createMockOrderDetail } from '@/test/fixtures/checkout.fixture';
+import { createMockOrderDetail } from '@/test/fixtures/orders.fixture';
 
-vi.mock('@/features/checkout/api/checkout-api', () => ({
+vi.mock('@/features/orders/api/orders-api', () => ({
   getOrderRequest: vi.fn(),
-  checkoutRequest: vi.fn(),
 }));
 
 vi.mock('@/features/cart/lib/cart-storage', () => ({
@@ -47,7 +46,7 @@ describe('useOrderPolling', () => {
     });
 
     expect(result.current.isLoading).toBe(false);
-    expect(checkoutApi.getOrderRequest).not.toHaveBeenCalled();
+    expect(ordersApi.getOrderRequest).not.toHaveBeenCalled();
   });
 
   it('fetches order details and polls when status is pending_payment', async () => {
@@ -57,7 +56,7 @@ describe('useOrderPolling', () => {
       status: 'pending_payment',
     });
 
-    vi.mocked(checkoutApi.getOrderRequest).mockResolvedValue(pendingOrder);
+    vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(pendingOrder);
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useOrderPolling(42), {
@@ -79,7 +78,7 @@ describe('useOrderPolling', () => {
       status: 'confirmed',
     });
 
-    vi.mocked(checkoutApi.getOrderRequest).mockResolvedValue(confirmedOrder);
+    vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(confirmedOrder);
 
     const { Wrapper, queryClient } = createWrapper();
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -108,7 +107,7 @@ describe('useOrderPolling', () => {
       status: 'confirmed',
     });
 
-    vi.mocked(checkoutApi.getOrderRequest).mockResolvedValue(confirmedOrder);
+    vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(confirmedOrder);
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useOrderPolling(42), {
@@ -129,7 +128,7 @@ describe('useOrderPolling', () => {
       status: 'payment_failed',
     });
 
-    vi.mocked(checkoutApi.getOrderRequest).mockResolvedValue(failedOrder);
+    vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(failedOrder);
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useOrderPolling(42), {
@@ -151,7 +150,7 @@ describe('useOrderPolling', () => {
       status: 'pending_payment',
     });
 
-    vi.mocked(checkoutApi.getOrderRequest).mockResolvedValue(pendingOrder);
+    vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(pendingOrder);
 
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useOrderPolling(42), {
