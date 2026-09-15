@@ -9,6 +9,7 @@ Agent policy and coding conventions for this repository. Sequencing lives in [`.
 | [../../AGENT.md](../../AGENT.md) | Canonical agent policy (repo root) |
 | [../../.agents/PROJECT-CONTEXT.md](../../.agents/PROJECT-CONTEXT.md) | Compact project snapshot |
 | [CONVENTIONS.md](CONVENTIONS.md) | UI coding conventions |
+| [ANTI-PATTERNS.md](ANTI-PATTERNS.md) | Good/bad snippets + review checklist |
 | [GOVERNANCE-AND-QUALITY-GATES.md](GOVERNANCE-AND-QUALITY-GATES.md) | Merge / quality gates |
 | [WORKFLOW-PLAYBOOK.md](WORKFLOW-PLAYBOOK.md) | How to execute a roadmap task |
 | [../architecture/ARCHITECTURE.md](../architecture/ARCHITECTURE.md) | System context and composition |
