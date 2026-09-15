@@ -47,7 +47,7 @@ Do **not** put `"use cache"` on product or inventory reads in v1 (stale stock). 
 See also root [`SECURITY.md`](../SECURITY.md).
 
 - Never put secrets in `NEXT_PUBLIC_*` env vars.
-- Access token in memory only. Refresh token is the API’s HttpOnly cookie. Avoid `localStorage` for tokens.
+- Access token in memory only. Refresh token is the API's HttpOnly cookie. Avoid `localStorage` for tokens.
 - Security headers belong in `next.config.ts` `headers()`. Static redirects belong in `redirects()`. Auth gates stay in client layouts/providers ([ADR-0006](architecture/adr/ADR-0006-security-headers-and-client-auth.md)). Missing catalog resources use App Router `notFound()` before streaming ([ADR-0008](architecture/adr/ADR-0008-resource-404-via-app-router.md)). The access token is not in a cookie Next can read.
 - Map errors to UI text; do not render API HTML.
 - UI gating is not authorization.
@@ -65,7 +65,7 @@ Storefront authentication and session rules:
 - Session bootstrap, proactive refresh, and domain `401` recovery share one raw-`fetch` single-flight request. A same-origin Web Lock serializes refresh and logout across tabs. Both are required because the API rotates refresh tokens and treats reuse as session theft.
 - A refresh **401** means the cookie is invalid: clear in-memory session and return to login. Refresh **429**, **5xx**, network failures, and malformed success payloads throw and keep the current session for retry. Never silent-retry authentication responses. On success, `onSessionRefreshed` updates `['auth','session']`.
 - The session Query is browser-only because the Next server cannot read the API-origin refresh cookie. Catalog RSC remains unauthenticated.
-- Login/register **429**: stable “too many requests” copy. Do not map throttle to invalid credentials. QueryClient skips retry on `429`.
+- Login/register **429**: stable "too many requests" copy. Do not map throttle to invalid credentials. QueryClient skips retry on `429`.
 - `safeRedirectPath`: only same-origin relative paths; reject `//`; reject `/login` and `/change-password` as redirect targets.
 - On `403` with code `MUST_CHANGE_PASSWORD` **or** a message containing `Password change required`, redirect to change-password. Other `403` responses show forbidden; do not invent a bypass.
 - Preserve a sanitized `redirect` destination when login or a domain `403` diverts a shopper through `/change-password`. After successful rotation, return to that destination with `router.push(...)` and refresh server layouts.
@@ -78,7 +78,7 @@ Storefront authentication and session rules:
 ## Cart
 
 - Cart HTTP requires `manage_own_cart`. There is **no** anonymous cart in the API.
-- Do not keep a `localStorage` basket to “merge later.” Signed-out add-to-cart goes to login/register with `redirect`.
+- Do not keep a `localStorage` basket to "merge later." Signed-out add-to-cart goes to login/register with `redirect`.
 - Persist cart **id** only in `localStorage` (namespaced key). It is not a credential; `sessionStorage` would drop the cart when the tab closes. Clear the id on logout. Do not persist line items locally. The API still enforces ownership.
 
 ## Catalog

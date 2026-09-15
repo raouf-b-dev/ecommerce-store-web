@@ -20,7 +20,7 @@ Playwright runs two distinct test projects defined in `playwright.config.ts`:
 
 `e2e/global-setup.ts` automatically runs before test execution:
 - **API Health Check**: Verifies `GET /health` returns HTTP 200.
-- **Catalog Verification**: Verifies `GET /v1/products?limit=1` returns active products. If the catalog is empty, it fails immediately — run `npm run db:seed` in `ecommerce-store-api` first.
+- **Catalog Verification**: Verifies `GET /v1/products?limit=1` returns active products. If the catalog is empty, it fails immediately - run `npm run db:seed` in `ecommerce-store-api` first.
 - **Auth User Reset**: Resets seeded customer credentials via `npm run db:seed:auth` in `E2E_API_REPO_PATH` (defaults to `../ecommerce-store-api`). To skip automated seeding in environments where the database is already prepared, set:
   ```bash
   E2E_SKIP_DB_SEED=1 npm run test:e2e
