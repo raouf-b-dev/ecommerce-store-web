@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { QueryLoading } from '@/components/feedback/query-state';
 import { PageHeader } from '@/components/layout/page-header';
 import { RegisterForm } from '@/features/auth/components/register-form';
-import { firstSearchValue } from '@/features/auth/lib/first-search-value';
+import { firstSearchValue } from '@/lib/search-params/first-search-value';
 import { GuestRoute } from '@/lib/auth/guest-route';
 
 export const metadata: Metadata = {

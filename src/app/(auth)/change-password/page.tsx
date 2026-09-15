@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { QueryLoading } from '@/components/feedback/query-state';
 import { PageHeader } from '@/components/layout/page-header';
 import { ChangePasswordForm } from '@/features/auth/components/change-password-form';
-import { firstSearchValue } from '@/features/auth/lib/first-search-value';
+import { firstSearchValue } from '@/lib/search-params/first-search-value';
 import { ChangePasswordRoute } from '@/lib/auth/password-change-routes';
 
 export const metadata: Metadata = {
