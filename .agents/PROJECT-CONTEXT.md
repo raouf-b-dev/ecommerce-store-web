@@ -37,13 +37,14 @@ This repository is the customer storefront for `ecommerce-store-api`.
 
 ## Directory Map
 
-- `src/app/` - thin App Router routes. `(auth)` has layout-level `GuestRoute`; `(account)` has layout-level `ProtectedRoute`
+- `src/app/` - thin App Router routes. `(auth)` layout is chrome only; `GuestRoute` wraps login/register pages. `(account)` has layout-level `ProtectedRoute`
 - `src/app/providers.tsx` - Theme + browser QueryClient + Auth + Toaster
-- `src/components/layout/` - skip link, header, footer, mobile nav, chrome, focus helper
+- `src/components/layout/` - skip link, header, footer, mobile nav, chrome, focus helper, `AccountNav`
+- `src/components/media/` - shared `ProductImage`
 - `src/components/theme/` - theme store, provider, toggle, FOUC script constant, toaster
 - `src/components/feedback/` - `QueryStateAlert`, `QueryLoading`, `QueryListRegion`, `ActionErrorAlert` (not for RSC catalog)
 - `src/components/ui/` - shadcn primitives + `StatusBadge`
-- `src/features/auth/` - login/register/change-password API, forms, schemas, redirect safety
+- `src/features/auth/` - auth forms, schemas, field matchers (session HTTP + redirect helpers live in `src/lib/auth/`; import those modules from `lib/` directly)
 - `src/features/catalog/` - RSC product list/detail, filters, SEO
 - `src/features/cart/` - authenticated cart (TanStack Query)
 - `src/features/checkout/` - checkout form, idempotency, order polling, confirmation
@@ -63,6 +64,10 @@ This repository is the customer storefront for `ecommerce-store-api`.
 - `e2e/` - Playwright multi-project (guest / customer): smoke, catalog, auth, cart, checkout, orders, account, journey, a11y
 - `scripts/` - `generate-api-client.js`, `generate-env.js`
 - `docs/` - roadmap, API integration, AI conventions, ADRs
+
+## Next up
+
+See [`docs/ROADMAP.md`](../docs/ROADMAP.md) **Next up**. Live queue: Phase **10** (MSW), then **11** (order lifecycle; does not block 12), **12** (release gate), **13** (visuals), **14** (optional polish). Staff slices **9b-9e** are done (folded into Phase 9).
 
 ## Rendering split
 
