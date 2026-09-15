@@ -10,7 +10,7 @@ import {
   getChangePasswordRedirectPath,
   getLoginRedirectPath,
   navigateAfterLoginPath,
-} from '@/features/auth/lib/auth-routes';
+} from '@/lib/auth/auth-routes';
 import { useAuth } from '@/lib/auth/auth-context';
 
 type RouteProps = {

@@ -6,7 +6,7 @@ import {
   QueryLoading,
   QueryStateAlert,
 } from '@/components/feedback/query-state';
-import { navigateAfterLoginPath } from '@/features/auth/lib/auth-routes';
+import { navigateAfterLoginPath } from '@/lib/auth/auth-routes';
 import { useAuth } from '@/lib/auth/auth-context';
 
 type GuestRouteProps = {
