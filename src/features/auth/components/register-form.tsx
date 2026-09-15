@@ -16,11 +16,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { applyApiFormErrors } from '@/lib/api/form-api-errors';
 import { hasHttpStatus } from '@/lib/api/parse-api-error';
-import { AUTH_THROTTLE_MESSAGE } from '@/features/auth/api/auth-api';
+import { AUTH_THROTTLE_MESSAGE } from '@/lib/auth/session-api';
 import {
   getLoginRedirectPath,
   navigateAfterLoginPath,
-} from '@/features/auth/lib/auth-routes';
+} from '@/lib/auth/auth-routes';
 import { matchAuthField } from '@/features/auth/lib/match-auth-field';
 import {
   registerSchema,
