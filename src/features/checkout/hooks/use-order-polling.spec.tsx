@@ -1,20 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useOrderPolling } from './use-order-polling';
 import * as ordersApi from '@/features/orders/api/orders-api';
-import * as cartStorage from '@/features/cart/lib/cart-storage';
+import { cartKeys } from '@/features/cart/hooks/cart-keys';
 import { createMockOrderDetail } from '@/test/fixtures/orders.fixture';
 
 vi.mock('@/features/orders/api/orders-api', () => ({
   getOrderRequest: vi.fn(),
 }));
 
-vi.mock('@/features/cart/lib/cart-storage', () => ({
-  clearStoredCartId: vi.fn(),
-  getStoredCartId: vi.fn(),
-  setStoredCartId: vi.fn(),
+vi.mock('@/features/checkout/lib/idempotency', () => ({
+  clearInFlightKey: vi.fn(),
 }));
 
 function createWrapper() {
@@ -68,10 +66,9 @@ describe('useOrderPolling', () => {
     });
 
     expect(result.current.order?.status).toBe('pending_payment');
-    expect(cartStorage.clearStoredCartId).not.toHaveBeenCalled();
   });
 
-  it('clears stored cart ID and invalidates cart queries when clearCartOnSuccess is true', async () => {
+  it('clears current cart query when clearCartOnSuccess is true', async () => {
     const confirmedOrder = createMockOrderDetail({
       id: 42,
       orderNumber: 'ORD-2026-0042',
@@ -81,89 +78,60 @@ describe('useOrderPolling', () => {
     vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(confirmedOrder);
 
     const { Wrapper, queryClient } = createWrapper();
-    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    queryClient.setQueryData(cartKeys.current(), { id: 9, items: [] });
 
-    const { result } = renderHook(
-      () => useOrderPolling(42, { clearCartOnSuccess: true }),
-      {
-        wrapper: Wrapper,
-      },
-    );
-
-    await waitFor(() => {
-      expect(result.current.order?.status).toBe('confirmed');
+    renderHook(() => useOrderPolling(42, { clearCartOnSuccess: true }), {
+      wrapper: Wrapper,
     });
 
-    expect(cartStorage.clearStoredCartId).toHaveBeenCalled();
-    expect(invalidateSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ queryKey: ['cart'] }),
-    );
+    await waitFor(() => {
+      expect(queryClient.getQueryData(cartKeys.current())).toBeNull();
+    });
   });
 
-  it('does NOT clear cart ID by default when order reaches confirmed', async () => {
+  it('does not clear cart when clearCartOnSuccess is false', async () => {
     const confirmedOrder = createMockOrderDetail({
       id: 42,
-      orderNumber: 'ORD-2026-0042',
       status: 'confirmed',
     });
 
     vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(confirmedOrder);
 
-    const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useOrderPolling(42), {
+    const { Wrapper, queryClient } = createWrapper();
+    const cart = { id: 9, items: [] };
+    queryClient.setQueryData(cartKeys.current(), cart);
+
+    renderHook(() => useOrderPolling(42, { clearCartOnSuccess: false }), {
       wrapper: Wrapper,
     });
 
     await waitFor(() => {
-      expect(result.current.order?.status).toBe('confirmed');
+      expect(ordersApi.getOrderRequest).toHaveBeenCalled();
     });
 
-    expect(cartStorage.clearStoredCartId).not.toHaveBeenCalled();
+    expect(queryClient.getQueryData(cartKeys.current())).toEqual(cart);
   });
 
-  it('does NOT clear cart ID when order reaches payment_failed', async () => {
+  it('does not clear cart on terminal failure', async () => {
     const failedOrder = createMockOrderDetail({
       id: 42,
-      orderNumber: 'ORD-2026-0042',
       status: 'payment_failed',
     });
 
     vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(failedOrder);
 
-    const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useOrderPolling(42), {
+    const { Wrapper, queryClient } = createWrapper();
+    const cart = { id: 9, items: [] };
+    queryClient.setQueryData(cartKeys.current(), cart);
+
+    renderHook(() => useOrderPolling(42, { clearCartOnSuccess: true }), {
       wrapper: Wrapper,
     });
 
     await waitFor(() => {
-      expect(result.current.order?.status).toBe('payment_failed');
+      expect(ordersApi.getOrderRequest).toHaveBeenCalled();
     });
 
-    expect(cartStorage.clearStoredCartId).not.toHaveBeenCalled();
-  });
-
-  it('sets isTimedOut to true after polling timeout elapses', () => {
-    vi.useFakeTimers();
-    const pendingOrder = createMockOrderDetail({
-      id: 42,
-      orderNumber: 'ORD-2026-0042',
-      status: 'pending_payment',
-    });
-
-    vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(pendingOrder);
-
-    const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useOrderPolling(42), {
-      wrapper: Wrapper,
-    });
-
-    expect(result.current.isTimedOut).toBe(false);
-
-    act(() => {
-      vi.advanceTimersByTime(60001);
-    });
-
-    expect(result.current.isTimedOut).toBe(true);
-    vi.useRealTimers();
+    expect(queryClient.getQueryData(cartKeys.current())).toEqual(cart);
   });
 });

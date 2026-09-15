@@ -2,16 +2,15 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { checkoutRequest } from '@/features/checkout/api/checkout-api';
 import { orderKeys } from '@/features/orders/hooks/order-keys';
-import { getStoredCartId } from '@/features/cart/lib/cart-storage';
-import {
-  clearInFlightKey,
-  getOrCreateInFlightKey,
-} from '@/features/checkout/lib/idempotency';
+import { getCurrentCartRequest } from '@/features/cart/api/cart-api';
+import { cartKeys } from '@/features/cart/hooks/cart-keys';
+import { getOrCreateInFlightKey } from '@/features/checkout/lib/idempotency';
 import type { CheckoutFormValues } from '@/features/checkout/schemas/checkout-schema';
 import type {
   CheckoutDto,
   CheckoutResponseDto,
 } from '@/features/checkout/types';
+import type { CartResponse } from '@/features/cart/types';
 
 export interface UseCheckoutMutationOptions {
   onSuccess?: (data: CheckoutResponseDto) => void;
@@ -35,8 +34,11 @@ export function useCheckoutMutation(
     mutationFn: async (
       values: CheckoutFormValues,
     ): Promise<CheckoutResponseDto> => {
-      const cartId = getStoredCartId();
-      if (!cartId) {
+      const cached = queryClient.getQueryData<CartResponse | null>(
+        cartKeys.current(),
+      );
+      const cart = cached ?? (await getCurrentCartRequest());
+      if (!cart?.id) {
         throw new Error(
           'Your cart is empty or expired. Please add items before checking out.',
         );
@@ -49,7 +51,7 @@ export function useCheckoutMutation(
         : values.shippingAddress;
 
       const dto: CheckoutDto = {
-        cartId,
+        cartId: cart.id,
         paymentMethod: 'STRIPE',
         customerNotes: values.customerNotes?.trim() || undefined,
         shippingAddress,
@@ -58,7 +60,7 @@ export function useCheckoutMutation(
       return checkoutRequest(dto, idempotencyKey);
     },
     onSuccess: (data) => {
-      clearInFlightKey();
+      // Keep Idempotency-Key until terminal order success (polling) or explicit retry.
       queryClient.invalidateQueries({
         queryKey: orderKeys.all,
       });
