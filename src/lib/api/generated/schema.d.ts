@@ -596,6 +596,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the authenticated caller profile
+         * @description Returns UserDetailResponseDto for the caller from CallerContext.userId. Requires view_own_profile.
+         */
+        get: operations["UsersController_getMe_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/users/{id}": {
         parameters: {
             query?: never;
@@ -783,6 +803,26 @@ export interface paths {
         put?: never;
         /** Create a new cart for authenticated user */
         post: operations["CartsController_createCart_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/carts/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the authenticated caller's current cart
+         * @description Idempotent read via GetCartUseCase user scope. Does not create a cart. 404 means no cart yet (clients treat as empty).
+         */
+        get: operations["CartsController_getCurrentCart_v1"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3516,9 +3556,11 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Conflict - a request with this idempotency key is already in progress. Response includes Retry-After: 2. */
+            /** @description Conflict - a request with this idempotency key is already in progress. */
             409: {
                 headers: {
+                    /** @description Seconds to wait before retrying the checkout poll or request. */
+                    "Retry-After"?: number | string;
                     [name: string]: unknown;
                 };
                 content?: never;
@@ -4195,6 +4237,25 @@ export interface operations {
             };
         };
     };
+    UsersController_getMe_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDetailResponseDto"];
+                };
+            };
+        };
+    };
     UsersController_getUser_v1: {
         parameters: {
             query?: never;
@@ -4626,6 +4687,32 @@ export interface operations {
             };
         };
     };
+    CartsController_getCurrentCart_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartResponseDto"];
+                };
+            };
+            /** @description No cart yet for this user. Clients should treat as empty (null). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CartsController_getCart_v1: {
         parameters: {
             query?: never;
@@ -4864,8 +4951,8 @@ export interface operations {
     };
     InventoryController_checkStock_v1: {
         parameters: {
-            query: {
-                quantity: number;
+            query?: {
+                quantity?: number;
             };
             header?: never;
             path: {
