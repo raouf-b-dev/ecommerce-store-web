@@ -16,7 +16,7 @@ Security baseline for this frontend. The API remains the authority for authn/aut
 
 ## Auth session
 
-- Follow the API’s documented session/cookie (or bearer) contract from OpenAPI.
+- Follow the API's documented session/cookie (or bearer) contract from OpenAPI.
 - Prefer httpOnly, Secure cookies when the API provides them. Avoid storing long-lived tokens in `localStorage` unless the API contract forces it and risks are documented.
 - Keep access tokens in memory only. Missing or near-expiry access tokens are restored through the API's HttpOnly refresh cookie; never persist access or refresh tokens in `localStorage` / `sessionStorage`.
 - Session bootstrap, proactive refresh, and domain-`401` recovery share one single-flight refresh because refresh tokens rotate. A same-origin Web Lock also serializes refresh/logout across tabs. Retry a domain request once with the new Bearer.
@@ -24,7 +24,7 @@ Security baseline for this frontend. The API remains the authority for authn/aut
 
 ## Dependencies and supply chain
 
-- Keep dependencies updated; run audits in CI once continuous integration is in place.
+- Keep dependencies updated. CI runs `npm audit --omit=dev --audit-level=high` on every PR (`audit` job in `.github/workflows/ci.yml`).
 - Prefer generating the API client from OpenAPI over hand-rolled HTTP that can drift and skip validation.
 
 ## Reporting
