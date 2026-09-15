@@ -6,14 +6,8 @@ import type {
   UserDetailResponseDto,
 } from '@/features/account/types';
 
-export async function getUserRequest(
-  userId: number,
-): Promise<UserDetailResponseDto> {
-  const { data, error, response } = await browserClient.GET('/v1/users/{id}', {
-    params: {
-      path: { id: userId },
-    },
-  });
+export async function getMeRequest(): Promise<UserDetailResponseDto> {
+  const { data, error, response } = await browserClient.GET('/v1/users/me');
 
   if (error || !data || !response.ok) {
     return await throwApiErrorFromResponse(

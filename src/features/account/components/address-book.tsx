@@ -70,7 +70,7 @@ function toUpdateDto(values: UpdateAddressFormValues): UpdateAddressDto {
 
 export function AddressBook({ userId }: AddressBookProps) {
   const { user, isLoading, isFetching, isError, error, refetch } =
-    useUserProfile(userId);
+    useUserProfile();
   const {
     addAddress,
     updateAddress,
