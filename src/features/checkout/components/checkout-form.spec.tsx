@@ -1,12 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { ReactNode } from 'react';
 import { CheckoutForm } from './checkout-form';
 import * as cartHooks from '@/features/cart/hooks/use-cart';
 import * as checkoutMutationHook from '@/features/checkout/hooks/use-checkout-mutation';
-import * as authContext from '@/lib/auth/auth-context';
 import * as userProfileHook from '@/features/account/hooks/use-user-profile';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
 import {
@@ -29,28 +26,9 @@ vi.mock('@/features/checkout/hooks/use-checkout-mutation', () => ({
   useCheckoutMutation: vi.fn(),
 }));
 
-vi.mock('@/lib/auth/auth-context', () => ({
-  useAuth: vi.fn(),
-}));
-
 vi.mock('@/features/account/hooks/use-user-profile', () => ({
   useUserProfile: vi.fn(),
 }));
-
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  });
-
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
-  };
-}
 
 function mockCartWithItems() {
   const mockCart = createMockCart({
@@ -92,26 +70,6 @@ describe('CheckoutForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(authContext.useAuth).mockReturnValue({
-      status: 'authenticated',
-      session: {
-        userId: '1',
-        email: 'alice@store.local',
-        role: 'CUSTOMER',
-        permissions: [],
-        mustChangePassword: false,
-      },
-      sessionError: null,
-      isAuthenticated: true,
-      mustChangePassword: false,
-      login: vi.fn(),
-      register: vi.fn(),
-      changePassword: vi.fn(),
-      logout: vi.fn(),
-      clearLocalSession: vi.fn(),
-      retrySession: vi.fn(),
-    });
-
     vi.mocked(userProfileHook.useUserProfile).mockReturnValue(
       createMockUseUserProfileResult({
         user: createMockUserDetail({
@@ -139,9 +97,7 @@ describe('CheckoutForm', () => {
       }),
     );
 
-    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
-      wrapper: createWrapper(),
-    });
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
     expect(screen.getByText('Your Cart is Empty')).toBeInTheDocument();
     expect(
@@ -152,9 +108,7 @@ describe('CheckoutForm', () => {
   it('renders form with saved address selected by default when cart has items', () => {
     mockCartWithItems();
 
-    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
-      wrapper: createWrapper(),
-    });
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
     expect(screen.getByText('Shipping Address')).toBeInTheDocument();
     expect(screen.getByText('Use saved address on file')).toBeInTheDocument();
@@ -167,9 +121,7 @@ describe('CheckoutForm', () => {
   it('shows address preview text when profile has a default address', () => {
     mockCartWithItems();
 
-    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
-      wrapper: createWrapper(),
-    });
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
     expect(screen.getByText('Alice Smith')).toBeInTheDocument();
     expect(screen.getByText('123 Main Street')).toBeInTheDocument();
@@ -188,9 +140,7 @@ describe('CheckoutForm', () => {
       }),
     );
 
-    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
-      wrapper: createWrapper(),
-    });
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
     const savedRadio = screen.getByLabelText(/use saved address on file/i);
     const customRadio = screen.getByLabelText(/ship to a custom address/i);
@@ -207,9 +157,7 @@ describe('CheckoutForm', () => {
     mockSubmitCheckout.mockResolvedValue({ orderId: 42, jobId: 'job-42' });
     mockCartWithItems();
 
-    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
-      wrapper: createWrapper(),
-    });
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
     const submitBtn = screen.getByRole('button', { name: /place order/i });
     await user.click(submitBtn);
@@ -234,9 +182,7 @@ describe('CheckoutForm', () => {
     );
     mockCartWithItems();
 
-    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
-      wrapper: createWrapper(),
-    });
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
     const submitBtn = screen.getByRole('button', { name: /place order/i });
     await user.click(submitBtn);
@@ -259,9 +205,7 @@ describe('CheckoutForm', () => {
     );
     mockCartWithItems();
 
-    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />, {
-      wrapper: createWrapper(),
-    });
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
     const submitBtn = screen.getByRole('button', { name: /place order/i });
     await user.click(submitBtn);

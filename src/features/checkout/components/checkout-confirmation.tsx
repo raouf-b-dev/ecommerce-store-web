@@ -207,8 +207,11 @@ export function CheckoutConfirmation({
             <StatusBadge status={order.status} />
           </div>
           <CardDescription className="text-sm pt-1">
-            We have confirmed your order and sent a receipt to{' '}
-            <span className="font-semibold text-foreground">{order.userEmail}</span>.
+            Order{' '}
+            <span className="font-semibold text-foreground">
+              {order.orderNumber}
+            </span>{' '}
+            is confirmed. Check your account for status updates.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -291,9 +294,7 @@ export function CheckoutConfirmation({
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Shipping</span>
-                <span className="text-emerald-800 dark:text-emerald-300 font-medium">
-                  Free
-                </span>
+                <span className="text-muted-foreground">Included in total</span>
               </div>
               <div className="flex justify-between border-t pt-2 font-bold text-base text-foreground">
                 <span>Total Paid</span>
@@ -310,7 +311,7 @@ export function CheckoutConfirmation({
             </Link>
           </Button>
           <Button asChild size="lg" className="font-medium">
-            <Link href="/products">
+            <Link href="/">
               Continue Shopping <ArrowRight className="ml-2 size-4" />
             </Link>
           </Button>

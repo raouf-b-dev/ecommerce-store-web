@@ -76,7 +76,10 @@ describe('CheckoutConfirmation', () => {
     expect(screen.getByText('Thank You For Your Order!')).toBeInTheDocument();
     expect(screen.getByText('Ergonomic Desk Chair')).toBeInTheDocument();
     expect(screen.getByText(/456 Oak Avenue/)).toBeInTheDocument();
-    expect(screen.getByText('alice@store.local')).toBeInTheDocument();
+    expect(
+      screen.getByText(/is confirmed\. Check your account for status updates/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/included in total/i)).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: /view order details/i }),
     ).toHaveAttribute('href', '/orders/123');

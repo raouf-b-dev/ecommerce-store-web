@@ -1,13 +1,14 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { QueryLoading } from '@/components/feedback/query-state';
 import { renewInFlightKey } from '@/features/checkout/lib/idempotency';
 import { CheckoutForm } from './checkout-form';
 import { CheckoutConfirmation } from './checkout-confirmation';
 
 function CheckoutContentInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const orderIdParam = searchParams.get('orderId');
   const initialOrderId = orderIdParam ? Number(orderIdParam) : null;
@@ -18,19 +19,27 @@ function CheckoutContentInner() {
       : null,
   );
 
+  function persistOrderId(orderId: number) {
+    setActiveOrderId(orderId);
+    router.replace(`/checkout?orderId=${orderId}`);
+  }
+
+  function clearOrderIdForRetry() {
+    renewInFlightKey();
+    setActiveOrderId(null);
+    router.replace('/checkout');
+  }
+
   if (activeOrderId) {
     return (
       <CheckoutConfirmation
         orderId={activeOrderId}
-        onRetry={() => {
-          renewInFlightKey();
-          setActiveOrderId(null);
-        }}
+        onRetry={clearOrderIdForRetry}
       />
     );
   }
 
-  return <CheckoutForm onOrderCreated={(id) => setActiveOrderId(id)} />;
+  return <CheckoutForm onOrderCreated={persistOrderId} />;
 }
 
 export function CheckoutContent() {
