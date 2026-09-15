@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
 import { useAuth } from '@/lib/auth/auth-context';
-import { getLoginRedirectPath } from '@/features/auth/lib/auth-routes';
+import { getLoginRedirectPath } from '@/lib/auth/auth-routes';
 import { getErrorMessage } from '@/lib/api/parse-api-error';
 import { useAddToCart } from '@/features/cart/hooks/use-cart-mutations';
 

@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { CartContent } from './cart-content';
+import {
+  createMockCart,
+  createMockCartItem,
+  createMockUseCartResult,
+} from '@/test/fixtures/cart.fixture';
 
 const mockUseCart = vi.fn();
 
@@ -20,18 +25,16 @@ describe('CartContent', () => {
   });
 
   it('renders empty state when cart has no items', () => {
-    mockUseCart.mockReturnValue({
-      cart: null,
-      items: [],
-      itemCount: 0,
-      subtotal: 0,
-      totalAmount: 0,
-      isLoading: false,
-      isFetching: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+    mockUseCart.mockReturnValue(
+      createMockUseCartResult({
+        cart: null,
+        cartId: null,
+        items: [],
+        itemCount: 0,
+        subtotal: 0,
+        totalAmount: 0,
+      }),
+    );
 
     render(<CartContent />);
 
@@ -42,48 +45,31 @@ describe('CartContent', () => {
   });
 
   it('renders cart items and summary when cart has items', () => {
-    mockUseCart.mockReturnValue({
-      cart: {
-        id: 1,
-        totalAmount: 120,
-        itemCount: 1,
-        currency: 'USD',
-        createdAt: '2026-09-11T00:00:00Z',
-        updatedAt: '2026-09-11T00:00:00Z',
-        items: [
-          {
-            id: 10,
-            productId: 101,
-            productName: 'Wireless Headphones',
-            price: 120,
-            currency: 'USD',
-            quantity: 1,
-            subtotal: 120,
-            imageUrl: null,
-          },
-        ],
-      },
-      items: [
-        {
-          id: 10,
-          productId: 101,
-          productName: 'Wireless Headphones',
-          price: 120,
-          currency: 'USD',
-          quantity: 1,
-          subtotal: 120,
-          imageUrl: null,
-        },
-      ],
-      itemCount: 1,
+    const item = createMockCartItem({
+      id: 10,
+      productId: 101,
+      productName: 'Wireless Headphones',
+      price: 120,
+      quantity: 1,
       subtotal: 120,
-      totalAmount: 120,
-      isLoading: false,
-      isFetching: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
     });
+    const cart = createMockCart({
+      id: 1,
+      totalAmount: 120,
+      itemCount: 1,
+      currency: 'USD',
+      items: [item],
+    });
+
+    mockUseCart.mockReturnValue(
+      createMockUseCartResult({
+        cart,
+        items: [item],
+        itemCount: 1,
+        subtotal: 120,
+        totalAmount: 120,
+      }),
+    );
 
     render(<CartContent />);
 
