@@ -4,13 +4,13 @@
 
 The baseline gates for this repository (PR and the `ci` GitHub Actions job) are:
 
-- `npm run lint`
+- `npm run lint` (`eslint .` plus `scripts/lint-ascii-prose.cjs` for docs/comments)
 - `npm run typecheck`
 - `npm run test`
 - `npm run build`
 - `npm audit --omit=dev --audit-level=high`
 
-Those checks run as parallel jobs. Require **CI Status Check** (`ci`) in branch protection, not the individual job names.
+Those checks run as parallel jobs. Require **CI Status Check** (`ci`) in branch protection, not the individual job names. The aggregator in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) depends on `lint`, `typecheck`, `unit-tests`, `build`, and `audit` only.
 
 Weekly Dependabot version updates (npm + GitHub Actions) live in [`.github/dependabot.yml`](../../.github/dependabot.yml).
 
@@ -18,17 +18,21 @@ Prettier is installed for local formatting. `format:check` is not a merge gate.
 
 ## Playwright & End-to-End Governance
 
-Playwright end-to-end tests cover smoke, catalog, auth, cart, checkout, order fulfillment, account address book, the unified customer journey (`e2e/journey.spec.ts`), and automated WCAG 2.1 AA accessibility audits (`e2e/a11y-guest.spec.ts`, `e2e/a11y-customer.spec.ts`).
+Playwright covers smoke, catalog, auth, cart, checkout, order fulfillment, account address book, the unified customer journey (`e2e/journey.spec.ts`), and automated WCAG 2.1 AA audits (`e2e/a11y-guest.spec.ts`, `e2e/a11y-customer.spec.ts`).
 
 ### Merge Gates and CI Policy
-- **Feature PRs (`develop`)**: CI runs the five parallel fast checks (`lint`, `typecheck`, `unit-tests`, `build`, `audit`) aggregated by the `ci` status check. The `e2e` job is skipped on PRs to `develop` and does not block merging.
-- **E2E in CI (`workflow_dispatch`)**: GitHub-hosted runners do not bootstrap background polyrepo services or Docker containers. Automated Playwright E2E runs are dispatched on-demand via `workflow_dispatch` against an accessible live/staging API (`E2E_API_BASE_URL`) with configured `E2E_*` secrets. When scheduled, missing secrets fail-closed immediately (no skip-to-green). Local polyrepo E2E against a live API + fail-closed CI secrets is the Phase 9 completion bar; continuous CI E2E runs on every commit will arrive with hosted API orchestration or mock preview (Phase 10).
-- **Branch Protection**: Require the **CI Status Check** (`ci`) job.
+
+Aligned with [`ci.yml`](../../.github/workflows/ci.yml):
+
+- **Pull requests and pushes:** five parallel fast checks (`lint`, `typecheck`, `unit-tests`, `build`, `audit`) aggregated by the `ci` status check. Playwright is **not** part of that aggregator.
+- **E2E in CI (`workflow_dispatch` only):** the `e2e` job runs only on manual dispatch against an accessible live/staging API (`E2E_API_BASE_URL`) with configured `E2E_*` secrets. Missing secrets fail-closed (no skip-to-green). GitHub-hosted runners do not bootstrap polyrepo Docker services on every PR.
+- **Branch Protection:** Require the **CI Status Check** (`ci`) job.
 
 ### Local Execution & Seeding Conventions
+
 - Run `npm run test:e2e` against a running API on port 3000.
-- `e2e/global-setup.ts` automatically verifies API connectivity, confirms active catalog items exist, and resets customer credentials via `npm run db:seed:auth` in `ecommerce-store-api`.
-- Catalog must be seeded via `npm run db:seed` in `ecommerce-store-api` before running journey tests.
+- `e2e/global-setup.ts` verifies API connectivity, confirms active catalog items, and resets customer credentials via `npm run db:seed:auth` in `ecommerce-store-api` (unless `E2E_SKIP_DB_SEED=1`).
+- Catalog must be seeded via `npm run db:seed` in `ecommerce-store-api` before journey tests.
 - Populate customer credentials in `.secrets` using `npm run env:init:secrets`. Never commit `.secrets`.
 - All audited pages must have zero `serious` or `critical` accessibility violations detected by `@axe-core/playwright`.
 
@@ -70,4 +74,4 @@ Write an ADR in `docs/architecture/adr/ADR-XXXX-[title].md` when a change affect
 - **`Deprecated`**: No longer recommended
 - **`Superseded`**: Obsoleted by a later ADR (must link the successor)
 
-ADRs are immutable historical documents for their **decision body**: do not edit Context / Decisions / Alternatives / Consequences. **Status** (and supersede header/index links) may be updated when a later ADR fully replaces one. See [`docs/architecture/adr/README.md`](../architecture/adr/README.md) and [`docs/ai/CONVENTIONS.md`](./CONVENTIONS.md) §8.
+ADRs are immutable historical documents for their **decision body**: do not edit Context / Decisions / Alternatives / Consequences. **Status** (and supersede header/index links) may be updated when a later ADR fully replaces one. See [`docs/architecture/adr/README.md`](../architecture/adr/README.md) and [`docs/ai/CONVENTIONS.md`](./CONVENTIONS.md) §10.

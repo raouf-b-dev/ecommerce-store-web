@@ -16,7 +16,7 @@ vi.mock('@/lib/api/silent-refresh', () => ({
   silentRefreshSession: vi.fn(),
   withSessionCookieLock: mocks.withSessionCookieLock,
 }));
-vi.mock('@/features/auth/lib/jwt-decode', () => ({
+vi.mock('@/lib/auth/jwt-decode', () => ({
   decodeAccessTokenClaims: vi.fn(() => ({
     sub: '42',
     email: 'shopper@example.com',
@@ -28,7 +28,7 @@ import {
   changePasswordRequest,
   logoutRequest,
   PASSWORD_CHANGE_THROTTLE_MESSAGE,
-} from '@/features/auth/api/auth-api';
+} from '@/lib/auth/session-api';
 
 describe('changePasswordRequest', () => {
   beforeEach(() => {

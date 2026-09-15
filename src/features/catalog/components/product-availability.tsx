@@ -10,7 +10,10 @@ export function ProductAvailability({
   inventory,
   className,
 }: ProductAvailabilityProps) {
-  const isAvailable = Boolean(inventory && inventory.availableQuantity > 0);
+  const isAvailable = Boolean(
+    inventory &&
+      (inventory.isAvailable || inventory.availableQuantity > 0),
+  );
   const count = inventory?.availableQuantity ?? 0;
 
   if (!isAvailable) {

@@ -5,7 +5,7 @@ import {
   QueryListRegion,
   QueryStateAlert,
 } from '@/components/feedback/query-state';
-import { AccountNav } from '@/features/account/components/account-nav';
+import { AccountNav } from '@/components/layout/account-nav';
 import { OrderListItemRow } from '@/features/orders/components/order-list-item-row';
 import { OrdersListFilters } from '@/features/orders/components/orders-list-filters';
 import { useOrdersList } from '@/features/orders/hooks/use-orders-list';

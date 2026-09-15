@@ -18,11 +18,11 @@ import {
   PASSWORD_CHANGE_THROTTLE_MESSAGE,
   SESSION_EXPIRED_MESSAGE,
   isSessionExpiredError,
-} from '@/features/auth/api/auth-api';
+} from '@/lib/auth/session-api';
 import {
   getLoginRedirectPath,
   navigateAfterLoginPath,
-} from '@/features/auth/lib/auth-routes';
+} from '@/lib/auth/auth-routes';
 import { matchAuthField } from '@/features/auth/lib/match-auth-field';
 import {
   changePasswordSchema,

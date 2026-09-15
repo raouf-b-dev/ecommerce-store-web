@@ -4,8 +4,8 @@ import {
   getLoginRedirectPath,
   getRegisterRedirectPath,
   navigateAfterLoginPath,
-} from '@/features/auth/lib/auth-routes';
-import type { AuthSession } from '@/features/auth/types';
+} from '@/lib/auth/auth-routes';
+import type { AuthSession } from '@/lib/auth/types';
 
 const cleanSession: AuthSession = {
   userId: '42',

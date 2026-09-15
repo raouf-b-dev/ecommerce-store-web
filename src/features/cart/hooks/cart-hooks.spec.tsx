@@ -10,12 +10,9 @@ import {
   useClearCart,
 } from './use-cart-mutations';
 import * as cartApi from '@/features/cart/api/cart-api';
-import {
-  clearStoredCartId,
-  getStoredCartId,
-  setStoredCartId,
-} from '@/features/cart/lib/cart-storage';
+import { cartKeys } from '@/features/cart/hooks/cart-keys';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
+import type { CartResponse } from '@/features/cart/types';
 
 const mockUseAuth = vi.fn();
 const mockRouterRefresh = vi.fn();
@@ -32,6 +29,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/features/cart/api/cart-api', () => ({
   createCartRequest: vi.fn(),
+  getCurrentCartRequest: vi.fn(),
   getCartRequest: vi.fn(),
   addItemToCartRequest: vi.fn(),
   updateCartItemRequest: vi.fn(),
@@ -39,13 +37,27 @@ vi.mock('@/features/cart/api/cart-api', () => ({
   clearCartRequest: vi.fn(),
 }));
 
-function createWrapper() {
+const emptyCart: CartResponse = {
+  id: 55,
+  totalAmount: 0,
+  itemCount: 0,
+  currency: null,
+  createdAt: '2026-09-11T00:00:00Z',
+  updatedAt: '2026-09-11T00:00:00Z',
+  items: [],
+};
+
+function createWrapper(seedCart?: CartResponse | null) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
       mutations: { retry: false },
     },
   });
+
+  if (seedCart !== undefined) {
+    queryClient.setQueryData(cartKeys.current(), seedCart);
+  }
 
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -57,7 +69,6 @@ function createWrapper() {
 describe('Cart hooks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    clearStoredCartId();
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       status: 'authenticated',
@@ -70,7 +81,6 @@ describe('Cart hooks', () => {
         isAuthenticated: false,
         status: 'unauthenticated',
       });
-      setStoredCartId(10);
 
       const { result } = renderHook(() => useCart(), {
         wrapper: createWrapper(),
@@ -80,23 +90,27 @@ describe('Cart hooks', () => {
       expect(result.current.cartId).toBeNull();
       expect(result.current.itemCount).toBe(0);
       expect(result.current.totalAmount).toBe(0);
-      expect(cartApi.getCartRequest).not.toHaveBeenCalled();
+      expect(cartApi.getCurrentCartRequest).not.toHaveBeenCalled();
     });
 
-    it('returns empty cart state when no cart is stored', () => {
+    it('treats 404 / null current cart as empty without error', async () => {
+      vi.mocked(cartApi.getCurrentCartRequest).mockResolvedValue(null);
+
       const { result } = renderHook(() => useCart(), {
         wrapper: createWrapper(),
       });
 
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
       expect(result.current.cart).toBeNull();
-      expect(result.current.cartId).toBeNull();
-      expect(result.current.itemCount).toBe(0);
-      expect(cartApi.getCartRequest).not.toHaveBeenCalled();
+      expect(result.current.isError).toBe(false);
+      expect(cartApi.getCurrentCartRequest).toHaveBeenCalled();
     });
 
-    it('loads cart when authenticated and cart ID is stored', async () => {
-      setStoredCartId(42);
-      vi.mocked(cartApi.getCartRequest).mockResolvedValue({
+    it('loads current cart when authenticated', async () => {
+      vi.mocked(cartApi.getCurrentCartRequest).mockResolvedValue({
         id: 42,
         totalAmount: 5000,
         itemCount: 2,
@@ -125,43 +139,17 @@ describe('Cart hooks', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.cart).toBeDefined();
       expect(result.current.cart?.id).toBe(42);
       expect(result.current.itemCount).toBe(2);
       expect(result.current.totalAmount).toBe(5000);
       expect(result.current.items).toHaveLength(1);
     });
-
-    it('clears storedCartId if getCart returns 422 or 404', async () => {
-      setStoredCartId(999);
-      vi.mocked(cartApi.getCartRequest).mockRejectedValue(
-        new ApiRequestError({
-          statusCode: 422,
-          message: 'Cart not found or not active',
-        }),
-      );
-
-      renderHook(() => useCart(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(getStoredCartId()).toBeNull();
-      });
-    });
   });
 
   describe('useAddToCart', () => {
-    it('creates a new cart if none exists, stores ID, and adds item', async () => {
-      vi.mocked(cartApi.createCartRequest).mockResolvedValue({
-        id: 55,
-        totalAmount: 0,
-        itemCount: 0,
-        currency: null,
-        createdAt: '2026-09-11T00:00:00Z',
-        updatedAt: '2026-09-11T00:00:00Z',
-        items: [],
-      });
+    it('creates a new cart if none exists and adds item', async () => {
+      vi.mocked(cartApi.getCurrentCartRequest).mockResolvedValue(null);
+      vi.mocked(cartApi.createCartRequest).mockResolvedValue(emptyCart);
       vi.mocked(cartApi.addItemToCartRequest).mockResolvedValue();
 
       const { result } = renderHook(() => useAddToCart(), {
@@ -173,7 +161,6 @@ describe('Cart hooks', () => {
       });
 
       expect(cartApi.createCartRequest).toHaveBeenCalledTimes(1);
-      expect(getStoredCartId()).toBe(55);
       expect(cartApi.addItemToCartRequest).toHaveBeenCalledWith(55, {
         productId: 101,
         quantity: 2,
@@ -181,12 +168,11 @@ describe('Cart hooks', () => {
       expect(mockRouterRefresh).toHaveBeenCalled();
     });
 
-    it('uses existing cart ID without creating a new cart', async () => {
-      setStoredCartId(77);
+    it('uses cached current cart without creating', async () => {
       vi.mocked(cartApi.addItemToCartRequest).mockResolvedValue();
 
       const { result } = renderHook(() => useAddToCart(), {
-        wrapper: createWrapper(),
+        wrapper: createWrapper({ ...emptyCart, id: 77 }),
       });
 
       await act(async () => {
@@ -198,11 +184,9 @@ describe('Cart hooks', () => {
         productId: 102,
         quantity: 1,
       });
-      expect(mockRouterRefresh).toHaveBeenCalled();
     });
 
-    it('retries once with a fresh cart when addItem encounters a stale 422 cart', async () => {
-      setStoredCartId(88);
+    it('retries once with a fresh cart when addItem encounters a stale 422', async () => {
       vi.mocked(cartApi.addItemToCartRequest)
         .mockRejectedValueOnce(
           new ApiRequestError({
@@ -213,17 +197,12 @@ describe('Cart hooks', () => {
         .mockResolvedValueOnce();
 
       vi.mocked(cartApi.createCartRequest).mockResolvedValue({
+        ...emptyCart,
         id: 99,
-        totalAmount: 0,
-        itemCount: 0,
-        currency: null,
-        createdAt: '2026-09-11T00:00:00Z',
-        updatedAt: '2026-09-11T00:00:00Z',
-        items: [],
       });
 
       const { result } = renderHook(() => useAddToCart(), {
-        wrapper: createWrapper(),
+        wrapper: createWrapper({ ...emptyCart, id: 88 }),
       });
 
       await act(async () => {
@@ -231,7 +210,6 @@ describe('Cart hooks', () => {
       });
 
       expect(cartApi.createCartRequest).toHaveBeenCalledTimes(1);
-      expect(getStoredCartId()).toBe(99);
       expect(cartApi.addItemToCartRequest).toHaveBeenCalledTimes(2);
       expect(cartApi.addItemToCartRequest).toHaveBeenNthCalledWith(1, 88, {
         productId: 103,
@@ -246,11 +224,10 @@ describe('Cart hooks', () => {
 
   describe('useUpdateCartItemQuantity', () => {
     it('updates item quantity and calls router.refresh', async () => {
-      setStoredCartId(12);
       vi.mocked(cartApi.updateCartItemRequest).mockResolvedValue();
 
       const { result } = renderHook(() => useUpdateCartItemQuantity(), {
-        wrapper: createWrapper(),
+        wrapper: createWrapper({ ...emptyCart, id: 12 }),
       });
 
       await act(async () => {
@@ -266,11 +243,10 @@ describe('Cart hooks', () => {
 
   describe('useRemoveCartItem', () => {
     it('removes item and calls router.refresh', async () => {
-      setStoredCartId(12);
       vi.mocked(cartApi.removeCartItemRequest).mockResolvedValue();
 
       const { result } = renderHook(() => useRemoveCartItem(), {
-        wrapper: createWrapper(),
+        wrapper: createWrapper({ ...emptyCart, id: 12 }),
       });
 
       await act(async () => {
@@ -284,11 +260,10 @@ describe('Cart hooks', () => {
 
   describe('useClearCart', () => {
     it('clears cart and calls router.refresh', async () => {
-      setStoredCartId(12);
       vi.mocked(cartApi.clearCartRequest).mockResolvedValue();
 
       const { result } = renderHook(() => useClearCart(), {
-        wrapper: createWrapper(),
+        wrapper: createWrapper({ ...emptyCart, id: 12 }),
       });
 
       await act(async () => {

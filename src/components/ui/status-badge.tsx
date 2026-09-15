@@ -2,6 +2,7 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from 'cn';
 import type { components } from '@/lib/api/generated/schema';
+import { ORDER_STATUS_LABELS } from '@/features/orders/lib/order-status';
 
 export type OrderStatus =
   components['schemas']['OrderDetailResponseDto']['status'];
@@ -34,17 +35,6 @@ const statusBadgeVariants = cva(
     },
   },
 );
-
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending_payment: 'Pending Payment',
-  confirmed: 'Confirmed',
-  processing: 'Processing',
-  shipped: 'Shipped',
-  delivered: 'Delivered',
-  payment_failed: 'Payment Failed',
-  cancelled: 'Cancelled',
-  refunded: 'Refunded',
-};
 
 export interface StatusBadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
@@ -83,7 +73,7 @@ export function StatusBadge({
           aria-hidden="true"
         />
       )}
-      {STATUS_LABELS[status] ?? status}
+      {ORDER_STATUS_LABELS[status] ?? status}
     </span>
   );
 }

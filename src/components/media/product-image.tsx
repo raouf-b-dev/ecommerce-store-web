@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { isAllowedImageOrigin } from '@/lib/images/allowed-origins';
 
 type ProductImageProps = {
   src?: string | null;
@@ -14,28 +15,6 @@ type ProductImageProps = {
   priority?: boolean;
   className?: string;
 };
-
-export function isAllowedImageOrigin(urlStr: string): boolean {
-  try {
-    const parsed = new URL(urlStr);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return false;
-    }
-
-    if (process.env.NODE_ENV !== 'production') {
-      const isLocalhostApi =
-        (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') &&
-        parsed.port === '3000';
-      if (isLocalhostApi) {
-        return true;
-      }
-    }
-
-    return false;
-  } catch {
-    return false;
-  }
-}
 
 export function ProductImage({
   src,

@@ -72,14 +72,9 @@ export function createMockInventory(
   overrides?: Partial<ProductInventory>,
 ): ProductInventory {
   return {
-    id: 1,
-    productId: 1,
-    sku: 'TEST-001',
-    productTitle: 'Test Product',
+    isAvailable: true,
     availableQuantity: 10,
-    reservedQuantity: 0,
-    totalQuantity: 10,
-    updatedAt: '2025-01-01T10:00:00Z',
+    requestedQuantity: 1,
     ...overrides,
   };
 }

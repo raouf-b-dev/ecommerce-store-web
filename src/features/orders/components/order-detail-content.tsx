@@ -6,7 +6,7 @@ import {
   QueryStateAlert,
 } from '@/components/feedback/query-state';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { AccountNav } from '@/features/account/components/account-nav';
+import { AccountNav } from '@/components/layout/account-nav';
 import { OrderDetailItems } from '@/features/orders/components/order-detail-items';
 import { OrderPaymentSummary } from '@/features/orders/components/order-payment-summary';
 import { useOrderDetail } from '@/features/orders/hooks/use-order-detail';

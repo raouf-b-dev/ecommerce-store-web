@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
-import { ProductImage } from '@/features/catalog/components/product-image';
+import { ProductImage } from '@/components/media/product-image';
 import { formatMoney } from '@/lib/format';
 import { getErrorMessage } from '@/lib/api/parse-api-error';
 import {

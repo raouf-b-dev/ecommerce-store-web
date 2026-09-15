@@ -34,6 +34,7 @@ Before starting feature work, read `.agents/PROJECT-CONTEXT.md` for the current 
 4. Require verification evidence for behavior changes.
 5. Do not push, publish, or change production config without explicit user confirmation.
 6. If the API contract is wrong, fix it in `ecommerce-store-api`. Do not paper over it here.
+7. Docs and comments use ASCII punctuation only (hyphens, straight quotes, `...`). No em dashes, curly quotes, or other smart typography. See [`docs/ai/CONVENTIONS.md`](docs/ai/CONVENTIONS.md) §11.
 
 ## 5. Conventions Rule
 
@@ -45,6 +46,7 @@ At minimum, that includes:
 - two HTTP clients (browser vs `server-only`)
 - feature folder layout without barrels
 - query keys, forms, and RFC 9110 error mapping when those layers exist
+- ASCII punctuation in docs and comments (`CONVENTIONS` §11)
 
 ## 6. Execution Lifecycle
 

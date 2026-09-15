@@ -14,7 +14,7 @@ import {
   recoverFromDomain401,
   shouldRedirectToChangePassword,
 } from '@/lib/api/browser-client';
-import { getChangePasswordRedirectPath } from '@/features/auth/lib/auth-routes';
+import { getChangePasswordRedirectPath } from '@/lib/auth/auth-routes';
 import {
   ensureFreshAccessToken,
   silentRefreshAccessToken,
@@ -116,7 +116,7 @@ describe('browser client auth middleware', () => {
 });
 
 describe('forced-password detection', () => {
-  it('accepts the code and legacy message shapes', () => {
+  it('accepts MUST_CHANGE_PASSWORD code only', () => {
     expect(
       shouldRedirectToChangePassword(403, '/v1/orders', {
         code: 'MUST_CHANGE_PASSWORD',
@@ -126,7 +126,7 @@ describe('forced-password detection', () => {
       shouldRedirectToChangePassword(403, '/v1/orders', {
         message: 'Password change required before accessing this resource',
       }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('ignores auth operations and unrelated responses', () => {

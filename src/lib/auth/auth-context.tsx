@@ -17,14 +17,14 @@ import {
   logoutRequest,
   refreshSessionRequest,
   registerAndLoginRequest,
-} from '@/features/auth/api/auth-api';
+} from '@/lib/auth/session-api';
 import type {
   AuthSession,
   AuthStatus,
   ChangePasswordInput,
   LoginCredentials,
   RegisterInput,
-} from '@/features/auth/types';
+} from '@/lib/auth/types';
 import { clearAccessToken, getAccessToken } from '@/lib/auth/auth-session';
 import { onSessionRefreshed } from '@/lib/api/silent-refresh';
 import { isClientError } from '@/lib/api/parse-api-error';
@@ -32,7 +32,6 @@ import {
   getSessionRefetchInterval,
   getSessionRefetchOnFocusOrReconnect,
 } from '@/lib/auth/session-query-policy';
-import { clearStoredCartId } from '@/features/cart/lib/cart-storage';
 
 export const AUTH_SESSION_QUERY_KEY = ['auth', 'session'] as const;
 
@@ -64,11 +63,25 @@ function useIsClient() {
   );
 }
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+type AuthProviderProps = {
+  children: ReactNode;
+  /** Feature-owned local cleanup (e.g. cart id). Injected so lib/auth never imports features. */
+  onClearLocalSideEffects?: () => void;
+};
+
+export function AuthProvider({
+  children,
+  onClearLocalSideEffects,
+}: AuthProviderProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const isClient = useIsClient();
   const logoutInProgress = useRef(false);
+  const clearSideEffectsRef = useRef(onClearLocalSideEffects);
+
+  useEffect(() => {
+    clearSideEffectsRef.current = onClearLocalSideEffects;
+  }, [onClearLocalSideEffects]);
 
   const sessionQuery = useQuery({
     queryKey: AUTH_SESSION_QUERY_KEY,
@@ -140,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function clearLocalSession() {
     clearAccessToken();
-    clearStoredCartId();
+    clearSideEffectsRef.current?.();
     queryClient.setQueryData(AUTH_SESSION_QUERY_KEY, null);
     queryClient.removeQueries({
       predicate: (query) => query.queryKey[0] !== 'auth',

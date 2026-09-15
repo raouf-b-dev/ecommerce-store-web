@@ -26,7 +26,7 @@ const addressOptionalFields = {
   deliveryInstructions: z.string().trim().optional(),
 };
 
-/** Aligned to AddAddressDto — isDefault only on add. */
+/** Aligned to AddAddressDto - isDefault only on add. */
 export const addAddressFormSchema = z.object({
   ...addressRequiredFields,
   ...addressOptionalFields,

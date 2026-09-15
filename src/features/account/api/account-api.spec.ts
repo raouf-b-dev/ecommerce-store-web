@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   addAddressRequest,
   deleteAddressRequest,
-  getUserRequest,
+  getMeRequest,
   setDefaultAddressRequest,
   updateAddressRequest,
 } from './account-api';
@@ -58,16 +58,14 @@ describe('account-api', () => {
     vi.clearAllMocks();
   });
 
-  describe('getUserRequest', () => {
-    it('calls GET /v1/users/{id} and returns user detail', async () => {
+  describe('getMeRequest', () => {
+    it('calls GET /v1/users/me and returns user detail', async () => {
       const user = createMockUserDetail();
       mockClient.GET.mockResolvedValueOnce(createSuccessApiResponse(user));
 
-      const result = await getUserRequest(1);
+      const result = await getMeRequest();
 
-      expect(mockClient.GET).toHaveBeenCalledWith('/v1/users/{id}', {
-        params: { path: { id: 1 } },
-      });
+      expect(mockClient.GET).toHaveBeenCalledWith('/v1/users/me');
       expect(result).toEqual(user);
     });
 
@@ -76,7 +74,7 @@ describe('account-api', () => {
         createErrorApiResponse({ message: 'Not found' }, 404),
       );
 
-      await expect(getUserRequest(99)).rejects.toThrow();
+      await expect(getMeRequest()).rejects.toThrow();
     });
   });
 

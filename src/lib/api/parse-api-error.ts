@@ -3,12 +3,14 @@ export type ParsedApiError = {
   message: string;
   code?: string;
   errors?: string[];
+  retryAfterSeconds?: number;
 };
 
 export class ApiRequestError extends Error {
   readonly statusCode: number;
   readonly code?: string;
   readonly errors?: string[];
+  readonly retryAfterSeconds?: number;
 
   constructor(parsed: ParsedApiError) {
     super(parsed.message);
@@ -16,6 +18,7 @@ export class ApiRequestError extends Error {
     this.statusCode = parsed.statusCode;
     this.code = parsed.code;
     this.errors = parsed.errors;
+    this.retryAfterSeconds = parsed.retryAfterSeconds;
   }
 }
 
@@ -64,12 +67,33 @@ export function toApiRequestError(
   parsed: ParsedApiError | null,
   fallbackMessage: string,
 ): ApiRequestError {
-  return new ApiRequestError(
-    parsed ?? {
-      statusCode: response.status,
-      message: fallbackMessage,
-    },
-  );
+  const retryAfterHeader = response.headers.get('Retry-After');
+  const retryAfterSeconds = parseRetryAfterSeconds(retryAfterHeader);
+
+  return new ApiRequestError({
+    statusCode: parsed?.statusCode ?? response.status,
+    message: parsed?.message ?? fallbackMessage,
+    code: parsed?.code,
+    errors: parsed?.errors,
+    ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}),
+  });
+}
+
+export function parseRetryAfterSeconds(
+  value: string | null | undefined,
+): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const asInt = Number.parseInt(value, 10);
+  if (Number.isFinite(asInt) && asInt >= 0) {
+    return asInt;
+  }
+  const asDate = Date.parse(value);
+  if (Number.isFinite(asDate)) {
+    return Math.max(0, Math.ceil((asDate - Date.now()) / 1000));
+  }
+  return undefined;
 }
 
 export function isOptimisticLockConflict(error: unknown): boolean {

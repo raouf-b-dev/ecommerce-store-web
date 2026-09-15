@@ -8,7 +8,7 @@ import {
 } from '@/features/orders/lib/order-status';
 import type { OrderDetailResponseDto } from '@/features/orders/types';
 import { cartKeys } from '@/features/cart/hooks/cart-keys';
-import { clearStoredCartId } from '@/features/cart/lib/cart-storage';
+import { clearInFlightKey } from '@/features/checkout/lib/idempotency';
 
 export const POLLING_INTERVAL_MS = 2000;
 export const POLLING_TIMEOUT_MS = 60000;
@@ -36,10 +36,12 @@ export function useOrderPolling(
   const queryClient = useQueryClient();
   const [timedOutOrderId, setTimedOutOrderId] = useState<number | null>(null);
   const cartClearedRef = useRef(false);
+  const idempotencyClearedRef = useRef(false);
   const startTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     cartClearedRef.current = false;
+    idempotencyClearedRef.current = false;
     startTimeRef.current = orderId ? Date.now() : null;
   }, [orderId]);
 
@@ -101,10 +103,21 @@ export function useOrderPolling(
       !cartClearedRef.current
     ) {
       cartClearedRef.current = true;
-      clearStoredCartId();
+      queryClient.setQueryData(cartKeys.current(), null);
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
     }
   }, [clearCartOnSuccess, orderStatus, queryClient]);
+
+  useEffect(() => {
+    if (
+      orderStatus &&
+      isSuccessStatus(orderStatus) &&
+      !idempotencyClearedRef.current
+    ) {
+      idempotencyClearedRef.current = true;
+      clearInFlightKey();
+    }
+  }, [orderStatus]);
 
   const handleManualRefetch = () => {
     startTimeRef.current = Date.now();

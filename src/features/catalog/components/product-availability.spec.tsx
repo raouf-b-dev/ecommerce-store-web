@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ProductAvailability } from '@/features/catalog/components/product-availability';
+import { createMockInventory } from '@/test/fixtures/catalog.fixture';
 
 describe('ProductAvailability', () => {
   it('renders out of stock when inventory is null', () => {
@@ -8,33 +9,27 @@ describe('ProductAvailability', () => {
     expect(screen.getByText(/out of stock/i)).toBeInTheDocument();
   });
 
-  it('renders out of stock when availableQuantity is 0', () => {
-    const inventory = {
-      id: 1,
-      productId: 1,
-      sku: 'SKU1',
-      productTitle: 'Item',
-      availableQuantity: 0,
-      reservedQuantity: 0,
-      totalQuantity: 0,
-      updatedAt: '',
-    };
-    render(<ProductAvailability inventory={inventory} />);
+  it('renders out of stock when unavailable', () => {
+    render(
+      <ProductAvailability
+        inventory={createMockInventory({
+          isAvailable: false,
+          availableQuantity: 0,
+        })}
+      />,
+    );
     expect(screen.getByText(/out of stock/i)).toBeInTheDocument();
   });
 
-  it('renders in stock with exact quantity when availableQuantity > 0', () => {
-    const inventory = {
-      id: 1,
-      productId: 1,
-      sku: 'SKU1',
-      productTitle: 'Item',
-      availableQuantity: 7,
-      reservedQuantity: 0,
-      totalQuantity: 7,
-      updatedAt: '',
-    };
-    render(<ProductAvailability inventory={inventory} />);
+  it('renders in stock with exact quantity when available', () => {
+    render(
+      <ProductAvailability
+        inventory={createMockInventory({
+          isAvailable: true,
+          availableQuantity: 7,
+        })}
+      />,
+    );
     expect(screen.getByText(/in stock \(7 available\)/i)).toBeInTheDocument();
   });
 });

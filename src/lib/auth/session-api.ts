@@ -8,13 +8,13 @@ import {
 } from '@/lib/api/silent-refresh';
 import { parseAuthTokensPayload } from '@/lib/auth/parse-auth-tokens';
 import { setAccessToken } from '@/lib/auth/auth-session';
-import { decodeAccessTokenClaims } from '@/features/auth/lib/jwt-decode';
+import { decodeAccessTokenClaims } from '@/lib/auth/jwt-decode';
 import type {
   AuthSession,
   ChangePasswordInput,
   LoginCredentials,
   RegisterInput,
-} from '@/features/auth/types';
+} from '@/lib/auth/types';
 
 export const AUTH_THROTTLE_MESSAGE =
   'Too many sign-in attempts. Wait about a minute and try again.';

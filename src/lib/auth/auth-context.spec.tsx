@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   refreshRouter: vi.fn(),
 }));
 
-vi.mock('@/features/auth/api/auth-api', () => ({
+vi.mock('@/lib/auth/session-api', () => ({
   buildSessionFromAccessToken: vi.fn(),
   changePasswordRequest: mocks.changePassword,
   loginRequest: vi.fn(),

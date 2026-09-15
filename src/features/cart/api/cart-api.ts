@@ -16,6 +16,24 @@ export async function createCartRequest(): Promise<CartResponse> {
   return data;
 }
 
+/**
+ * Current cart for the signed-in shopper.
+ * HTTP 404 means no cart yet → return `null` (empty), never throw.
+ */
+export async function getCurrentCartRequest(): Promise<CartResponse | null> {
+  const { data, error, response } = await browserClient.GET('/v1/carts/current');
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (error || !data || !response.ok) {
+    await throwApiErrorFromResponse(response, 'Failed to load cart.');
+  }
+
+  return data as CartResponse;
+}
+
 export async function getCartRequest(id: number): Promise<CartResponse> {
   const { data, error, response } = await browserClient.GET('/v1/carts/{id}', {
     params: {

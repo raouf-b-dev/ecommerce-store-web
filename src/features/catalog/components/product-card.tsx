@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { formatMoney } from '@/lib/format';
-import { ProductImage } from '@/features/catalog/components/product-image';
+import { ProductImage } from '@/components/media/product-image';
 import type { ProductListItem } from '@/features/catalog/types';
 
 type ProductCardProps = {

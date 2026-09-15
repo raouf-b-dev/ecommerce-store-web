@@ -1,6 +1,6 @@
 import type { Route } from 'next';
-import type { AuthSession } from '@/features/auth/types';
-import { safeRedirectPath } from '@/features/auth/lib/safe-redirect-path';
+import type { AuthSession } from '@/lib/auth/types';
+import { safeRedirectPath } from '@/lib/auth/safe-redirect-path';
 
 export function getChangePasswordRedirectPath(
   redirect?: string | null,
@@ -18,9 +18,7 @@ export function getLoginRedirectPath(redirect?: string | null): Route {
   return `/login?redirect=${encodeURIComponent(destination)}`;
 }
 
-export function getRegisterRedirectPath(
-  redirect?: string | null,
-): Route {
+export function getRegisterRedirectPath(redirect?: string | null): Route {
   if (!redirect) {
     return '/register';
   }

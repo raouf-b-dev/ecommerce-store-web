@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { getConfiguredImageRemotePatterns } from './src/lib/images/allowed-origins';
 
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -12,13 +13,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   typedRoutes: true,
   images: {
-    remotePatterns:
-      process.env.NODE_ENV !== 'production'
-        ? [
-            { protocol: 'http', hostname: 'localhost', port: '3000' },
-            { protocol: 'http', hostname: '127.0.0.1', port: '3000' },
-          ]
-        : [],
+    remotePatterns: getConfiguredImageRemotePatterns(),
   },
   async redirects() {
     return [

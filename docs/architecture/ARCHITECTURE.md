@@ -33,9 +33,9 @@ src/app/layout.tsx
       (shop)/cart/      # ProtectedRoute
       (shop)/checkout/  # ProtectedRoute + order polling
       (shop)/status/page.tsx
-    (auth)/layout.tsx   # GuestRoute + minimal auth chrome
-      login/page.tsx
-      register/page.tsx
+    (auth)/layout.tsx   # AuthChrome only (no GuestRoute - per login/register page)
+      login/page.tsx      # GuestRoute
+      register/page.tsx   # GuestRoute
       change-password/page.tsx
     (account)/layout.tsx  # StorefrontChrome + ProtectedRoute
       account/page.tsx    # profile + address book

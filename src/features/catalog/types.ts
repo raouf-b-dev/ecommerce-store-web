@@ -12,8 +12,7 @@ export type PaginatedProducts =
   components['schemas']['PaginatedProductsResponseDto'];
 export type ProductDetail = components['schemas']['ProductDetailResponseDto'];
 export type Category = components['schemas']['CategoryResponseDto'];
-export type ProductInventory =
-  components['schemas']['InventoryListItemResponseDto'];
+export type ProductInventory = components['schemas']['CheckStockResponseDto'];
 
 export type CatalogFilterParams = Pick<
   ProductsQueryParams,

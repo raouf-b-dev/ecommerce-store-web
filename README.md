@@ -28,7 +28,7 @@
 
 ## What this is
 
-Next.js App Router storefront for the NestJS ecommerce API. Catalog, cart, checkout, orders, and customer account management are wired against the live OpenAPI contract. Quality sweep and standalone mock preview are tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+Next.js App Router storefront for the NestJS ecommerce API. Catalog, cart, checkout, orders, and customer account management are wired against the live OpenAPI contract. Remaining work is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 This app handles UI, routing, and client caching only. Pricing, stock, checkout orchestration, auth, and permissions stay in the API.
 
@@ -36,7 +36,7 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 
 | Topic            | Status                                                                 |
 | :--------------- | :--------------------------------------------------------------------- |
-| Application code | Port **3100**. Catalog, cart, checkout, orders, and account are live (mock payments). Quality sweep in progress — see [`docs/ROADMAP.md`](docs/ROADMAP.md). |
+| Application code | Port **3100**. Catalog, cart, checkout, orders, and account are live (mock payments). Further hardening is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). |
 | Payments         | API mock Stripe adapter (no live card UI / Stripe Elements).           |
 | Hosted demo      | None.                                                                  |
 

@@ -13,4 +13,7 @@ export type AuthSession = {
 };
 
 export type AuthStatus =
-  'loading' | 'authenticated' | 'unauthenticated' | 'error';
+  | 'loading'
+  | 'authenticated'
+  | 'unauthenticated'
+  | 'error';

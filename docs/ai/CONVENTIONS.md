@@ -13,6 +13,8 @@ Server Components by default. `"use client"` only for interactivity.
 
 `src/app` is thin routes only (`layout.tsx`, `page.tsx`, `error.tsx`, `not-found.tsx`, metadata, `robots.ts`, `sitemap.ts`). Feature code lives in `src/features/<name>/`. Prefer explicit `<Suspense>` holes over route-segment `loading.tsx`, especially above detail routes that must return hard HTTP 404.
 
+**Thin routes = slot composition:** the route (or a thin shell) composes feature pieces. Do not put `AddToCart` inside `features/catalog`. Catalog owns product chrome; cart owns the CTA; the product page wires both as children/slots.
+
 Typical shape (no barrels):
 
 ```text
@@ -27,13 +29,24 @@ src/features/catalog/
 
 Do **not** add barrel `index.ts` files. Import the concrete module.
 
+### Import matrix
+
+| From ↓ / To → | `app/` | `features/*` | `lib/` | `components/` |
+| :--- | :---: | :---: | :---: | :---: |
+| `app/` | ✓ | ✓ | ✓ | ✓ |
+| `features/A` | ✗ | other features OK (concrete modules; no barrels) | ✓ | ✓ |
+| `lib/` | ✗ | **✗ forbidden** | ✓ | ✓ |
+| `components/` | ✗ | ✗ (prefer props/slots) | ✓ | ✓ |
+
+ESLint enforces `lib/` ↛ `features/` via `no-restricted-imports` (`error`). Invert with `lib` helpers or inject callbacks from `app/providers.tsx`.
+
 Cross-feature dependencies must be imported directly from the target feature's concrete module. Do not create re-export shims or adapter files across features.
 
 Preset query facades that call another feature's request with fixed filters are allowed.
 
 Optional folders: `schemas/` and `hooks/` exist only when the feature has forms or client queries.
 
-**Auth exception:** session Query lives in `AuthProvider` (`src/lib/auth/`). Key `['auth','session']`. Do not invent `useAuthQuery` in the feature.
+**Auth exception:** session Query lives in `AuthProvider` (`src/lib/auth/`). Key `['auth','session']`. Session HTTP + redirect helpers live under `src/lib/auth/` (`session-api.ts`, `auth-routes.ts`). Feature forms import those modules from `lib/` directly. Do not invent `useAuthQuery` in the feature. Do not add feature-folder re-export shims for code that already lives in `lib/` or `components/`.
 
 Keep cross-feature primitives in `src/components/` and cross-feature utilities in `src/lib/`.
 
@@ -83,6 +96,8 @@ Do **not** use Route Handlers or Server Actions as a BFF in front of the ecommer
   - `components/seo` - tiny presentational SEO primitives (e.g. `<JsonLd />`).
   - `lib/api` - clients + error parsing. Not a BFF.
   - `lib/auth` - browser session, providers, and client route gates.
+  - `components/media` - shared `ProductImage`.
+  - `components/layout` - chrome including `AccountNav`. Feature folders import these; do not add feature re-export shims.
 - **Hard HTTP 404 for missing resources:** resolve existence with the feature fetcher, then call `notFound()` in `generateMetadata` and the page **before** any Suspense boundary that would start streaming. Prefer explicit `<Suspense>` holes over ancestor `loading.tsx` on those detail routes. Use segment `not-found.tsx` for resource-specific UI; keep root `not-found.tsx` generic ([ADR-0008](../architecture/adr/ADR-0008-resource-404-via-app-router.md)).
 - Storefront scrolls the document. Avoid viewport-locked `h-screen overflow-hidden` layouts.
 - Loading: `QueryLoading` / `role="status"` / `aria-busy` on client fetches. RSC: `<Suspense>` holes. No skeleton requirement in v1.
@@ -97,9 +112,27 @@ Do **not** use Route Handlers or Server Actions as a BFF in front of the ecommer
 - RTL + hook-mocked specs for **client** components and pure helpers.
 - Do not RTL-test Server Components.
 - Playwright for RSC routes and journeys.
-- ESLint: `typescript-eslint` + `react-hooks` + `jsx-a11y` + `consistent-type-imports`. Lint is `eslint .`, not `next lint`.
+- ESLint: `typescript-eslint` + `react-hooks` + `jsx-a11y` + `consistent-type-imports` + `no-restricted-imports` (`lib` must not import `features`) + `ascii-prose/no-smart-punctuation`. Lint is `eslint .` then `node scripts/lint-ascii-prose.cjs`, not `next lint`.
+- Prefer **typed factories** / fixtures under `src/test/fixtures/` over inline DTO literals in every spec.
+- Component specs that mock hooks: render the component **without** `QueryClientProvider`.
+- Hook and `*-api` specs: real `QueryClient` + mock the feature `*-api` module.
 
-## 8. Architecture Decision Records
+## 8. Money, stock, checkout URL, images
+
+- Format money with `src/lib/format.ts` (`en-US` until i18n). Do not invent "Free shipping" or tax lines the API does not return.
+- Stock UI uses shopper inventory fields (`availableQuantity` / `isAvailable`) once the check endpoint is the contract surface - not operator reserved/total quantities.
+- After checkout starts polling, keep `?orderId=` in the URL via `router.replace` so refresh resumes confirmation.
+- Keep the checkout idempotency key until a **terminal** success; do not clear it on every mount or non-terminal failure.
+- Production `next/image` hosts must come from a shared allowlist (env-driven), not one-off per-page config.
+- Prefer `Link` to `/` for the catalog home. `/products` permanently redirects; avoid spurious hops.
+
+## 9. No-workaround contract rule
+
+- If the OpenAPI contract is wrong or incomplete, **patch the API**. Do not parse JWT `sub` for profile ids, invent cart-id storage as a long-term read path when `GET /carts/current` exists, match English 403 messages, or invent BFF shims.
+- Forced password change: honor `code: 'MUST_CHANGE_PASSWORD'` only.
+- `GET /v1/carts/current` **404** = empty cart (`null`), never an error banner.
+
+## 10. Architecture Decision Records
 
 Follow [`docs/architecture/adr/README.md`](../architecture/adr/README.md):
 
@@ -110,3 +143,25 @@ Follow [`docs/architecture/adr/README.md`](../architecture/adr/README.md):
 - Full replacement -> new ADR with `Supersedes`; mark the old ADR `Superseded`. Never rewrite the old Decisions.
 - Lifecycle: `Proposed` | `Accepted` | `Deprecated` | `Superseded`.
 - Always update the ADR index when adding or superseding a record.
+
+See also [`ANTI-PATTERNS.md`](./ANTI-PATTERNS.md) for good/bad snippets.
+
+## 11. ASCII prose (docs and comments)
+
+Docs, ADRs you write from now on, Markdown, and source comments must read like a human typed them in a plain editor. Do not use typography that chat models insert by default.
+
+`npm run lint` runs `scripts/lint-ascii-prose.cjs` on Markdown (except immutable `docs/architecture/adr/`) and on comments in `ts`/`tsx`/`js`. ESLint `ascii-prose/no-smart-punctuation` flags the same marks in comments in the editor.
+
+| Avoid | Use |
+| :--- | :--- |
+| Em dash (U+2014) | `-`, `:`, or a new sentence |
+| En dash (U+2013) | ASCII `-` in ranges (`9b-9e`, `400-499`) |
+| Curly quotes (U+2018/2019/201C/201D) | `'` and `"` |
+| Ellipsis character (U+2026) | `...` |
+| Non-breaking space or hyphen | Normal space / `-` |
+
+Do not decorate comments with emoji. Arrows as notation (`->`, or `lib/` must not import `features/`) are fine.
+
+User-visible UI copy should follow the same ASCII habit for new strings (`Loading...` not the ellipsis character). Existing loading labels are not in this lint yet.
+
+Existing ADR bodies stay immutable; the linter skips `docs/architecture/adr/`.

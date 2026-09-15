@@ -4,6 +4,7 @@ import {
   clearCartRequest,
   createCartRequest,
   getCartRequest,
+  getCurrentCartRequest,
   removeCartItemRequest,
   updateCartItemRequest,
 } from './cart-api';
@@ -69,6 +70,31 @@ describe('cart-api', () => {
       });
 
       await expect(createCartRequest()).rejects.toThrow();
+    });
+  });
+
+  describe('getCurrentCartRequest', () => {
+    it('calls GET /v1/carts/current and returns cart data on success', async () => {
+      mockClient.GET.mockResolvedValueOnce({
+        data: sampleCart,
+        error: undefined,
+        response: new Response(JSON.stringify(sampleCart), { status: 200 }),
+      });
+
+      const result = await getCurrentCartRequest();
+
+      expect(mockClient.GET).toHaveBeenCalledWith('/v1/carts/current');
+      expect(result).toEqual(sampleCart);
+    });
+
+    it('returns null on 404 (no cart yet)', async () => {
+      mockClient.GET.mockResolvedValueOnce({
+        data: undefined,
+        error: { message: 'Not found' },
+        response: new Response(null, { status: 404 }),
+      });
+
+      await expect(getCurrentCartRequest()).resolves.toBeNull();
     });
   });
 

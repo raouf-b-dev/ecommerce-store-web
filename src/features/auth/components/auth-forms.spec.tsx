@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
 import {
   SESSION_EXPIRED_CODE,
-} from '@/features/auth/api/auth-api';
+} from '@/lib/auth/session-api';
 import { ChangePasswordForm } from '@/features/auth/components/change-password-form';
 import { LoginForm } from '@/features/auth/components/login-form';
 import { RegisterForm } from '@/features/auth/components/register-form';

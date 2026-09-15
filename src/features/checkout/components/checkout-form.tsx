@@ -29,10 +29,8 @@ import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
 import { formatMoney } from '@/lib/format';
 import { hasHttpStatus } from '@/lib/api/parse-api-error';
 import { applyApiFormErrors } from '@/lib/api/form-api-errors';
-import { useAuth } from '@/lib/auth/auth-context';
 import { useCart } from '@/features/cart/hooks/use-cart';
 import { useUserProfile } from '@/features/account/hooks/use-user-profile';
-import { parseSessionUserId } from '@/features/account/lib/parse-session-user-id';
 import { formatAddressLines } from '@/features/account/lib/format-address';
 import { useCheckoutMutation } from '@/features/checkout/hooks/use-checkout-mutation';
 import {
@@ -49,9 +47,7 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
-  const { session } = useAuth();
-  const userId = parseSessionUserId(session?.userId);
-  const { user: profile, isLoading: isProfileLoading } = useUserProfile(userId);
+  const { user: profile, isLoading: isProfileLoading } = useUserProfile();
   const defaultAddress = profile?.addresses.find((address) => address.isDefault);
 
   const { cart, itemCount, totalAmount, isLoading: isCartLoading } = useCart();
@@ -145,7 +141,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
         </CardHeader>
         <CardFooter className="justify-center">
           <Button asChild size="lg">
-            <Link href="/products">Explore Catalog</Link>
+            <Link href="/">Explore Catalog</Link>
           </Button>
         </CardFooter>
       </Card>

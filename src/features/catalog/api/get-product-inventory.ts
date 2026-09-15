@@ -15,16 +15,12 @@ export const getProductInventory = cache(
   async (productId: number): Promise<ProductInventory | null> => {
     try {
       const { data, error, response } = await serverClient.GET(
-        '/v1/inventory/products/{productId}',
+        '/v1/inventory/check/{productId}',
         {
           params: { path: { productId } },
           signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         },
       );
-
-      if (response.status === 200 && data === null) {
-        return null;
-      }
 
       if (!response.ok) {
         throw toApiRequestError(

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { safeRedirectPath } from '@/features/auth/lib/safe-redirect-path';
+import { safeRedirectPath } from '@/lib/auth/safe-redirect-path';
 
 describe('safeRedirectPath', () => {
   it('keeps safe same-origin paths including search and hash', () => {

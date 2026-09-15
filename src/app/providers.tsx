@@ -6,6 +6,7 @@ import { hasHttpStatus } from '@/lib/api/parse-api-error';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { ThemeAwareToaster } from '@/components/theme/theme-aware-toaster';
+import { clearStoredCartId } from '@/features/cart/lib/cart-storage';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -38,7 +39,9 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider onClearLocalSideEffects={clearStoredCartId}>
+          {children}
+        </AuthProvider>
       </QueryClientProvider>
       <ThemeAwareToaster />
     </ThemeProvider>
