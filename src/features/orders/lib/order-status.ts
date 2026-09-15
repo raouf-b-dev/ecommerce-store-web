@@ -13,6 +13,17 @@ export const TERMINAL_FAILURE_STATUSES: readonly OrderStatus[] = [
   'refunded',
 ] as const;
 
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  pending_payment: 'Pending Payment',
+  confirmed: 'Confirmed',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  delivered: 'Delivered',
+  payment_failed: 'Payment Failed',
+  cancelled: 'Cancelled',
+  refunded: 'Refunded',
+};
+
 export function isTerminalStatus(status: OrderStatus): boolean {
   return (
     TERMINAL_SUCCESS_STATUSES.includes(status) ||
