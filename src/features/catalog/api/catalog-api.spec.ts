@@ -176,24 +176,17 @@ describe('catalog-api fetchers', () => {
   });
 
   describe('getProductInventory', () => {
-    it('returns null on 200 when data is null (no inventory row)', async () => {
-      mocks.get.mockResolvedValueOnce({
-        data: null,
-        error: undefined,
-        response: new Response('null', { status: 200 }),
-      });
-
-      const result = await getProductInventory(1);
-      expect(result).toBeNull();
-    });
-
-    it('returns inventory data on 200 with inventory item', async () => {
+    it('returns shopper check-stock DTO on 200', async () => {
       const mockInventory = createMockInventory();
 
       mocks.get.mockResolvedValueOnce(createSuccessApiResponse(mockInventory));
 
       const result = await getProductInventory(1);
       expect(result).toEqual(mockInventory);
+      expect(mocks.get).toHaveBeenCalledWith('/v1/inventory/check/{productId}', {
+        params: { path: { productId: 1 } },
+        signal: expect.any(AbortSignal),
+      });
     });
 
     it('throws 500 on 200 when data is undefined (malformed response)', async () => {
