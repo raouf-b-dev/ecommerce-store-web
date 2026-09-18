@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --port 3100",
+    "dev:mock": "next dev --port 3100 --env-file .env.mock",
     "build": "next build",
     "start": "next start --port 3100",
     "lint": "eslint . && node scripts/lint-ascii-prose.cjs",
@@ -71,11 +72,17 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.4.0",
     "jsdom": "^27.0.1",
+    "msw": "^2.15.0",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.6.2",
     "tailwindcss": "^4",
     "typescript": "^5",
     "typescript-eslint": "^8.46.2",
     "vitest": "^4.0.16"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

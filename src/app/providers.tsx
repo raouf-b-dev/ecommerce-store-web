@@ -6,6 +6,7 @@ import { hasHttpStatus } from '@/lib/api/parse-api-error';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { ThemeAwareToaster } from '@/components/theme/theme-aware-toaster';
+import { MockModeBootstrap } from '@/components/mock/mock-mode-bootstrap';
 import { clearStoredCartId } from '@/features/cart/lib/cart-storage';
 
 function makeQueryClient() {
@@ -38,12 +39,14 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider onClearLocalSideEffects={clearStoredCartId}>
-          {children}
-        </AuthProvider>
-      </QueryClientProvider>
-      <ThemeAwareToaster />
+      <MockModeBootstrap>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider onClearLocalSideEffects={clearStoredCartId}>
+            {children}
+          </AuthProvider>
+        </QueryClientProvider>
+        <ThemeAwareToaster />
+      </MockModeBootstrap>
     </ThemeProvider>
   );
 }
