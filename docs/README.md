@@ -4,6 +4,8 @@
 | :------- | :---------- |
 | [../SECURITY.md](../SECURITY.md) | Frontend security baseline |
 | [ROADMAP.md](ROADMAP.md) | Delivery plan, Next.js 16 conventions, ship gates |
+| [ORDER-VERIFICATION.md](ORDER-VERIFICATION.md) | Checkout polling and order lifecycle verification |
+| [RELEASE-GATE.md](RELEASE-GATE.md) | Stranger quickstart and production build gate |
 | [API-INTEGRATION.md](API-INTEGRATION.md) | Client rules; OpenAPI owns endpoints |
 | [ai/README.md](ai/README.md) | Agent and conventions docs |
 | [architecture/ARCHITECTURE.md](architecture/ARCHITECTURE.md) | System context |
