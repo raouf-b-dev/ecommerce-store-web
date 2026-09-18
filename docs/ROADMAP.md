@@ -168,6 +168,7 @@ The following patterns belong to administrative consoles and are explicitly **ex
 | **10** | Standalone mock preview                   | Done   | MSW `dev:mock` (browser + Node); Playwright still needs live API |
 | **11** | End-to-end order lifecycle verification   | Done   | Checkout → polling; [`ORDER-VERIFICATION.md`](ORDER-VERIFICATION.md) |
 | **12** | Release gate                              | Done   | Stranger quickstart; [`RELEASE-GATE.md`](RELEASE-GATE.md) runbook |
+| **13** | Visual showcase                           | Done   | Hero WebP, Retina stills, README embeds; [`docs/assets/`](assets/)  |
 
 ---
 
@@ -180,7 +181,7 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 | **10** | Standalone mock preview                   | `[x]`  |  `[P1]`  | MSW `dev:mock` (Playwright still needs a live API)                 |
 | **11** | End-to-end order lifecycle verification   | `[x]`  |  `[P1]`  | Storefront checkout -> API order lifecycle -> polling confirmation |
 | **12** | Release gate                              | `[x]`  |  `[P0]`  | Deploy/preview, stranger quick start, smoke                        |
-| **13** | Visual showcase                           | `[/]`  |  `[P1]`  | Hero recording, screenshots, README (assets folder + capture guide) |
+| **13** | Visual showcase                           | `[x]`  |  `[P1]`  | Hero recording, screenshots, README (assets folder + capture guide) |
 | **14** | Storefront polish                         | `[ ]`  |  `[P2]`  | Optional UX after the gate (empty-state guides, command palette)   |
 
 ---
