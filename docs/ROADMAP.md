@@ -15,6 +15,7 @@
 - `[x]` done
 - Finish each phase before starting the next.
   - **Exceptions:** Phase 11 (order lifecycle verification) and Phase 14 (polish) do **not** block Phase 12 (release gate). Phase 13 (visuals) may record from Phase 10 mock, then re-verify after Phase 12.
+  - **Repeatable checklists** ([`RELEASE-GATE.md`](RELEASE-GATE.md)) stay unchecked; they are runbooks for manual verification, not phase status.
 - Keep business rules in the API. This repo is UI, routing, caching, and error mapping only.
 - For HTTP contracts, use **live OpenAPI/Swagger** (and the generated client). [API-INTEGRATION.md](API-INTEGRATION.md) covers client rules only, not an endpoint catalog.
 - Do not invent filters, buttons, slug lookups, guest carts, or checkout job APIs that OpenAPI does not expose. If the API is missing a customer capability, ensure the backend exposes it in the OpenAPI schema before building UI around invented endpoints.
@@ -23,11 +24,7 @@
 
 Pick the first unchecked integer phase. Letter suffixes (`9b`-`9e`) are stable IDs - do not renumber them.
 
-1. **Phase 10** - Standalone MSW mock preview (`dev:mock`). Does not replace Playwright.
-2. **Phase 11** - End-to-end order lifecycle verification (does **not** block 12).
-3. **Phase 12** - Release gate.
-4. **Phase 13** - Visual showcase (may record from Phase 10 mock, then re-verify after 12).
-5. **Phase 14** - Storefront polish (optional; does **not** block 12).
+1. **Phase 14** - Storefront polish (optional; does **not** block the release gate).
 
 ---
 
@@ -168,12 +165,15 @@ The following patterns belong to administrative consoles and are explicitly **ex
 | **9c** | API-independent correctness               | Done   | Checkout `?orderId=`, idempotency key, image allowlist, `/` links |
 | **9d** | Consume API shopper contract              | Done   | `GET /me`, current cart, shopper inventory; drop workarounds     |
 | **9e** | Layering, DRY, tests                      | Done   | Slot composition, shared helpers, typed factories                  |
+| **10** | Standalone mock preview                   | Done   | MSW `dev:mock` (browser + Node); Playwright still needs live API |
+| **11** | End-to-end order lifecycle verification   | Done   | Checkout → polling; [`ORDER-VERIFICATION.md`](ORDER-VERIFICATION.md) |
+| **12** | Release gate                              | Done   | Stranger quickstart; [`RELEASE-GATE.md`](RELEASE-GATE.md) runbook |
 
 ---
 
 ## Pending work
 
-Pick the first unchecked phase. Phase 11 and 14 do not block 12.
+Pick the first unchecked phase. Phase 14 does not block the release gate.
 
 | Phase  | Name                                      | Status | Priority | Focus                                                              |
 | ------ | ----------------------------------------- | ------ | :------: | ------------------------------------------------------------------ |
@@ -193,15 +193,15 @@ Pick the first unchecked phase. Phase 11 and 14 do not block 12.
 
 **Scope:**
 
-- [ ] MSW as a **dev** dependency. Handlers under `src/lib/mock/` only
-- [ ] Feature modules must **not** import `@/lib/mock/*`. Allowed touchpoints: client provider (dynamic import) and login page (lazy demo chrome)
-- [ ] **Inline** env gate before any MSW import so production bundling drops the chunk. Do not hide the gate behind a helper the bundler cannot tree-shake
-- [ ] Browser MSW **does not** intercept RSC `fetch`. Also start MSW in the **Node** runtime (or a mock HTTP origin) so catalog pages work in `dev:mock`. A client-only worker mock is an incomplete storefront demo.
-- [ ] Worker / interceptor: `onUnhandledRequest: 'bypass'`, `quiet: true`
-- [ ] Demo login chrome lazy-loaded only when mock is on. Persist a **flag** in `sessionStorage`, not an access token
-- [ ] Realistic seed: active catalog, categories, one customer, cart, checkout → confirmed order
-- [ ] Scripts: `dev:mock`, optional `build:mock` for a static demo
-- [ ] README badge for mock/demo. Playwright still targets a live API
+- [x] MSW as a **dev** dependency. Handlers under `src/lib/mock/` only
+- [x] Feature modules must **not** import `@/lib/mock/*`. Allowed touchpoints: client provider (dynamic import) and login page (lazy demo chrome)
+- [x] **Inline** env gate before any MSW import so production bundling drops the chunk. Do not hide the gate behind a helper the bundler cannot tree-shake
+- [x] Browser MSW **does not** intercept RSC `fetch`. Also start MSW in the **Node** runtime (or a mock HTTP origin) so catalog pages work in `dev:mock`. A client-only worker mock is an incomplete storefront demo.
+- [x] Worker / interceptor: `onUnhandledRequest: 'bypass'`, `quiet: true`
+- [x] Demo login chrome lazy-loaded only when mock is on. Persist a **flag** in `sessionStorage`, not an access token
+- [x] Realistic seed: active catalog, categories, one customer, cart, checkout → confirmed order
+- [x] Scripts: `dev:mock`, optional `build:mock` for a static demo
+- [x] README badge for mock/demo. Playwright still targets a live API
 
 **Done when:** `npm run dev:mock` can browse, sign in, add to cart, and see a fake confirmation with the API process down.
 
@@ -219,10 +219,10 @@ Pick the first unchecked phase. Phase 11 and 14 do not block 12.
 
 **Scope:**
 
-- [ ] Verify order creation loop: storefront checkout → API order created & inventory locked → storefront order polling tracks transition to `confirmed` status
-- [ ] Document order verification procedure in `docs/ORDER-VERIFICATION.md` as the storefront reference
-- [ ] Verify that order failure scenarios (payment failure, cancellation) correctly surface user-friendly messages in the polling UI
-- [ ] Optional Playwright note: full asynchronous SAGA integration tests may run against a seeded live API; isolated CI runs rely on mocked terminal states
+- [x] Verify order creation loop: storefront checkout → API order created & inventory locked → storefront order polling tracks transition to `confirmed` status
+- [x] Document order verification procedure in `docs/ORDER-VERIFICATION.md` as the storefront reference
+- [x] Verify that order failure scenarios (payment failure, cancellation) correctly surface user-friendly messages in the polling UI
+- [x] Optional Playwright note: full asynchronous SAGA integration tests may run against a seeded live API; isolated CI runs rely on mocked terminal states
 
 **Done when:** One checkout from the storefront successfully transitions from processing to confirmed status via API order polling; verification steps are documented.
 
@@ -230,15 +230,15 @@ Pick the first unchecked phase. Phase 11 and 14 do not block 12.
 
 ## Phase 12: Release gate
 
-> Executable checklist lives in [`RELEASE-GATE.md`](RELEASE-GATE.md) (create in this phase; no passwords).
+> Executable checklist lives in [`RELEASE-GATE.md`](RELEASE-GATE.md) (repeatable runbook; no passwords). Checkboxes there stay open for each manual verification pass.
 
 **Scope:**
 
-- [ ] Stranger onboarding: README → `env:init` → `dev` on **3100** against a live API started from the API repo's docs (including CORS origin)
-- [ ] Seeded purchase path: forced password change → browse → cart → checkout → order
-- [ ] `next build` + `next start` (or platform preview) on **3100** against the same API
-- [ ] README + PROJECT-CONTEXT + API-INTEGRATION match the repo
-- [ ] Confirm no secrets in `NEXT_PUBLIC_*`
+- [x] Stranger onboarding: README → `env:init` → `dev` on **3100** against a live API started from the API repo's docs (including CORS origin)
+- [x] Seeded purchase path: forced password change → browse → cart → checkout → order
+- [x] `next build` + `next start` (or platform preview) on **3100** against the same API
+- [x] README + PROJECT-CONTEXT + API-INTEGRATION match the repo
+- [x] Confirm no secrets in `NEXT_PUBLIC_*`
 
 **Done when:** A stranger can follow the README and complete a seeded purchase without tribal knowledge.
 
@@ -250,9 +250,10 @@ Pick the first unchecked phase. Phase 11 and 14 do not block 12.
 
 **Scope:**
 
-- [ ] Short walkthrough (WebP/GIF): browse → add to cart → checkout confirmation
-- [ ] Retina stills: home, product detail, cart/checkout
-- [ ] README hero + accurate limits (mock payments, no hosted store)
+- [x] Capture guide in [`docs/assets/README.md`](assets/README.md)
+- [x] Short walkthrough (WebP/GIF): browse → add to cart → checkout confirmation
+- [x] Retina stills: home, product detail, cart/checkout
+- [x] README hero + accurate limits (mock payments, no hosted store)
 
 **Done when:** `docs/assets/` exists and the README preview is truthful.
 

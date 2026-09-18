@@ -67,7 +67,7 @@ This repository is the customer storefront for `ecommerce-store-api`.
 
 ## Next up
 
-See [`docs/ROADMAP.md`](../docs/ROADMAP.md) **Next up**. Live queue: Phase **10** (MSW), then **11** (order lifecycle; does not block 12), **12** (release gate), **13** (visuals), **14** (optional polish). Staff slices **9b-9e** are done (folded into Phase 9).
+See [`docs/ROADMAP.md`](../docs/ROADMAP.md) **Next up**. Live queue: Phase **13** (visual showcase media; capture guide done), then **14** (optional polish). Phases **10–12** are done. Staff slices **9b-9e** are folded into Phase 9.
 
 ## Rendering split
 
