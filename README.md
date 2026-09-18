@@ -12,11 +12,16 @@
 
 > Customer storefront for the [E-commerce Store API](https://github.com/raouf-b-dev/ecommerce-store-api). Next.js 16 App Router. Business rules stay in the API.
 
+<p align="center">
+  <img src="docs/assets/storefront-walkthrough.webp" alt="Storefront walkthrough: catalog, cart, checkout" width="800" />
+</p>
+
 ## Table of Contents
 
 - [What this is](#what-this-is)
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
+- [Screenshots](#screenshots)
 - [Tech stack](#tech-stack)
 - [Documentation](#documentation)
 - [Related repositories](#related-repositories)
@@ -83,6 +88,56 @@ Browser -> Next.js (RSC + client components) -> versioned HTTP API -> ecommerce-
 | Auth        | In-memory access token + HttpOnly refresh cookie on the API origin.                |
 | Cart        | Authenticated only (`manage_own_cart`). No guest basket.                           |
 | Checkout    | Idempotency headers as OpenAPI documents; poll own order for SAGA completion.      |
+
+---
+
+<a id="screenshots"></a>
+
+## Screenshots
+
+Captured from `npm run dev:mock` (MSW). Mock payments; no hosted demo.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-catalog-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshot-catalog-light.png">
+    <img alt="Product catalog with category filters and search" src="docs/assets/screenshot-catalog-dark.png" width="800" />
+  </picture>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-product-detail-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshot-product-detail-light.png">
+    <img alt="Product detail page" src="docs/assets/screenshot-product-detail-dark.png" width="800" />
+  </picture>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-cart-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshot-cart-light.png">
+    <img alt="Shopping cart with line item" src="docs/assets/screenshot-cart-dark.png" width="800" />
+  </picture>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-checkout-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshot-checkout-light.png">
+    <img alt="Checkout shipping form" src="docs/assets/screenshot-checkout-dark.png" width="800" />
+  </picture>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-order-confirmation-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshot-order-confirmation-light.png">
+    <img alt="Order confirmation" src="docs/assets/screenshot-order-confirmation-dark.png" width="800" />
+  </picture>
+</p>
+
+Regenerate: [`docs/assets/README.md`](docs/assets/README.md).
 
 ---
 

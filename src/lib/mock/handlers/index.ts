@@ -3,7 +3,6 @@ import {
   DEMO_CUSTOMER_EMAIL,
   DEMO_CUSTOMER_USER_ID,
 } from '@/lib/mock/constants';
-import { createMockJwt } from '@/lib/mock/lib/jwt';
 import {
   cartTotals,
   ensureMockCart,
@@ -11,11 +10,17 @@ import {
   isMockSessionActive,
   setMockSessionActive,
 } from '@/lib/mock/data/store';
+import {
+  categoriesWithProductCounts,
+  toProductDetail,
+  toProductListItem,
+} from '@/lib/mock/lib/catalog';
+import { createMockJwt } from '@/lib/mock/lib/jwt';
 
 function customerSessionBody() {
   return {
     accessToken: createMockJwt({
-      sub: DEMO_CUSTOMER_USER_ID,
+      sub: String(DEMO_CUSTOMER_USER_ID),
       email: DEMO_CUSTOMER_EMAIL,
       role: 'customer',
     }),
@@ -26,7 +31,7 @@ function customerSessionBody() {
 
 function cartResponse() {
   const store = getMockStore();
-  if (!store.cart || store.cart.items.length === 0) {
+  if (!store.cart) {
     return null;
   }
   const totals = cartTotals(store.cart);
@@ -42,6 +47,10 @@ function cartResponse() {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+}
+
+function inventoryForProduct(productId: number) {
+  return getMockStore().inventory.find((row) => row.productId === productId);
 }
 
 export const handlers = [
@@ -83,17 +92,17 @@ export const handlers = [
     const url = new URL(request.url);
     const page = Number(url.searchParams.get('page') ?? 1);
     const limit = Number(url.searchParams.get('limit') ?? 12);
-    const products = getMockStore().products;
+    const store = getMockStore();
+    const products = store.products.filter((product) => product.isActive);
     const start = (page - 1) * limit;
-    const data = products.slice(start, start + limit);
+    const items = products.slice(start, start + limit).map(toProductListItem);
+    const total = products.length;
     return HttpResponse.json({
-      data,
-      meta: {
-        total: products.length,
-        page,
-        limit,
-        totalPages: Math.max(1, Math.ceil(products.length / limit)),
-      },
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
     });
   }),
 
@@ -104,23 +113,24 @@ export const handlers = [
     if (!product) {
       return HttpResponse.json({ message: 'Not found' }, { status: 404 });
     }
-    return HttpResponse.json(product);
+    return HttpResponse.json(toProductDetail(product));
   }),
 
-  http.get('*/v1/categories', () =>
-    HttpResponse.json({
-      data: [{ id: 1, name: 'Electronics', slug: 'electronics', isActive: true }],
-      meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
-    }),
-  ),
+  http.get('*/v1/categories', () => {
+    const store = getMockStore();
+    return HttpResponse.json(
+      categoriesWithProductCounts(store.categories, store.products),
+    );
+  }),
 
   http.get('*/v1/inventory/check/:productId', ({ params }) => {
     const productId = Number(params.productId);
-    const exists = getMockStore().products.some((item) => item.id === productId);
+    const stock = inventoryForProduct(productId);
+    const availableQuantity = stock?.availableQuantity ?? 0;
     return HttpResponse.json({
       productId,
-      availableQuantity: exists ? 25 : 0,
-      isAvailable: exists,
+      availableQuantity,
+      isAvailable: availableQuantity > 0,
     });
   }),
 
@@ -128,11 +138,10 @@ export const handlers = [
     if (!isMockSessionActive()) {
       return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
-    const cart = cartResponse();
-    if (!cart) {
+    if (!getMockStore().cart) {
       return HttpResponse.json({ message: 'No cart' }, { status: 404 });
     }
-    return HttpResponse.json(cart);
+    return HttpResponse.json(cartResponse());
   }),
 
   http.post('*/v1/carts', () => {
@@ -140,8 +149,7 @@ export const handlers = [
       return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
     ensureMockCart(DEMO_CUSTOMER_USER_ID);
-    const cart = cartResponse();
-    return HttpResponse.json(cart, { status: 201 });
+    return HttpResponse.json(cartResponse(), { status: 201 });
   }),
 
   http.post('*/v1/carts/:id/items', async ({ request }) => {
@@ -155,17 +163,18 @@ export const handlers = [
     if (!product) {
       return HttpResponse.json({ message: 'Product not found' }, { status: 404 });
     }
+
     const quantity = body.quantity ?? 1;
     const subtotal = Number((product.price * quantity).toFixed(2));
     cart.items.push({
       id: store.nextCartItemId++,
       productId: product.id,
-      productName: product.title,
+      productName: product.name,
       price: product.price,
       currency: product.currency,
       quantity,
       subtotal,
-      imageUrl: product.imageUrl,
+      imageUrl: product.imageUrl ?? null,
     });
     return HttpResponse.json(cartResponse());
   }),
@@ -190,14 +199,19 @@ export const handlers = [
       userEmail: DEMO_CUSTOMER_EMAIL,
       status: 'confirmed',
       shippingAddress: '123 Demo Street, Austin, TX 78701, US',
-      items: cart.items.map((item) => ({
-        productId: item.productId,
-        sku: `SKU-${item.productId}`,
-        title: item.productName,
-        unitPrice: item.price,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
-      })),
+      items: cart.items.map((item) => {
+        const product = store.products.find(
+          (candidate) => candidate.id === item.productId,
+        );
+        return {
+          productId: item.productId,
+          sku: product?.sku ?? `SKU-${item.productId}`,
+          title: item.productName,
+          unitPrice: item.price,
+          quantity: item.quantity,
+          subtotal: item.subtotal,
+        };
+      }),
       subtotal: totals.subtotal,
       shippingCost: totals.shippingCost,
       totalAmount: totals.totalAmount,

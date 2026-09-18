@@ -1,16 +1,15 @@
-const MOCK_SESSION_KEY = 'store-web-mock-session';
+import {
+  createSeedCategories,
+  createSeedInventory,
+  createSeedProducts,
+} from '@/lib/mock/data/seed';
+import type {
+  CategoryResponseDto,
+  ProductDetailResponseDto,
+  SeedInventoryRow,
+} from '@/lib/mock/data/types';
 
-export type MockProduct = {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  currency: string;
-  sku: string;
-  isActive: boolean;
-  categoryId: number;
-  imageUrl: string | null;
-};
+const MOCK_SESSION_KEY = 'store-web-mock-session';
 
 export type MockCartItem = {
   id: number;
@@ -46,8 +45,10 @@ export type MockOrder = {
   updatedAt: string;
 };
 
-type MockStore = {
-  products: MockProduct[];
+export type MockStore = {
+  products: ProductDetailResponseDto[];
+  categories: CategoryResponseDto[];
+  inventory: SeedInventoryRow[];
   cart: {
     id: number;
     userId: number;
@@ -58,46 +59,11 @@ type MockStore = {
   nextCartItemId: number;
 };
 
-const seedProducts: MockProduct[] = [
-  {
-    id: 1,
-    title: 'Wireless Headphones',
-    description: 'Noise-canceling over-ear headphones.',
-    price: 199.99,
-    currency: 'USD',
-    sku: 'ELEC-ANC-001',
-    isActive: true,
-    categoryId: 1,
-    imageUrl: null,
-  },
-  {
-    id: 2,
-    title: 'Mechanical Keyboard',
-    description: 'Hot-swappable switches, RGB backlight.',
-    price: 129.99,
-    currency: 'USD',
-    sku: 'ELEC-KBD-002',
-    isActive: true,
-    categoryId: 1,
-    imageUrl: null,
-  },
-];
-
-let store: MockStore = {
-  products: seedProducts,
-  cart: null,
-  orders: [],
-  nextOrderId: 1001,
-  nextCartItemId: 1,
-};
-
-export function getMockStore(): MockStore {
-  return store;
-}
-
-export function resetMockStore(): void {
-  store = {
-    products: [...seedProducts],
+function cloneSeed(): MockStore {
+  return {
+    products: structuredClone(createSeedProducts()),
+    categories: structuredClone(createSeedCategories()),
+    inventory: structuredClone(createSeedInventory()),
     cart: null,
     orders: [],
     nextOrderId: 1001,
@@ -105,21 +71,31 @@ export function resetMockStore(): void {
   };
 }
 
+let store: MockStore = cloneSeed();
+
+export function getMockStore(): MockStore {
+  return store;
+}
+
+export function resetMockStore(): void {
+  store = cloneSeed();
+  mockSessionActive = false;
+}
+
+let mockSessionActive = false;
+
 export function isMockSessionActive(): boolean {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-  return window.sessionStorage.getItem(MOCK_SESSION_KEY) === '1';
+  return mockSessionActive;
 }
 
 export function setMockSessionActive(active: boolean): void {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  if (active) {
-    window.sessionStorage.setItem(MOCK_SESSION_KEY, '1');
-  } else {
-    window.sessionStorage.removeItem(MOCK_SESSION_KEY);
+  mockSessionActive = active;
+  if (typeof window !== 'undefined') {
+    if (active) {
+      window.sessionStorage.setItem(MOCK_SESSION_KEY, '1');
+    } else {
+      window.sessionStorage.removeItem(MOCK_SESSION_KEY);
+    }
   }
 }
 

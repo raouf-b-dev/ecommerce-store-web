@@ -1,6 +1,6 @@
 # Release gate (Phase 12)
 
-Executable checklist for a stranger onboarding without tribal knowledge.
+Repeatable runbook for a stranger onboarding without tribal knowledge. Checkboxes stay open for each manual pass; phase completion is tracked in [`ROADMAP.md`](ROADMAP.md).
 
 Credentials stay in the API [seeding guide](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/SEEDING.md). Do not paste passwords into this repository.
 

@@ -1,7 +1,7 @@
 type MockJwtPayload = {
-  sub: number;
+  sub: string;
   email: string;
-  role?: string;
+  role: string;
 };
 
 function base64UrlEncode(value: string): string {

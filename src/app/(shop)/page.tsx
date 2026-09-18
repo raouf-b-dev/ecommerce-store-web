@@ -16,6 +16,9 @@ type HomePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+/** Catalog metadata depends on searchParams; opt out of instant-shell validation. */
+export const instant = false;
+
 export async function generateMetadata({
   searchParams,
 }: HomePageProps): Promise<PageMetadata> {
