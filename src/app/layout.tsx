@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 import { Suspense } from 'react';
+import { CacheComponentsDynamicMarker } from '@/components/seo/cache-components-dynamic-marker';
 import { FocusMainOnNavigate } from '@/components/layout/focus-main-on-navigate';
 import { cn } from '@/lib/utils';
 import { seoConfig } from '@/lib/seo/config';
@@ -33,6 +34,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <head>
         <ThemeScript />
       </head>
+      <Suspense fallback={null}>
+        <CacheComponentsDynamicMarker />
+      </Suspense>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
         <Providers>
           <Suspense fallback={null}>
