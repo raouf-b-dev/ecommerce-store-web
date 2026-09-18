@@ -50,7 +50,14 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
   const { user: profile, isLoading: isProfileLoading } = useUserProfile();
   const defaultAddress = profile?.addresses.find((address) => address.isDefault);
 
-  const { cart, itemCount, totalAmount, isLoading: isCartLoading } = useCart();
+  const {
+    cart,
+    itemCount,
+    subtotal,
+    shippingCost,
+    totalAmount,
+    isLoading: isCartLoading,
+  } = useCart();
   const currency = cart?.currency ?? 'USD';
   const [generalError, setGeneralError] = useState<string | null>(null);
 
@@ -455,13 +462,13 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                     Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
                   </span>
                   <span className="font-medium text-foreground">
-                    {formatMoney(totalAmount, currency)}
+                    {formatMoney(subtotal, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-medium text-emerald-800 dark:text-emerald-300">
-                    Free
+                  <span className="font-medium text-foreground">
+                    {formatMoney(shippingCost, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between border-t pt-3 text-base font-bold">

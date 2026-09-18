@@ -25,15 +25,20 @@ export function createMockCart(
   const itemCount =
     overrides?.itemCount ??
     items.reduce((total, item) => total + item.quantity, 0);
-  const totalAmount =
-    overrides?.totalAmount ??
+  const subtotal =
+    overrides?.subtotal ??
     items.reduce((total, item) => total + item.subtotal, 0);
+  const shippingCost = overrides?.shippingCost ?? 0;
+  const totalAmount =
+    overrides?.totalAmount ?? Number((subtotal + shippingCost).toFixed(2));
 
   return {
     id: 1,
     userId: 1,
     items,
     itemCount,
+    subtotal,
+    shippingCost,
     totalAmount,
     currency: 'USD',
     createdAt: '2026-09-13T12:00:00.000Z',
@@ -55,7 +60,8 @@ export function createMockUseCartResult(
     cartId: cart?.id ?? null,
     itemCount: overrides?.itemCount ?? cart?.itemCount ?? 0,
     totalAmount: overrides?.totalAmount ?? cart?.totalAmount ?? 0,
-    subtotal: overrides?.subtotal ?? cart?.totalAmount ?? 0,
+    subtotal: overrides?.subtotal ?? cart?.subtotal ?? 0,
+    shippingCost: overrides?.shippingCost ?? cart?.shippingCost ?? 0,
     items: overrides?.items ?? cart?.items ?? [],
     isLoading: false,
     isFetching: false,

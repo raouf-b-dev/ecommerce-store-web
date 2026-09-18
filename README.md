@@ -1,6 +1,7 @@
 # E-commerce Store Web
 
 <p align="center">
+  <a href="https://github.com/raouf-b-dev/ecommerce-store-web/actions"><img src="https://github.com/raouf-b-dev/ecommerce-store-web/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white" alt="TypeScript"></a>
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black" alt="React"></a>
   <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-App%20Router-black?style=flat&logo=next.js&logoColor=white" alt="Next.js"></a>
@@ -37,7 +38,7 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 | Topic            | Status                                                                 |
 | :--------------- | :--------------------------------------------------------------------- |
 | Application code | Port **3100**. Catalog, cart, checkout, orders, and account are live (mock payments). Further hardening is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). |
-| Payments         | API mock Stripe adapter (no live card UI / Stripe Elements).           |
+| Payments         | Mock adapter behind a swappable hexagonal port (no live card UI / Stripe Elements). |
 | Hosted demo      | None.                                                                  |
 
 ---
@@ -52,6 +53,10 @@ Requires Node.js 24+ and npm 11+ (see `.nvmrc`).
 2. `npm run env:init` (copies `.env.example` to `.env.local`; create `.secrets` for later Playwright)
 3. Start the API from the [API README](https://github.com/raouf-b-dev/ecommerce-store-api) on port **3000**. CORS must allow `http://localhost:3100` with credentials.
 4. `npm run dev` - storefront at [http://localhost:3100](http://localhost:3100)
+
+### Without the API
+
+`npm run dev:mock` starts MSW handlers for shopper paths (catalog, cart, checkout). Playwright still needs a live API.
 
 `npm run dev` and `npm run start` both bind **3100**. Stop one before starting the other.
 
@@ -125,6 +130,8 @@ Browser -> Next.js (RSC + client components) -> versioned HTTP API -> ecommerce-
 | :-------------------------------------------------------------------------------------- | :---------- |
 | [`ecommerce-store-api`](https://github.com/raouf-b-dev/ecommerce-store-api)             | Backend API |
 | [`ecommerce-admin-dashboard`](https://github.com/raouf-b-dev/ecommerce-admin-dashboard) | Admin SPA   |
+
+Each repository runs independently. Clone companions from the table when you need a full local stack.
 
 ---
 

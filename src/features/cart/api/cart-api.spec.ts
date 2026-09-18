@@ -38,6 +38,8 @@ describe('cart-api', () => {
       },
     ],
     itemCount: 2,
+    subtotal: 179.98,
+    shippingCost: 0,
     totalAmount: 179.98,
     currency: 'USD',
     createdAt: '2025-10-31T10:00:00Z',

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
+import { isMockMode } from '@/lib/mock/is-mock-mode';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -27,6 +28,8 @@ import {
   type LoginFormValues,
 } from '@/features/auth/schemas/login-schema';
 import { useAuth } from '@/lib/auth/auth-context';
+
+const DemoLoginActions = lazy(() => import('@/lib/mock/ui/demo-login-actions'));
 
 const LOGIN_FIELDS = ['email', 'password'] as const;
 type LoginField = (typeof LOGIN_FIELDS)[number];
@@ -115,6 +118,17 @@ export function LoginForm({ redirect }: LoginFormProps) {
       </FieldGroup>
 
       <ActionErrorAlert message={formError} title="Could not sign in" />
+
+      {isMockMode() ? (
+        <Suspense fallback={null}>
+          <DemoLoginActions
+            onSelect={(credentials) => {
+              form.setValue('email', credentials.email);
+              form.setValue('password', credentials.password);
+            }}
+          />
+        </Suspense>
+      ) : null}
 
       <Button className="w-full" type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Signing in…' : 'Sign in'}

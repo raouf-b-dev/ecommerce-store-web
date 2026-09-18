@@ -33,7 +33,7 @@ Seeded customer tests (`auth.spec.ts`, `journey.spec.ts`, and `a11y-customer.spe
 - `E2E_CUSTOMER_PASSWORD`
 - `E2E_CUSTOMER_NEW_PASSWORD` (optional, derives rotated password if omitted)
 
-Populate these in `.secrets` using `npm run env:init:secrets`. Missing required secrets fail CI immediately (fail-closed) and provide an explicit skip notice locally.
+Populate these in `.secrets` using `npm run env:init:secrets`. Seed account values live in the API [seeding guide](https://github.com/raouf-b-dev/ecommerce-store-api/blob/master/docs/development/SEEDING.md). Missing required secrets fail CI immediately (fail-closed) and provide an explicit skip notice locally.
 
 Authentication routes enforce a throttle of roughly ten attempts per minute. If a test reaches HTTP 429, wait at least 61 seconds (`AUTH_THROTTLE_WAIT_MS`) before retrying.
 

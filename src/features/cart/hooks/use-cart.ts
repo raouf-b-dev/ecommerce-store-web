@@ -12,6 +12,7 @@ export type UseCartResult = {
   itemCount: number;
   totalAmount: number;
   subtotal: number;
+  shippingCost: number;
   items: CartItemResponse[];
   isLoading: boolean;
   isFetching: boolean;
@@ -34,8 +35,9 @@ export function useCart(): UseCartResult {
   const cart: CartResponse | null = isAuthenticated ? (query.data ?? null) : null;
   const items: CartItemResponse[] = cart?.items ?? [];
   const itemCount = cart?.itemCount ?? 0;
+  const subtotal = cart?.subtotal ?? 0;
+  const shippingCost = cart?.shippingCost ?? 0;
   const totalAmount = cart?.totalAmount ?? 0;
-  const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
 
   return {
     cart,
@@ -43,6 +45,7 @@ export function useCart(): UseCartResult {
     itemCount,
     totalAmount,
     subtotal,
+    shippingCost,
     items,
     isLoading: Boolean(isAuthenticated && query.isLoading),
     isFetching: query.isFetching,
