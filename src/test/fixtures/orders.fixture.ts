@@ -28,9 +28,11 @@ export function createMockOrderDetail(
   overrides?: Partial<OrderDetailResponseDto>,
 ): OrderDetailResponseDto {
   const items = overrides?.items ?? [createMockOrderItemDetail()];
+  const subtotal =
+    overrides?.subtotal ?? items.reduce((sum, item) => sum + item.subtotal, 0);
+  const shippingCost = overrides?.shippingCost ?? 0;
   const totalPrice =
-    overrides?.totalPrice ??
-    items.reduce((sum, item) => sum + item.subtotal, 0);
+    overrides?.totalPrice ?? Number((subtotal + shippingCost).toFixed(2));
 
   return {
     id: 123,
@@ -41,6 +43,8 @@ export function createMockOrderDetail(
     status: 'confirmed',
     shippingAddress: 'Alice Smith, 456 Oak Avenue, San Francisco, CA 94102, US',
     items,
+    subtotal,
+    shippingCost,
     totalAmount: overrides?.totalAmount ?? totalPrice,
     totalPrice,
     currency: 'USD',

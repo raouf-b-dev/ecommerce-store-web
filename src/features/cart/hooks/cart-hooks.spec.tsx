@@ -39,6 +39,8 @@ vi.mock('@/features/cart/api/cart-api', () => ({
 
 const emptyCart: CartResponse = {
   id: 55,
+  subtotal: 0,
+  shippingCost: 0,
   totalAmount: 0,
   itemCount: 0,
   currency: null,
@@ -112,6 +114,8 @@ describe('Cart hooks', () => {
     it('loads current cart when authenticated', async () => {
       vi.mocked(cartApi.getCurrentCartRequest).mockResolvedValue({
         id: 42,
+        subtotal: 5000,
+        shippingCost: 0,
         totalAmount: 5000,
         itemCount: 2,
         currency: 'USD',

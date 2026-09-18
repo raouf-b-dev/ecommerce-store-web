@@ -108,13 +108,19 @@ export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
               <OrderDetailItems items={order.items} currency={order.currency} />
             </section>
 
-            <div className="flex justify-end border-t pt-4">
-              <p className="text-base font-semibold text-foreground">
-                Total{' '}
-                <span className="ml-2">
-                  {formatMoney(order.totalPrice, order.currency)}
-                </span>
-              </p>
+            <div className="ml-auto w-full max-w-sm space-y-2 border-t pt-4 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>{formatMoney(order.subtotal, order.currency)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Shipping</span>
+                <span>{formatMoney(order.shippingCost, order.currency)}</span>
+              </div>
+              <div className="flex justify-between border-t pt-2 text-base font-semibold text-foreground">
+                <span>Total</span>
+                <span>{formatMoney(order.totalPrice, order.currency)}</span>
+              </div>
             </div>
 
             <OrderPaymentSummary orderId={order.id} />
