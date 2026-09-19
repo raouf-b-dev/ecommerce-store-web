@@ -48,6 +48,17 @@ function isValidSortOrder(value: string | undefined): value is SortOrder {
   return value === 'asc' || value === 'desc';
 }
 
+export function hasActiveCatalogFilters(params: CatalogFilterParams): boolean {
+  return Boolean(
+    params.search ||
+      params.categoryId !== undefined ||
+      params.minPrice !== undefined ||
+      params.maxPrice !== undefined ||
+      params.sortBy !== DEFAULT_SORT_BY ||
+      params.sortOrder !== DEFAULT_SORT_ORDER,
+  );
+}
+
 export function parseCatalogSearchParams(
   raw: Record<string, string | string[] | undefined>,
 ): CatalogFilterParams {

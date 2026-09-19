@@ -7,12 +7,38 @@ import {
   MAX_LIMIT,
   buildCatalogQueryString,
   createCatalogFilterHref,
+  hasActiveCatalogFilters,
   parseCatalogSearchParams,
   toCatalogCacheKey,
   toProductsQueryParams,
 } from '@/features/catalog/lib/catalog-params';
 
 describe('catalog-params', () => {
+  describe('hasActiveCatalogFilters', () => {
+    it('returns false when only defaults are set', () => {
+      expect(hasActiveCatalogFilters(parseCatalogSearchParams({}))).toBe(
+        false,
+      );
+    });
+
+    it('returns true when search, category, price, or non-default sort is set', () => {
+      expect(
+        hasActiveCatalogFilters(parseCatalogSearchParams({ search: 'hat' })),
+      ).toBe(true);
+      expect(
+        hasActiveCatalogFilters(parseCatalogSearchParams({ categoryId: '2' })),
+      ).toBe(true);
+      expect(
+        hasActiveCatalogFilters(parseCatalogSearchParams({ minPrice: '10' })),
+      ).toBe(true);
+      expect(
+        hasActiveCatalogFilters(
+          parseCatalogSearchParams({ sortBy: 'price', sortOrder: 'asc' }),
+        ),
+      ).toBe(true);
+    });
+  });
+
   describe('parseCatalogSearchParams', () => {
     it('returns defaults for empty search params', () => {
       const parsed = parseCatalogSearchParams({});
