@@ -28,7 +28,7 @@ export interface paths {
         };
         /**
          * List products
-         * @description Retrieves a paginated list of products with optional filters and sorting.
+         * @description Paginated catalog. Anonymous and customer callers only see active products (`isActive` is forced to true). Operators with `view_all_products` may include inactive items.
          */
         get: operations["ProductsController_findAll_v1"];
         put?: never;
@@ -50,7 +50,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get product by ID */
+        /**
+         * Get product by ID
+         * @description Returns a product. Shoppers receive HTTP 404 for inactive products. Operators with `view_all_products` can load inactive items.
+         */
         get: operations["ProductsController_findOne_v1"];
         put?: never;
         post?: never;
@@ -111,7 +114,7 @@ export interface paths {
         };
         /**
          * List categories
-         * @description Returns the catalog category reference list.
+         * @description Catalog category list. Anonymous and customer callers only see active categories. Operators with `view_all_products` may include inactive items.
          */
         get: operations["CategoriesController_findAll_v1"];
         put?: never;
@@ -133,7 +136,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get category by ID */
+        /**
+         * Get category by ID
+         * @description Returns a category. Shoppers receive HTTP 404 for inactive categories. Operators with `view_all_products` can load inactive items.
+         */
         get: operations["CategoriesController_findOne_v1"];
         put?: never;
         post?: never;
@@ -196,7 +202,7 @@ export interface paths {
         put?: never;
         /**
          * Initiate checkout process
-         * @description Starts the asynchronous checkout process. Returns a jobId to track progress via the checkout queue.
+         * @description Starts the asynchronous checkout process. Returns an orderId and jobId. Order progress is tracked via order polling (GET /v1/orders/{id}).
          */
         post: operations["OrdersController_checkout_v1"];
         delete?: never;
@@ -590,6 +596,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the authenticated caller profile
+         * @description Returns UserDetailResponseDto for the caller from CallerContext.userId. Requires view_own_profile.
+         */
+        get: operations["UsersController_getMe_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/users/{id}": {
         parameters: {
             query?: never;
@@ -777,6 +803,26 @@ export interface paths {
         put?: never;
         /** Create a new cart for authenticated user */
         post: operations["CartsController_createCart_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/carts/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the authenticated caller's current cart
+         * @description Idempotent read via GetCartUseCase user scope. Does not create a cart. 404 means no cart yet (clients treat as empty).
+         */
+        get: operations["CartsController_getCurrentCart_v1"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1235,6 +1281,8 @@ export interface components {
             isActive: boolean;
             /** @example 2025-08-25T12:34:56.000Z */
             createdAt: string;
+            /** @example 2025-08-25T12:34:56.000Z */
+            updatedAt: string;
         };
         PaginatedProductsResponseDto: {
             items: components["schemas"]["ProductListItemResponseDto"][];
@@ -1270,10 +1318,10 @@ export interface components {
             isActive: boolean;
             /** @example 2025-08-25T12:34:56.000Z */
             createdAt: string;
-            /** @example High-end gaming laptop */
-            description?: string | null;
             /** @example 2025-08-25T12:34:56.000Z */
             updatedAt: string;
+            /** @example High-end gaming laptop */
+            description?: string | null;
         };
         UpdateProductDto: {
             /**
@@ -1321,6 +1369,11 @@ export interface components {
             description?: string | null;
             /** @example true */
             isActive: boolean;
+            /**
+             * @description Number of active products in this category
+             * @example 12
+             */
+            productCount: number;
         };
         UpdateCategoryDto: {
             /**
@@ -1565,6 +1618,16 @@ export interface components {
              */
             shippingAddress: string;
             items: components["schemas"]["OrderItemDetailResponseDto"][];
+            /**
+             * @description Order subtotal (sum of line items)
+             * @example 199.99
+             */
+            subtotal: number;
+            /**
+             * @description Shipping cost. MVP policy: explicit zero until a shipping engine ships.
+             * @example 0
+             */
+            shippingCost: number;
             /**
              * @description Order total amount
              * @example 224.94
@@ -2352,24 +2415,29 @@ export interface components {
         CartItemResponseDto: {
             /**
              * @description Cart item ID
-             * @example item-123
+             * @example 10
              */
-            id: string;
+            id: number;
             /**
              * @description Product ID
-             * @example prod-123
+             * @example 5
              */
-            productId: string;
+            productId: number;
             /**
              * @description Product name
              * @example Wireless Headphones
              */
             productName: string;
             /**
-             * @description Product price
+             * @description Unit price snapshotted at add time
              * @example 99.99
              */
             price: number;
+            /**
+             * @description ISO 4217 currency snapshotted from the product at add time
+             * @example USD
+             */
+            currency: string;
             /**
              * @description Quantity
              * @example 2
@@ -2384,24 +2452,19 @@ export interface components {
              * @description Product image URL
              * @example https://example.com/image.jpg
              */
-            imageUrl: string;
+            imageUrl: string | null;
         };
         CartResponseDto: {
             /**
              * @description Cart ID
-             * @example cart-123
+             * @example 1
              */
-            id: string;
+            id: number;
             /**
              * @description User ID
              * @example 123
              */
-            userId?: string;
-            /**
-             * @description Session ID
-             * @example session-abc-xyz
-             */
-            sessionId?: string;
+            userId?: number;
             /** @description Cart items */
             items: components["schemas"]["CartItemResponseDto"][];
             /**
@@ -2410,27 +2473,40 @@ export interface components {
              */
             itemCount: number;
             /**
-             * @description Cart total amount
+             * @description Cart subtotal (sum of line items)
+             * @example 299.97
+             */
+            subtotal: number;
+            /**
+             * @description Shipping cost for the cart. MVP policy: always 0 until a shipping engine ships.
+             * @example 0
+             */
+            shippingCost: number;
+            /**
+             * @description Cart total amount (subtotal + shippingCost)
              * @example 299.97
              */
             totalAmount: number;
             /**
-             * Format: date-time
-             * @description Cart creation date
-             * @example 2025-10-31T10:00:00Z
+             * @description ISO 4217 currency for cart totals. Null when the cart has no items.
+             * @example USD
+             */
+            currency: string | null;
+            /**
+             * @description Cart creation date (ISO 8601)
+             * @example 2025-10-31T10:00:00.000Z
              */
             createdAt: string;
             /**
-             * Format: date-time
-             * @description Last update date
-             * @example 2025-10-31T12:30:00Z
+             * @description Last update date (ISO 8601)
+             * @example 2025-10-31T12:30:00.000Z
              */
             updatedAt: string;
         };
         AddCartItemDto: {
             /**
              * @description Product ID
-             * @example prod-123
+             * @example 5
              */
             productId: number;
             /**
@@ -2855,15 +2931,8 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedProductsResponseDto"];
                 };
             };
-            /** @description Unauthorized. */
+            /** @description Invalid or expired authentication token. */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Admin access required. */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2936,15 +3005,8 @@ export interface operations {
                     "application/json": components["schemas"]["ProductDetailResponseDto"];
                 };
             };
-            /** @description Unauthorized. */
+            /** @description Invalid or expired authentication token. */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Admin access required. */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3185,15 +3247,8 @@ export interface operations {
                     "application/json": components["schemas"]["CategoryResponseDto"][];
                 };
             };
-            /** @description Unauthorized. */
+            /** @description Invalid or expired authentication token. */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Admin access required. */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3273,15 +3328,8 @@ export interface operations {
                     "application/json": components["schemas"]["CategoryResponseDto"];
                 };
             };
-            /** @description Unauthorized. */
+            /** @description Invalid or expired authentication token. */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Admin access required. */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3528,8 +3576,17 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Conflict - a request with this idempotency key is already in progress. Response includes Retry-After: 2. */
+            /** @description Conflict - a request with this idempotency key is already in progress. */
             409: {
+                headers: {
+                    /** @description Seconds to wait before retrying the checkout poll or request. */
+                    "Retry-After"?: number | string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Service unavailable - idempotency store unavailable. */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4200,6 +4257,25 @@ export interface operations {
             };
         };
     };
+    UsersController_getMe_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDetailResponseDto"];
+                };
+            };
+        };
+    };
     UsersController_getUser_v1: {
         parameters: {
             query?: never;
@@ -4631,6 +4707,32 @@ export interface operations {
             };
         };
     };
+    CartsController_getCurrentCart_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CartResponseDto"];
+                };
+            };
+            /** @description No cart yet for this user. Clients should treat as empty (null). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CartsController_getCart_v1: {
         parameters: {
             query?: never;
@@ -4663,13 +4765,12 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            /** @description Cart cleared successfully. */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CartResponseDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -4688,13 +4789,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            /** @description Item added to cart successfully. */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CartResponseDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -4710,13 +4810,12 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            /** @description Item removed from cart successfully. */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CartResponseDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -4736,13 +4835,12 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            /** @description Cart item quantity updated successfully. */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CartResponseDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -4873,8 +4971,8 @@ export interface operations {
     };
     InventoryController_checkStock_v1: {
         parameters: {
-            query: {
-                quantity: number;
+            query?: {
+                quantity?: number;
             };
             header?: never;
             path: {

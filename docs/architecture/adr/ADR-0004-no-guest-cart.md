@@ -1,6 +1,6 @@
 # ADR-0004: No Guest Cart
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-09-07
 - **Context**: Cart HTTP requires `manage_own_cart`. The API has no anonymous cart.
 

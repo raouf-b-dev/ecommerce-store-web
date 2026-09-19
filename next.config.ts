@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { getConfiguredImageRemotePatterns } from './src/lib/images/allowed-origins';
 
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -11,6 +12,18 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   reactCompiler: true,
   typedRoutes: true,
+  images: {
+    remotePatterns: getConfiguredImageRemotePatterns(),
+  },
+  async redirects() {
+    return [
+      {
+        source: '/products',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

@@ -1,6 +1,6 @@
 # ADR-0003: Single-Flight Silent Refresh on Domain 401
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-09-07
 - **Context**: Mid-request recovery when the access token expires. Ports the admin SPA silent-refresh decision.
 

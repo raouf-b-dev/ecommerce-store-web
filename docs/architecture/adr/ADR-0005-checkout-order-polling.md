@@ -1,6 +1,6 @@
 # ADR-0005: Checkout Completion Is Order Polling
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-09-07
 - **Context**: `POST` checkout is an async SAGA. HTTP 201 returns `orderId` and `jobId`. There is no public job-status route.
 

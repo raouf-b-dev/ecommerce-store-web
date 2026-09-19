@@ -1,0 +1,1 @@
+export const CATALOG_FETCH_TIMEOUT_MS = 10000;

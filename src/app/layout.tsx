@@ -1,6 +1,13 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import { Suspense } from 'react';
+import { CacheComponentsDynamicMarker } from '@/components/seo/cache-components-dynamic-marker';
+import { FocusMainOnNavigate } from '@/components/layout/focus-main-on-navigate';
 import { cn } from '@/lib/utils';
+import { seoConfig } from '@/lib/seo/config';
+import { getStorefrontOrigin } from '@/lib/storefront-origin';
+import { ThemeScript } from '@/components/theme/theme-script';
+import { Providers } from '@/app/providers';
 import './globals.css';
 
 const geist = Geist({
@@ -9,14 +16,35 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: 'Storefront',
-  description: 'Customer storefront for the E-commerce Store API.',
+  metadataBase: new URL(getStorefrontOrigin()),
+  title: {
+    default: seoConfig.siteName,
+    template: `%s | ${seoConfig.siteName}`,
+  },
+  description: seoConfig.description,
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en" className={cn('font-sans', geist.variable)}>
-      <body className="min-h-screen antialiased">{children}</body>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn('font-sans', geist.variable)}
+    >
+      <head>
+        <ThemeScript />
+      </head>
+      <Suspense fallback={null}>
+        <CacheComponentsDynamicMarker />
+      </Suspense>
+      <body className="min-h-screen antialiased" suppressHydrationWarning>
+        <Providers>
+          <Suspense fallback={null}>
+            <FocusMainOnNavigate />
+          </Suspense>
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }
