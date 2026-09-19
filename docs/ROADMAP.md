@@ -264,7 +264,7 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 
 > Optional. Does not block Phase 12.
 
-- [ ] Richer empty states / first-purchase guidance
+- [x] Richer empty states / first-purchase guidance
 - [ ] Command palette or keyboard product search (only if catalog search is already URL-driven)
 - [ ] View Transitions / React 19 `Activity` where they improve real navigation, not decoration
 - [ ] Customer-facing WebSocket for own-order updates **only if** the API documents a shopper event. If added: authenticate via `auth: { token }` on the Socket.IO handshake, connect on session / disconnect on logout, and invalidate customer order query keys. Otherwise keep Phase 7 polling.

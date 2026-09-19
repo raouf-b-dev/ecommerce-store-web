@@ -9,7 +9,13 @@ import { AccountNav } from '@/components/layout/account-nav';
 import { OrderListItemRow } from '@/features/orders/components/order-list-item-row';
 import { OrdersListFilters } from '@/features/orders/components/orders-list-filters';
 import { useOrdersList } from '@/features/orders/hooks/use-orders-list';
-import { buildOrderListHref } from '@/features/orders/lib/order-list-filters';
+import { EmptyState } from '@/components/feedback/empty-state';
+import { Button } from '@/components/ui/button';
+import {
+  ORDERS_LIST_HREF,
+  buildOrderListHref,
+  hasActiveOrderListFilters,
+} from '@/features/orders/lib/order-list-filters';
 import type { ShopperOrderListQuery } from '@/features/orders/types';
 
 type OrdersListContentProps = {
@@ -56,9 +62,25 @@ export function OrdersListContent({ filters }: OrdersListContentProps) {
         hasData={Boolean(data)}
       >
         {items.length === 0 ? (
-          <p className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-            No orders match these filters.
-          </p>
+          hasActiveOrderListFilters(filters) ? (
+            <EmptyState
+              title="No orders match these filters"
+              description="Try changing status, dates, or amount filters, or clear filters to see your full order history."
+            >
+              <Button asChild variant="outline" size="sm">
+                <Link href={ORDERS_LIST_HREF}>Clear filters</Link>
+              </Button>
+            </EmptyState>
+          ) : (
+            <EmptyState
+              title="No orders yet"
+              description="When you place an order, it will show up here. Start shopping to make your first purchase."
+            >
+              <Button asChild size="sm">
+                <Link href="/">Shop the catalog</Link>
+              </Button>
+            </EmptyState>
+          )
         ) : (
           <div className="space-y-4">
             <ul className="divide-y border-t" aria-label="Orders">

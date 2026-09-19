@@ -48,8 +48,28 @@ describe('OrdersListContent', () => {
 
     render(<OrdersListContent filters={filters} />);
 
+    expect(screen.getByText('No orders yet')).toBeInTheDocument();
     expect(
-      screen.getByText('No orders match these filters.'),
+      screen.getByRole('link', { name: /shop the catalog/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders filtered empty state when filters are active', () => {
+    mockUseOrdersList.mockReturnValue(
+      createMockUseOrdersListResult({
+        data: createMockPaginatedOrders({ items: [], total: 0, totalPages: 0 }),
+      }),
+    );
+
+    render(
+      <OrdersListContent filters={{ ...filters, status: 'confirmed' }} />,
+    );
+
+    expect(
+      screen.getByText('No orders match these filters'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /clear filters/i }),
     ).toBeInTheDocument();
   });
 
