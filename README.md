@@ -26,6 +26,7 @@
 - [Documentation](#documentation)
 - [Related repositories](#related-repositories)
 - [Project layout](#project-layout)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -166,6 +167,8 @@ Regenerate: [`docs/assets/README.md`](docs/assets/README.md).
 
 | Document                                             | Description                                                                                       |
 | :--------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md)                 | Fork workflow, setup, PR expectations                                                             |
+| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)           | Community standards                                                                               |
 | [`SECURITY.md`](SECURITY.md)                         | Frontend security baseline                                                                        |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md)                 | Delivery plan, Next.js 16 conventions, ship gates                                                 |
 | [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md) | Client integration rules (OpenAPI is the contract)                                                |
@@ -221,6 +224,14 @@ docs/
   ai/                     # agent conventions
   architecture/           # ADRs
 ```
+
+---
+
+<a id="contributing"></a>
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). Please follow the [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 
 ---
 

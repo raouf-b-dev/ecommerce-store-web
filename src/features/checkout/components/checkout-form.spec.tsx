@@ -99,9 +99,9 @@ describe('CheckoutForm', () => {
 
     render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
-    expect(screen.getByText('Your Cart is Empty')).toBeInTheDocument();
+    expect(screen.getByText('Your cart is empty')).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: /explore catalog/i }),
+      screen.getByRole('link', { name: /explore products/i }),
     ).toBeInTheDocument();
   });
 

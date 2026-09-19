@@ -108,6 +108,20 @@ function parseOptionalIsoDate(value: string | undefined): string | undefined {
  * Parses shopper-safe order list filters from URL searchParams.
  * Admin identity filters (userId, userEmail, firstName, lastName, userName) are ignored.
  */
+export function hasActiveOrderListFilters(
+  filters: ShopperOrderListQuery,
+): boolean {
+  return Boolean(
+    filters.status !== undefined ||
+      filters.sortBy !== undefined ||
+      filters.sortOrder !== undefined ||
+      filters.createdAfter !== undefined ||
+      filters.createdBefore !== undefined ||
+      filters.minAmount !== undefined ||
+      filters.maxAmount !== undefined,
+  );
+}
+
 export function parseOrderListFilters(
   raw: Record<string, string | string[] | undefined>,
 ): ShopperOrderListQuery {

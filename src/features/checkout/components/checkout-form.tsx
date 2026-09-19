@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
+import { CartEmptyState } from '@/features/cart/components/cart-empty-state';
 import { formatMoney } from '@/lib/format';
 import { hasHttpStatus } from '@/lib/api/parse-api-error';
 import { applyApiFormErrors } from '@/lib/api/form-api-errors';
@@ -139,19 +140,9 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
 
   if (!isCartLoading && itemCount === 0) {
     return (
-      <Card className="mx-auto max-w-xl text-center py-12">
-        <CardHeader>
-          <CardTitle className="text-2xl">Your Cart is Empty</CardTitle>
-          <CardDescription>
-            You do not have any items in your cart to checkout.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter className="justify-center">
-          <Button asChild size="lg">
-            <Link href="/">Explore Catalog</Link>
-          </Button>
-        </CardFooter>
-      </Card>
+      <div className="mx-auto max-w-xl">
+        <CartEmptyState />
+      </div>
     );
   }
 

@@ -6,6 +6,7 @@ import {
   QueryStateAlert,
 } from '@/components/feedback/query-state';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
+import { EmptyState } from '@/components/feedback/empty-state';
 import { Button } from '@/components/ui/button';
 import { AddressCard } from '@/features/account/components/address-card';
 import { AddressFormDialog } from '@/features/account/components/address-form-dialog';
@@ -234,15 +235,15 @@ export function AddressBook({ userId }: AddressBookProps) {
         hasData={Boolean(user)}
       >
         {addresses.length === 0 ? (
-          <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed px-4 py-10">
-            <p className="text-sm text-muted-foreground">
-              No addresses yet. Add one to use a saved shipping address at
-              checkout.
-            </p>
+          <EmptyState
+            className="items-start text-left"
+            title="No addresses yet"
+            description="Add a saved address to speed up checkout next time."
+          >
             <Button type="button" onClick={openAdd}>
               Add address
             </Button>
-          </div>
+          </EmptyState>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2" aria-label="Saved addresses">
             {addresses.map((address) => (

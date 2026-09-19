@@ -6,6 +6,7 @@ import {
   DEFAULT_LIMIT,
   SORT_BY_OPTIONS,
   SORT_ORDER_OPTIONS,
+  hasActiveCatalogFilters,
 } from '@/features/catalog/lib/catalog-params';
 import type { CatalogFilterParams } from '@/features/catalog/types';
 
@@ -14,14 +15,7 @@ type CatalogFiltersProps = {
 };
 
 export function CatalogFilters({ activeParams }: CatalogFiltersProps) {
-  const hasActiveFilters = Boolean(
-    activeParams.search ||
-      activeParams.categoryId !== undefined ||
-      activeParams.minPrice !== undefined ||
-      activeParams.maxPrice !== undefined ||
-      activeParams.sortBy !== 'createdAt' ||
-      activeParams.sortOrder !== 'desc',
-  );
+  const hasActiveFilters = hasActiveCatalogFilters(activeParams);
 
   return (
     <Form

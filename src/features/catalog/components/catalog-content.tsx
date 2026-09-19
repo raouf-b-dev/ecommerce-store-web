@@ -3,6 +3,7 @@ import { getCategories } from '@/features/catalog/api/get-categories';
 import { getProducts } from '@/features/catalog/api/get-products';
 import {
   createCatalogFilterHref,
+  hasActiveCatalogFilters,
   parseCatalogSearchParams,
 } from '@/features/catalog/lib/catalog-params';
 import { CategoryPills } from '@/features/catalog/components/category-pills';
@@ -40,7 +41,10 @@ export async function CatalogContent({ searchParams }: CatalogContentProps) {
     <div className="space-y-6">
       <CategoryPills categories={categories} activeParams={params} />
       <CatalogFilters activeParams={params} />
-      <ProductGrid products={paginatedProducts.items} />
+      <ProductGrid
+        products={paginatedProducts.items}
+        hasActiveFilters={hasActiveCatalogFilters(params)}
+      />
       <CatalogPagination
         totalPages={paginatedProducts.totalPages}
         currentPage={paginatedProducts.page}
