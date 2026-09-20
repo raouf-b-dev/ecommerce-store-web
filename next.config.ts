@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   reactCompiler: true,
   typedRoutes: true,
+  serverExternalPackages: ['msw'],
   images: {
     remotePatterns: getConfiguredImageRemotePatterns(),
   },
