@@ -22,10 +22,11 @@ export type UseCartResult = {
 };
 
 export function useCart(): UseCartResult {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, session } = useAuth();
+  const userId = session?.userId ?? null;
 
   const query = useQuery({
-    queryKey: cartKeys.current(),
+    queryKey: cartKeys.current(userId),
     queryFn: getCurrentCartRequest,
     enabled: isAuthenticated,
     staleTime: 45_000,

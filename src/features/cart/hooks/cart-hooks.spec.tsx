@@ -49,6 +49,8 @@ const emptyCart: CartResponse = {
   items: [],
 };
 
+const mockUserId = '42';
+
 function createWrapper(seedCart?: CartResponse | null) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -58,7 +60,7 @@ function createWrapper(seedCart?: CartResponse | null) {
   });
 
   if (seedCart !== undefined) {
-    queryClient.setQueryData(cartKeys.current(), seedCart);
+    queryClient.setQueryData(cartKeys.current(mockUserId), seedCart);
   }
 
   return function Wrapper({ children }: { children: ReactNode }) {
@@ -74,6 +76,7 @@ describe('Cart hooks', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       status: 'authenticated',
+      session: { userId: mockUserId },
     });
   });
 
