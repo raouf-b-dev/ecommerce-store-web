@@ -1,4 +1,8 @@
 import {
+  DEMO_CUSTOMER_EMAIL,
+  DEMO_CUSTOMER_USER_ID,
+} from '@/lib/mock/constants';
+import {
   createSeedCategories,
   createSeedInventory,
   createSeedProducts,
@@ -10,6 +14,36 @@ import type {
 } from '@/lib/mock/data/types';
 
 const MOCK_SESSION_KEY = 'store-web-mock-session';
+
+export type MockAddress = {
+  id: number;
+  street: string;
+  street2: string | null;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  type: string;
+  isDefault: boolean;
+  deliveryInstructions: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MockUserProfile = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  isActive: boolean;
+  roleCode: string;
+  addressCount: number;
+  addresses: MockAddress[];
+  createdAt: string;
+  updatedAt: string;
+  nextAddressId: number;
+};
 
 export type MockCartItem = {
   id: number;
@@ -55,9 +89,44 @@ export type MockStore = {
     items: MockCartItem[];
   } | null;
   orders: MockOrder[];
+  userProfile: MockUserProfile;
   nextOrderId: number;
   nextCartItemId: number;
 };
+
+function createInitialUserProfile(): MockUserProfile {
+  const now = new Date().toISOString();
+  const addresses: MockAddress[] = [
+    {
+      id: 1,
+      street: '100 Main Street',
+      street2: 'Apartment 2B',
+      city: 'San Francisco',
+      state: 'CA',
+      postalCode: '94103',
+      country: 'US',
+      type: 'HOME',
+      isDefault: true,
+      deliveryInstructions: 'Leave packages at front door.',
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+  return {
+    id: DEMO_CUSTOMER_USER_ID,
+    firstName: 'Demo',
+    lastName: 'Customer',
+    email: DEMO_CUSTOMER_EMAIL,
+    phone: null,
+    isActive: true,
+    roleCode: 'CUSTOMER',
+    addressCount: addresses.length,
+    addresses,
+    createdAt: now,
+    updatedAt: now,
+    nextAddressId: 2,
+  };
+}
 
 function cloneSeed(): MockStore {
   return {
@@ -66,6 +135,7 @@ function cloneSeed(): MockStore {
     inventory: structuredClone(createSeedInventory()),
     cart: null,
     orders: [],
+    userProfile: createInitialUserProfile(),
     nextOrderId: 1001,
     nextCartItemId: 1,
   };
@@ -82,10 +152,21 @@ export function resetMockStore(): void {
   mockSessionActive = false;
 }
 
-let mockSessionActive = false;
+let mockSessionActive =
+  typeof window !== 'undefined' &&
+  window.sessionStorage.getItem(MOCK_SESSION_KEY) === '1';
 
 export function isMockSessionActive(): boolean {
   return mockSessionActive;
+}
+
+export function getMockUserProfile(): MockUserProfile {
+  const profile = store.userProfile;
+  return {
+    ...profile,
+    addressCount: profile.addresses.length,
+    addresses: structuredClone(profile.addresses),
+  };
 }
 
 export function setMockSessionActive(active: boolean): void {

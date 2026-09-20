@@ -28,9 +28,11 @@ npm run env:init
 
 | Goal | Command |
 | :--- | :------ |
-| UI without a backend | `npm run dev:mock` → [http://localhost:3100](http://localhost:3100) |
-| Full stack | Start the [API](https://github.com/raouf-b-dev/ecommerce-store-api) on port **3000** (CORS must allow `http://localhost:3100` with credentials), then `npm run dev` |
+| UI without a backend (MSW mocks) | `npm run dev:mock` -> [http://localhost:3100](http://localhost:3100) - cart, checkout, addresses, and demo 1-click login are handled in-browser |
+| Live API integration | Start the [API](https://github.com/raouf-b-dev/ecommerce-store-api) on port **3000** (CORS must allow `http://localhost:3100` with credentials), then `npm run dev` |
 | Refresh OpenAPI types | With the API running: `npm run api:generate` |
+
+`npm run dev` talks to the real API. `npm run dev:mock` enables MSW (`NEXT_PUBLIC_ENABLE_MOCK=true`); unimplemented mutating routes return **501** instead of silently hitting the API. Demo quick-login UI appears only in mock mode.
 
 Details: [README](README.md). Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md).
 

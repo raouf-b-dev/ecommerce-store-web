@@ -4,6 +4,7 @@ import { checkoutRequest } from '@/features/checkout/api/checkout-api';
 import { orderKeys } from '@/features/orders/hooks/order-keys';
 import { getCurrentCartRequest } from '@/features/cart/api/cart-api';
 import { cartKeys } from '@/features/cart/hooks/cart-keys';
+import { useAuth } from '@/lib/auth/auth-context';
 import { getOrCreateInFlightKey } from '@/features/checkout/lib/idempotency';
 import type { CheckoutFormValues } from '@/features/checkout/schemas/checkout-schema';
 import type {
@@ -29,13 +30,15 @@ export function useCheckoutMutation(
 ): UseCheckoutMutationResult {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.userId ?? null;
 
   const mutation = useMutation({
     mutationFn: async (
       values: CheckoutFormValues,
     ): Promise<CheckoutResponseDto> => {
       const cached = queryClient.getQueryData<CartResponse | null>(
-        cartKeys.current(),
+        cartKeys.current(userId),
       );
       const cart = cached ?? (await getCurrentCartRequest());
       if (!cart?.id) {

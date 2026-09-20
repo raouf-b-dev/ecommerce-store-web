@@ -12,26 +12,30 @@ import {
   updateCartItemRequest,
 } from '@/features/cart/api/cart-api';
 import { cartKeys } from '@/features/cart/hooks/cart-keys';
+import { useAuth } from '@/lib/auth/auth-context';
 import type { CartResponse } from '@/features/cart/types';
 
 async function resolveCartId(
   queryClient: ReturnType<typeof useQueryClient>,
+  userId: string | null,
 ): Promise<number | null> {
   const cached = queryClient.getQueryData<CartResponse | null>(
-    cartKeys.current(),
+    cartKeys.current(userId),
   );
   if (cached?.id) {
     return cached.id;
   }
 
   const current = await getCurrentCartRequest();
-  queryClient.setQueryData(cartKeys.current(), current);
+  queryClient.setQueryData(cartKeys.current(userId), current);
   return current?.id ?? null;
 }
 
 export function useAddToCart() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { session } = useAuth();
+  const userId = session?.userId ?? null;
 
   return useMutation({
     mutationFn: async ({
@@ -41,12 +45,12 @@ export function useAddToCart() {
       productId: number;
       quantity: number;
     }) => {
-      let cartId = await resolveCartId(queryClient);
+      let cartId = await resolveCartId(queryClient, userId);
 
       if (!cartId) {
         const created = await createCartRequest();
         cartId = created.id;
-        queryClient.setQueryData(cartKeys.current(), created);
+        queryClient.setQueryData(cartKeys.current(userId), created);
       }
 
       try {
@@ -55,7 +59,7 @@ export function useAddToCart() {
         if (hasHttpStatus(error, 422, 404)) {
           const freshCart = await createCartRequest();
           cartId = freshCart.id;
-          queryClient.setQueryData(cartKeys.current(), freshCart);
+          queryClient.setQueryData(cartKeys.current(userId), freshCart);
           await addItemToCartRequest(cartId, { productId, quantity });
         } else {
           throw error;
@@ -72,6 +76,8 @@ export function useAddToCart() {
 export function useUpdateCartItemQuantity() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { session } = useAuth();
+  const userId = session?.userId ?? null;
 
   return useMutation({
     mutationFn: async ({
@@ -81,7 +87,7 @@ export function useUpdateCartItemQuantity() {
       itemId: number;
       quantity: number;
     }) => {
-      const cartId = await resolveCartId(queryClient);
+      const cartId = await resolveCartId(queryClient, userId);
       if (!cartId) {
         throw new Error('No active cart found');
       }
@@ -105,10 +111,12 @@ export function useUpdateCartItemQuantity() {
 export function useRemoveCartItem() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { session } = useAuth();
+  const userId = session?.userId ?? null;
 
   return useMutation({
     mutationFn: async ({ itemId }: { itemId: number }) => {
-      const cartId = await resolveCartId(queryClient);
+      const cartId = await resolveCartId(queryClient, userId);
       if (!cartId) {
         throw new Error('No active cart found');
       }
@@ -116,7 +124,7 @@ export function useRemoveCartItem() {
       try {
         await removeCartItemRequest(cartId, itemId);
       } catch (error) {
-        if (hasHttpStatus(error, 422, 404)) {
+        if (hasHttpStatus(error, 400, 422, 404)) {
           await queryClient.invalidateQueries({ queryKey: cartKeys.all });
         }
         throw error;
@@ -132,10 +140,12 @@ export function useRemoveCartItem() {
 export function useClearCart() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { session } = useAuth();
+  const userId = session?.userId ?? null;
 
   return useMutation({
     mutationFn: async () => {
-      const cartId = await resolveCartId(queryClient);
+      const cartId = await resolveCartId(queryClient, userId);
       if (!cartId) {
         return;
       }
@@ -150,7 +160,7 @@ export function useClearCart() {
       }
     },
     onSuccess: async () => {
-      queryClient.setQueryData(cartKeys.current(), null);
+      queryClient.setQueryData(cartKeys.current(userId), null);
       await queryClient.invalidateQueries({ queryKey: cartKeys.all });
       router.refresh();
     },

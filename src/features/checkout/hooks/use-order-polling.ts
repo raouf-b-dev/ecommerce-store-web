@@ -8,6 +8,7 @@ import {
 } from '@/features/orders/lib/order-status';
 import type { OrderDetailResponseDto } from '@/features/orders/types';
 import { cartKeys } from '@/features/cart/hooks/cart-keys';
+import { useAuth } from '@/lib/auth/auth-context';
 import { clearInFlightKey } from '@/features/checkout/lib/idempotency';
 
 export const POLLING_INTERVAL_MS = 2000;
@@ -34,6 +35,8 @@ export function useOrderPolling(
 ): UseOrderPollingResult {
   const { clearCartOnSuccess = false } = options ?? {};
   const queryClient = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.userId ?? null;
   const [timedOutOrderId, setTimedOutOrderId] = useState<number | null>(null);
   const cartClearedRef = useRef(false);
   const idempotencyClearedRef = useRef(false);
@@ -103,10 +106,10 @@ export function useOrderPolling(
       !cartClearedRef.current
     ) {
       cartClearedRef.current = true;
-      queryClient.setQueryData(cartKeys.current(), null);
+      queryClient.setQueryData(cartKeys.current(userId), null);
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
     }
-  }, [clearCartOnSuccess, orderStatus, queryClient]);
+  }, [clearCartOnSuccess, orderStatus, queryClient, userId]);
 
   useEffect(() => {
     if (

@@ -130,17 +130,26 @@ export function AuthProvider({
     });
   }, [queryClient]);
 
+  const invalidateUserScopedCaches = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['cart'] }),
+      queryClient.invalidateQueries({ queryKey: ['account', 'me'] }),
+    ]);
+  };
+
   const loginMutation = useMutation({
     mutationFn: loginRequest,
-    onSuccess: (session) => {
+    onSuccess: async (session) => {
       queryClient.setQueryData(AUTH_SESSION_QUERY_KEY, session);
+      await invalidateUserScopedCaches();
     },
   });
 
   const registerMutation = useMutation({
     mutationFn: registerAndLoginRequest,
-    onSuccess: (session) => {
+    onSuccess: async (session) => {
       queryClient.setQueryData(AUTH_SESSION_QUERY_KEY, session);
+      await invalidateUserScopedCaches();
     },
   });
 
