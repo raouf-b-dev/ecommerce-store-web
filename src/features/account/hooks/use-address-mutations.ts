@@ -53,6 +53,7 @@ export function useAddressMutations(
   const queryClient = useQueryClient();
 
   const invalidateProfile = async () => {
+    await queryClient.invalidateQueries({ queryKey: accountKeys.me() });
     if (typeof userId === 'number' && userId > 0) {
       await queryClient.invalidateQueries({
         queryKey: accountKeys.detail(userId),

@@ -7,6 +7,14 @@ import * as ordersApi from '@/features/orders/api/orders-api';
 import { cartKeys } from '@/features/cart/hooks/cart-keys';
 import { createMockOrderDetail } from '@/test/fixtures/orders.fixture';
 
+const mockUserId = '99';
+
+vi.mock('@/lib/auth/auth-context', () => ({
+  useAuth: () => ({
+    session: { userId: mockUserId },
+  }),
+}));
+
 vi.mock('@/features/orders/api/orders-api', () => ({
   getOrderRequest: vi.fn(),
 }));
@@ -78,14 +86,14 @@ describe('useOrderPolling', () => {
     vi.mocked(ordersApi.getOrderRequest).mockResolvedValue(confirmedOrder);
 
     const { Wrapper, queryClient } = createWrapper();
-    queryClient.setQueryData(cartKeys.current(), { id: 9, items: [] });
+    queryClient.setQueryData(cartKeys.current(mockUserId), { id: 9, items: [] });
 
     renderHook(() => useOrderPolling(42, { clearCartOnSuccess: true }), {
       wrapper: Wrapper,
     });
 
     await waitFor(() => {
-      expect(queryClient.getQueryData(cartKeys.current())).toBeNull();
+      expect(queryClient.getQueryData(cartKeys.current(mockUserId))).toBeNull();
     });
   });
 
@@ -99,7 +107,7 @@ describe('useOrderPolling', () => {
 
     const { Wrapper, queryClient } = createWrapper();
     const cart = { id: 9, items: [] };
-    queryClient.setQueryData(cartKeys.current(), cart);
+    queryClient.setQueryData(cartKeys.current(mockUserId), cart);
 
     renderHook(() => useOrderPolling(42, { clearCartOnSuccess: false }), {
       wrapper: Wrapper,
@@ -109,7 +117,7 @@ describe('useOrderPolling', () => {
       expect(ordersApi.getOrderRequest).toHaveBeenCalled();
     });
 
-    expect(queryClient.getQueryData(cartKeys.current())).toEqual(cart);
+    expect(queryClient.getQueryData(cartKeys.current(mockUserId))).toEqual(cart);
   });
 
   it('does not clear cart on terminal failure', async () => {
@@ -122,7 +130,7 @@ describe('useOrderPolling', () => {
 
     const { Wrapper, queryClient } = createWrapper();
     const cart = { id: 9, items: [] };
-    queryClient.setQueryData(cartKeys.current(), cart);
+    queryClient.setQueryData(cartKeys.current(mockUserId), cart);
 
     renderHook(() => useOrderPolling(42, { clearCartOnSuccess: true }), {
       wrapper: Wrapper,
@@ -132,6 +140,6 @@ describe('useOrderPolling', () => {
       expect(ordersApi.getOrderRequest).toHaveBeenCalled();
     });
 
-    expect(queryClient.getQueryData(cartKeys.current())).toEqual(cart);
+    expect(queryClient.getQueryData(cartKeys.current(mockUserId))).toEqual(cart);
   });
 });
