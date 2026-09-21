@@ -36,7 +36,7 @@ export function parseApiErrorBody(body: unknown): ParsedApiError | null {
     return null;
   }
 
-  // statusCode is optional here — toApiRequestError fills it from response.status
+  // statusCode is optional here - toApiRequestError fills it from response.status
   const statusCode =
     typeof body.statusCode === 'number' ? body.statusCode : undefined;
 
