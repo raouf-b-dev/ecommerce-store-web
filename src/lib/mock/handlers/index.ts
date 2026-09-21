@@ -1,6 +1,7 @@
 import { http, HttpResponse, passthrough } from 'msw';
 import {
   DEMO_CUSTOMER_EMAIL,
+  DEMO_CUSTOMER_PASSWORD,
   DEMO_CUSTOMER_USER_ID,
 } from '@/lib/mock/constants';
 import {
@@ -18,6 +19,12 @@ import {
   toProductListItem,
 } from '@/lib/mock/lib/catalog';
 import { createMockJwt } from '@/lib/mock/lib/jwt';
+import {
+  paginate,
+  parseOptionalNumber,
+  parsePositiveInt,
+  sortByKey,
+} from '@/lib/mock/lib/paginate-filter';
 
 function customerSessionBody() {
   return {
@@ -58,7 +65,10 @@ function inventoryForProduct(productId: number) {
 export const handlers = [
   http.post('*/v1/authentication/login', async ({ request }) => {
     const body = (await request.json()) as { email?: string; password?: string };
-    if (body.email !== DEMO_CUSTOMER_EMAIL || !body.password) {
+    if (
+      body.email !== DEMO_CUSTOMER_EMAIL ||
+      body.password !== DEMO_CUSTOMER_PASSWORD
+    ) {
       return HttpResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
     setMockSessionActive(true);
@@ -86,19 +96,50 @@ export const handlers = [
 
   http.get('*/v1/products', ({ request }) => {
     const url = new URL(request.url);
-    const page = Number(url.searchParams.get('page') ?? 1);
-    const limit = Number(url.searchParams.get('limit') ?? 12);
-    const store = getMockStore();
-    const products = store.products.filter((product) => product.isActive);
-    const start = (page - 1) * limit;
-    const items = products.slice(start, start + limit).map(toProductListItem);
-    const total = products.length;
+    const page = parsePositiveInt(url.searchParams.get('page'), 1);
+    const limit = parsePositiveInt(url.searchParams.get('limit'), 12);
+    const search = url.searchParams.get('search')?.trim().toLowerCase();
+    const categoryId = parseOptionalNumber(url.searchParams.get('categoryId'));
+    const minPrice = parseOptionalNumber(url.searchParams.get('minPrice'));
+    const maxPrice = parseOptionalNumber(url.searchParams.get('maxPrice'));
+    const sortBy = url.searchParams.get('sortBy');
+    const sortOrder = url.searchParams.get('sortOrder');
+
+    // Shoppers only see active products (mirrors API forcing isActive for anonymous/customer).
+    let products = getMockStore().products.filter((product) => product.isActive);
+
+    if (search) {
+      products = products.filter((product) => {
+        const haystacks = [
+          product.name,
+          product.sku,
+          product.slug,
+          product.description ?? '',
+        ];
+        return haystacks.some((value) => value.toLowerCase().includes(search));
+      });
+    }
+    if (categoryId !== undefined) {
+      products = products.filter((product) => product.categoryId === categoryId);
+    }
+    if (minPrice !== undefined) {
+      products = products.filter((product) => product.price >= minPrice);
+    }
+    if (maxPrice !== undefined) {
+      products = products.filter((product) => product.price <= maxPrice);
+    }
+
+    products = sortByKey(products, sortBy, sortOrder, {
+      createdAt: (product) => product.createdAt,
+      price: (product) => product.price,
+      name: (product) => product.name.toLowerCase(),
+      id: (product) => product.id,
+    });
+
+    const pageResult = paginate(products, page, limit);
     return HttpResponse.json({
-      items,
-      total,
-      page,
-      limit,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
+      ...pageResult,
+      items: pageResult.items.map(toProductListItem),
     });
   }),
 
@@ -306,7 +347,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  http.post(
+  http.patch(
     '*/v1/users/:userId/addresses/:addressId/set-default',
     ({ params }) => {
       if (!isMockSessionActive()) {
@@ -342,14 +383,25 @@ export const handlers = [
     const totals = cartTotals(cart);
     const orderId = store.nextOrderId++;
     const now = new Date().toISOString();
+    const defaultAddress = store.userProfile.addresses.find((row) => row.isDefault);
+    const shippingAddress = defaultAddress
+      ? [
+          defaultAddress.street,
+          defaultAddress.street2,
+          `${defaultAddress.city}, ${defaultAddress.state} ${defaultAddress.postalCode}`,
+          defaultAddress.country,
+        ]
+          .filter(Boolean)
+          .join(', ')
+      : '123 Demo Street, Austin, TX 78701, US';
     const order = {
       id: orderId,
       orderNumber: `ORD-${orderId}`,
       userId: DEMO_CUSTOMER_USER_ID,
-      userName: 'Demo Customer',
+      userName: `${store.userProfile.firstName} ${store.userProfile.lastName}`,
       userEmail: DEMO_CUSTOMER_EMAIL,
       status: 'confirmed',
-      shippingAddress: '123 Demo Street, Austin, TX 78701, US',
+      shippingAddress,
       items: cart.items.map((item) => {
         const product = store.products.find(
           (candidate) => candidate.id === item.productId,
@@ -395,17 +447,72 @@ export const handlers = [
     }
     const orders = getMockStore().orders;
     return HttpResponse.json({
-      data: orders.map((order) => ({
+      items: orders.map((order) => ({
         id: order.id,
         orderNumber: order.orderNumber,
+        userId: order.userId,
+        userName: order.userName,
+        userEmail: order.userEmail,
         status: order.status,
+        itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
         totalAmount: order.totalAmount,
         currency: order.currency,
         createdAt: order.createdAt,
       })),
-      meta: { total: orders.length, page: 1, limit: 20, totalPages: 1 },
+      total: orders.length,
+      page: 1,
+      limit: 20,
+      totalPages: Math.max(1, Math.ceil(orders.length / 20)),
     });
   }),
+
+  http.get('*/v1/payments/orders/:orderId', ({ params }) => {
+    if (!isMockSessionActive()) {
+      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    const orderId = Number(params.orderId);
+    const order = getMockStore().orders.find((item) => item.id === orderId);
+    if (!order) {
+      return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    }
+    return HttpResponse.json({
+      id: orderId,
+      orderId,
+      userId: order.userId,
+      userName: order.userName,
+      userEmail: order.userEmail,
+      amount: order.totalAmount,
+      currency: order.currency,
+      status: 'completed',
+      paymentMethod: 'stripe',
+      transactionId: `mock-txn-${orderId}`,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      gatewayPaymentIntentId: `mock-pi-${orderId}`,
+      failureReason: null,
+      metadata: null,
+    });
+  }),
+
+  http.get('*/health/readiness', () =>
+    HttpResponse.json({
+      status: 'ok',
+      details: {
+        database: { status: 'up' },
+      },
+    }),
+  ),
+
+  http.get('*/health', () =>
+    HttpResponse.json({
+      status: 'ok',
+      details: {
+        database: { status: 'up' },
+        redis: { status: 'up' },
+        mock: { status: 'up' },
+      },
+    }),
+  ),
 
   http.all('*/v1/*', ({ request }) => {
     if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {

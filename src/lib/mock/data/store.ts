@@ -60,6 +60,8 @@ export type MockOrder = {
   id: number;
   orderNumber: string;
   userId: number;
+  userName: string;
+  userEmail: string;
   status: string;
   shippingAddress: string;
   items: Array<{
@@ -141,15 +143,10 @@ function cloneSeed(): MockStore {
   };
 }
 
-let store: MockStore = cloneSeed();
+const store: MockStore = cloneSeed();
 
 export function getMockStore(): MockStore {
   return store;
-}
-
-export function resetMockStore(): void {
-  store = cloneSeed();
-  mockSessionActive = false;
 }
 
 let mockSessionActive =
