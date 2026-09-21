@@ -13,6 +13,7 @@ export async function getMeRequest(): Promise<UserDetailResponseDto> {
     return await throwApiErrorFromResponse(
       response,
       'Failed to load account profile.',
+      error,
     );
   }
 
@@ -34,7 +35,11 @@ export async function addAddressRequest(
   );
 
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to add address.');
+    await throwApiErrorFromResponse(
+      response,
+      'Failed to add address.',
+      error,
+    );
   }
 }
 
@@ -54,7 +59,11 @@ export async function updateAddressRequest(
   );
 
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to update address.');
+    await throwApiErrorFromResponse(
+      response,
+      'Failed to update address.',
+      error,
+    );
   }
 }
 
@@ -72,7 +81,11 @@ export async function deleteAddressRequest(
   );
 
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to delete address.');
+    await throwApiErrorFromResponse(
+      response,
+      'Failed to delete address.',
+      error,
+    );
   }
 }
 
@@ -93,6 +106,7 @@ export async function setDefaultAddressRequest(
     await throwApiErrorFromResponse(
       response,
       'Failed to set default address.',
+      error,
     );
   }
 }

@@ -12,6 +12,7 @@ import {
   isMockSessionActive,
   setMockSessionActive,
   type MockAddress,
+  type MockOrder,
 } from '@/lib/mock/data/store';
 import {
   categoriesWithProductCounts,
@@ -25,6 +26,11 @@ import {
   parsePositiveInt,
   sortByKey,
 } from '@/lib/mock/lib/paginate-filter';
+import type {
+  AddCartItemDto,
+  CartResponseDto,
+  UpdateCartItemDto,
+} from '@/lib/mock/data/types';
 
 function customerSessionBody() {
   return {
@@ -38,7 +44,20 @@ function customerSessionBody() {
   };
 }
 
-function cartResponse() {
+/** Nest GlobalExceptionFilter shopper-facing error body. */
+function nestError(statusCode: number, message: string) {
+  return HttpResponse.json(
+    {
+      success: false,
+      statusCode,
+      message,
+      timestamp: new Date().toISOString(),
+    },
+    { status: statusCode },
+  );
+}
+
+function cartResponse(): CartResponseDto | null {
   const store = getMockStore();
   if (!store.cart) {
     return null;
@@ -60,6 +79,10 @@ function cartResponse() {
 
 function inventoryForProduct(productId: number) {
   return getMockStore().inventory.find((row) => row.productId === productId);
+}
+
+function availableQuantityFor(productId: number): number {
+  return inventoryForProduct(productId)?.availableQuantity ?? 0;
 }
 
 export const handlers = [
@@ -173,17 +196,17 @@ export const handlers = [
 
   http.get('*/v1/carts/current', () => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized');
     }
     if (!getMockStore().cart) {
-      return HttpResponse.json({ message: 'No cart' }, { status: 404 });
+      return nestError(404, 'No cart');
     }
     return HttpResponse.json(cartResponse());
   }),
 
   http.post('*/v1/carts', () => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized');
     }
     ensureMockCart(DEMO_CUSTOMER_USER_ID);
     return HttpResponse.json(cartResponse(), { status: 201 });
@@ -191,17 +214,26 @@ export const handlers = [
 
   http.post('*/v1/carts/:id/items', async ({ request }) => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized');
     }
-    const body = (await request.json()) as { productId?: number; quantity?: number };
+    const body = (await request.json()) as AddCartItemDto;
     const store = getMockStore();
     const cart = ensureMockCart(DEMO_CUSTOMER_USER_ID)!;
     const product = store.products.find((item) => item.id === body.productId);
     if (!product) {
-      return HttpResponse.json({ message: 'Product not found' }, { status: 404 });
+      return nestError(404, 'Product not found');
     }
 
     const quantity = body.quantity ?? 1;
+    const availableQuantity = availableQuantityFor(product.id);
+    // Mirrors AddCartItemUseCase: check requested add qty only.
+    if (quantity > availableQuantity) {
+      return nestError(
+        422,
+        `Insufficient stock for product ${product.name}`,
+      );
+    }
+
     const existing = cart.items.find((line) => line.productId === product.id);
     if (existing) {
       existing.quantity += quantity;
@@ -226,17 +258,25 @@ export const handlers = [
 
   http.patch('*/v1/carts/:cartId/items/:itemId', async ({ request, params }) => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized');
     }
-    const body = (await request.json()) as { quantity?: number };
+    const body = (await request.json()) as UpdateCartItemDto;
     const cart = ensureMockCart(DEMO_CUSTOMER_USER_ID)!;
     const item = cart.items.find((line) => line.id === Number(params.itemId));
     if (!item) {
-      return HttpResponse.json({ message: 'Cart item not found' }, { status: 404 });
+      return nestError(404, 'Cart item not found');
     }
     const quantity = body.quantity ?? item.quantity;
     if (quantity <= 0) {
-      return HttpResponse.json({ message: 'Invalid quantity' }, { status: 400 });
+      return nestError(400, 'Invalid quantity');
+    }
+    const availableQuantity = availableQuantityFor(item.productId);
+    // Mirrors UpdateCartItemUseCase message + Available count.
+    if (quantity > availableQuantity) {
+      return nestError(
+        422,
+        `Insufficient stock for product. Available: ${availableQuantity}`,
+      );
     }
     item.quantity = quantity;
     item.subtotal = Number((item.price * item.quantity).toFixed(2));
@@ -245,21 +285,21 @@ export const handlers = [
 
   http.delete('*/v1/carts/:cartId/items/:itemId', ({ params }) => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized');
     }
     const cart = ensureMockCart(DEMO_CUSTOMER_USER_ID)!;
     const itemId = Number(params.itemId);
     const before = cart.items.length;
     cart.items = cart.items.filter((line) => line.id !== itemId);
     if (cart.items.length === before) {
-      return HttpResponse.json({ message: 'Cart item not found' }, { status: 404 });
+      return nestError(404, 'Cart item not found');
     }
     return HttpResponse.json(cartResponse());
   }),
 
   http.delete('*/v1/carts/:cartId', () => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized');
     }
     const store = getMockStore();
     if (store.cart) {
@@ -373,14 +413,17 @@ export const handlers = [
 
   http.post('*/v1/orders/checkout', () => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized');
     }
     const store = getMockStore();
     const cart = store.cart;
-    if (!cart || cart.items.length === 0) {
-      return HttpResponse.json({ message: 'Cart is empty' }, { status: 400 });
+    const firstItem = cart?.items[0];
+    if (!cart || !firstItem) {
+      return nestError(400, 'Cart is empty');
     }
     const totals = cartTotals(cart);
+    // CartResponseDto.currency is null only for empty carts; a line item always has currency.
+    const currency = totals.currency ?? firstItem.currency;
     const orderId = store.nextOrderId++;
     const now = new Date().toISOString();
     const defaultAddress = store.userProfile.addresses.find((row) => row.isDefault);
@@ -394,7 +437,7 @@ export const handlers = [
           .filter(Boolean)
           .join(', ')
       : '123 Demo Street, Austin, TX 78701, US';
-    const order = {
+    const order: MockOrder = {
       id: orderId,
       orderNumber: `ORD-${orderId}`,
       userId: DEMO_CUSTOMER_USER_ID,
@@ -419,7 +462,7 @@ export const handlers = [
       shippingCost: totals.shippingCost,
       totalAmount: totals.totalAmount,
       totalPrice: totals.totalAmount,
-      currency: totals.currency,
+      currency,
       createdAt: now,
       updatedAt: now,
     };

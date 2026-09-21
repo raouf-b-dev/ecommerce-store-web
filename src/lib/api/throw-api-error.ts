@@ -1,4 +1,5 @@
 import {
+  parseApiErrorBody,
   readApiErrorFromResponse,
   toApiRequestError,
 } from '@/lib/api/parse-api-error';
@@ -19,14 +20,21 @@ export async function throwTooManyRequests(response: Response): Promise<never> {
   );
 }
 
+/**
+ * Prefer openapi-fetch's already-parsed `error` body (response body is consumed).
+ * Fall back to reading the Response when no error body was provided.
+ */
 export async function throwApiErrorFromResponse(
   response: Response | undefined,
   fallbackMessage: string,
+  errorBody?: unknown,
 ): Promise<never> {
   if (response?.status === 429) {
     await throwTooManyRequests(response);
   }
-  const parsed = response ? await readApiErrorFromResponse(response) : null;
+  const parsed =
+    parseApiErrorBody(errorBody) ??
+    (response ? await readApiErrorFromResponse(response) : null);
   throw toApiRequestError(
     response ?? new Response(null, { status: 500 }),
     parsed,

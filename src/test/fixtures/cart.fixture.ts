@@ -59,6 +59,11 @@ export function createMockUseCartResult(
     cart,
     cartId: cart?.id ?? null,
     itemCount: overrides?.itemCount ?? cart?.itemCount ?? 0,
+    lineItemCount:
+      overrides?.lineItemCount ??
+      overrides?.items?.length ??
+      cart?.items?.length ??
+      0,
     totalAmount: overrides?.totalAmount ?? cart?.totalAmount ?? 0,
     subtotal: overrides?.subtotal ?? cart?.subtotal ?? 0,
     shippingCost: overrides?.shippingCost ?? cart?.shippingCost ?? 0,

@@ -14,7 +14,7 @@ export function ActionErrorAlert({
   }
 
   return (
-    <Alert variant="destructive" aria-live="polite">
+    <Alert variant="destructive">
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription>{message}</AlertDescription>
     </Alert>

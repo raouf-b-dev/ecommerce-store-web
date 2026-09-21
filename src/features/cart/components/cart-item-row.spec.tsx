@@ -74,4 +74,25 @@ describe('CartItemRow', () => {
       });
     });
   });
+
+  it('shows stock error message and disables increase at available limit', async () => {
+    mockMutateUpdate.mockRejectedValueOnce(
+      new Error('Insufficient stock for product. Available: 2'),
+    );
+    render(<CartItemRow item={mockItem} />);
+
+    const increment = screen.getByRole('button', {
+      name: /increase quantity of ergonomic desk/i,
+    });
+    fireEvent.click(increment);
+
+    await waitFor(() => {
+      expect(screen.getByText('Not enough stock')).toBeInTheDocument();
+      expect(
+        screen.getByText('Insufficient stock for product. Available: 2'),
+      ).toBeInTheDocument();
+    });
+
+    expect(increment).toBeDisabled();
+  });
 });

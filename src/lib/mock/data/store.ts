@@ -1,17 +1,18 @@
 import {
-  DEMO_CUSTOMER_EMAIL,
-  DEMO_CUSTOMER_USER_ID,
-} from '@/lib/mock/constants';
-import {
   createSeedCategories,
   createSeedInventory,
   createSeedProducts,
 } from '@/lib/mock/data/seed';
 import type {
   CategoryResponseDto,
+  MockCartItem,
   ProductDetailResponseDto,
   SeedInventoryRow,
 } from '@/lib/mock/data/types';
+import {
+  DEMO_CUSTOMER_EMAIL,
+  DEMO_CUSTOMER_USER_ID,
+} from '@/lib/mock/constants';
 
 const MOCK_SESSION_KEY = 'store-web-mock-session';
 
@@ -43,17 +44,6 @@ export type MockUserProfile = {
   createdAt: string;
   updatedAt: string;
   nextAddressId: number;
-};
-
-export type MockCartItem = {
-  id: number;
-  productId: number;
-  productName: string;
-  price: number;
-  currency: string;
-  quantity: number;
-  subtotal: number;
-  imageUrl: string | null;
 };
 
 export type MockOrder = {
@@ -190,7 +180,9 @@ export function cartTotals(cart: NonNullable<MockStore['cart']>) {
   );
   const shippingCost = 0;
   const totalAmount = Number((subtotal + shippingCost).toFixed(2));
+  // Matches API CartResponseDto: sum of line quantities, not unique SKUs.
   const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-  const currency = cart.items[0]?.currency ?? 'USD';
+  // Null when the cart has no items (OpenAPI CartResponseDto.currency).
+  const currency = cart.items[0]?.currency ?? null;
   return { subtotal, shippingCost, totalAmount, itemCount, currency };
 }

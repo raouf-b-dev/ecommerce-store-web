@@ -5,13 +5,16 @@ import { ShoppingCart } from 'lucide-react';
 import { useCart } from '@/features/cart/hooks/use-cart';
 import { useAuth } from '@/lib/auth/auth-context';
 
+function cartItemsLabel(count: number): string {
+  return count === 1 ? '1 item' : `${count} items`;
+}
+
 export function CartHeaderBadge() {
   const { isAuthenticated } = useAuth();
-  const { itemCount } = useCart();
+  const { lineItemCount } = useCart();
 
-  const count = isAuthenticated ? itemCount : 0;
-  const label =
-    count > 0 ? `Shopping cart, ${count} items` : 'Shopping cart, 0 items';
+  const count = isAuthenticated ? lineItemCount : 0;
+  const label = `Shopping cart, ${cartItemsLabel(count)}`;
 
   return (
     <Link

@@ -14,6 +14,7 @@ export function CartContent() {
     cart,
     items,
     itemCount,
+    lineItemCount,
     subtotal,
     totalAmount,
     isLoading,
@@ -34,9 +35,9 @@ export function CartContent() {
             Review your selected items and manage quantities.
           </p>
         </div>
-        {itemCount > 0 ? (
+        {lineItemCount > 0 ? (
           <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
-            {itemCount} {itemCount === 1 ? 'item' : 'items'}
+            {lineItemCount} {lineItemCount === 1 ? 'item' : 'items'}
           </span>
         ) : null}
       </div>
