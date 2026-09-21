@@ -1,10 +1,8 @@
-export async function register() {
-  if (process.env.NEXT_PUBLIC_ENABLE_MOCK !== 'true') {
-    return;
-  }
-
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { server } = await import('@/lib/mock/server');
-    server.listen({ onUnhandledRequest: 'bypass' });
-  }
-}
+/**
+ * Intentionally empty for mock mode.
+ *
+ * Node MSW is started by `scripts/mock-server-preload.mjs` when running
+ * `npm run dev:mock` (NODE_OPTIONS `--import`). Starting `setupServer` here as
+ * well would register a second interceptor against a separate module graph.
+ */
+export async function register() {}
