@@ -123,8 +123,17 @@ export function LoginForm({ redirect }: LoginFormProps) {
         <Suspense fallback={null}>
           <DemoLoginActions
             onSelect={(credentials) => {
-              form.setValue('email', credentials.email);
-              form.setValue('password', credentials.password);
+              setFormError(null);
+              form.setValue('email', credentials.email, {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true,
+              });
+              form.setValue('password', credentials.password, {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true,
+              });
             }}
           />
         </Suspense>
