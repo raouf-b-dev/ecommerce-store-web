@@ -9,6 +9,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  agentRules: false,
   cacheComponents: true,
   reactCompiler: true,
   typedRoutes: true,
