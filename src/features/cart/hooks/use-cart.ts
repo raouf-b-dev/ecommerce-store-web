@@ -9,7 +9,10 @@ import type { CartItemResponse, CartResponse } from '@/features/cart/types';
 export type UseCartResult = {
   cart: CartResponse | null;
   cartId: number | null;
+  /** Total units across all line items (API itemCount). */
   itemCount: number;
+  /** Unique products / line items in the cart. */
+  lineItemCount: number;
   totalAmount: number;
   subtotal: number;
   shippingCost: number;
@@ -36,6 +39,7 @@ export function useCart(): UseCartResult {
   const cart: CartResponse | null = isAuthenticated ? (query.data ?? null) : null;
   const items: CartItemResponse[] = cart?.items ?? [];
   const itemCount = cart?.itemCount ?? 0;
+  const lineItemCount = items.length;
   const subtotal = cart?.subtotal ?? 0;
   const shippingCost = cart?.shippingCost ?? 0;
   const totalAmount = cart?.totalAmount ?? 0;
@@ -44,6 +48,7 @@ export function useCart(): UseCartResult {
     cart,
     cartId: cart?.id ?? null,
     itemCount,
+    lineItemCount,
     totalAmount,
     subtotal,
     shippingCost,

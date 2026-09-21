@@ -450,7 +450,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
               <div className="space-y-2 border-t pt-4 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
+                    Subtotal ({itemCount} {itemCount === 1 ? 'unit' : 'units'})
                   </span>
                   <span className="font-medium text-foreground">
                     {formatMoney(subtotal, currency)}
