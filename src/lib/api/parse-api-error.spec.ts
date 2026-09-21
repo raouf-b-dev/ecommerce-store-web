@@ -48,6 +48,20 @@ describe('parseApiErrorBody', () => {
     expect(parseApiErrorBody(null)).toBeNull();
     expect(parseApiErrorBody('error')).toBeNull();
   });
+
+  it('parses message-only bodies without statusCode', () => {
+    expect(
+      parseApiErrorBody({
+        message: 'Insufficient stock for product. Available: 79',
+      }),
+    ).toEqual({
+      message: 'Insufficient stock for product. Available: 79',
+    });
+  });
+
+  it('returns null when message is missing', () => {
+    expect(parseApiErrorBody({ statusCode: 422 })).toBeNull();
+  });
 });
 
 describe('isOptimisticLockConflict', () => {
