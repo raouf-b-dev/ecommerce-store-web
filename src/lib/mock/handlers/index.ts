@@ -28,9 +28,9 @@ import {
 } from '@/lib/mock/lib/paginate-filter';
 import type {
   AddCartItemDto,
-  CartResponse,
+  CartResponseDto,
   UpdateCartItemDto,
-} from '@/features/cart/types';
+} from '@/lib/mock/data/types';
 
 function customerSessionBody() {
   return {
@@ -57,7 +57,7 @@ function nestError(statusCode: number, message: string) {
   );
 }
 
-function cartResponse(): CartResponse | null {
+function cartResponse(): CartResponseDto | null {
   const store = getMockStore();
   if (!store.cart) {
     return null;
