@@ -1,6 +1,7 @@
 import { browserClient } from '@/lib/api/browser-client';
 import {
   ApiRequestError,
+  parseApiErrorBody,
   readApiErrorFromResponse,
   toApiRequestError,
 } from '@/lib/api/parse-api-error';
@@ -27,7 +28,8 @@ export async function checkoutRequest(
   );
 
   if (response.status === 409) {
-    const parsed = await readApiErrorFromResponse(response);
+    const parsed =
+      parseApiErrorBody(error) ?? (await readApiErrorFromResponse(response));
     const err = toApiRequestError(
       response,
       parsed,
@@ -44,7 +46,11 @@ export async function checkoutRequest(
   }
 
   if (error || !data || !response.ok) {
-    return await throwApiErrorFromResponse(response, 'Checkout request failed.');
+    return await throwApiErrorFromResponse(
+      response,
+      'Checkout request failed.',
+      error,
+    );
   }
 
   return data;

@@ -74,7 +74,11 @@ export async function loginRequest(
         'Invalid email or password.',
       );
     }
-    await throwApiErrorFromResponse(response, 'Invalid email or password.');
+    await throwApiErrorFromResponse(
+      response,
+      'Invalid email or password.',
+      error,
+    );
   }
 
   const tokens = parseAuthTokensPayload(data);
@@ -104,7 +108,11 @@ export async function registerRequest(input: RegisterInput): Promise<void> {
         AUTH_THROTTLE_MESSAGE,
       );
     }
-    await throwApiErrorFromResponse(response, 'Could not create account.');
+    await throwApiErrorFromResponse(
+      response,
+      'Could not create account.',
+      error,
+    );
   }
 }
 
@@ -173,7 +181,11 @@ export async function changePasswordRequest(
         PASSWORD_CHANGE_THROTTLE_MESSAGE,
       );
     }
-    await throwApiErrorFromResponse(response, 'Could not update password.');
+    await throwApiErrorFromResponse(
+      response,
+      'Could not update password.',
+      error,
+    );
   }
 
   const tokens = parseAuthTokensPayload(data);
@@ -203,6 +215,6 @@ export async function logoutRequest(): Promise<void> {
     return;
   }
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Could not sign out.');
+    await throwApiErrorFromResponse(response, 'Could not sign out.', error);
   }
 }

@@ -20,6 +20,7 @@ export async function listOrdersRequest(
     return await throwApiErrorFromResponse(
       response,
       'Failed to load orders.',
+      error,
     );
   }
 
@@ -39,6 +40,7 @@ export async function getOrderRequest(
     return await throwApiErrorFromResponse(
       response,
       'Failed to load order details.',
+      error,
     );
   }
 
@@ -61,6 +63,7 @@ export async function getOrderPaymentRequest(
     return await throwApiErrorFromResponse(
       response,
       'Failed to load order payment.',
+      error,
     );
   }
 
