@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,31 @@ import {
 } from '@/features/cart/hooks/use-cart-mutations';
 import type { CartItemResponse } from '@/features/cart/types';
 
+const AVAILABLE_STOCK_PATTERN = /Available:\s*(\d+)/i;
+
+function parseAvailableStock(message: string): number | null {
+  const match = AVAILABLE_STOCK_PATTERN.exec(message);
+  if (!match?.[1]) {
+    return null;
+  }
+  const value = Number.parseInt(match[1], 10);
+  return Number.isFinite(value) ? value : null;
+}
+
+function cartActionErrorTitle(message: string): string {
+  return /insufficient stock/i.test(message)
+    ? 'Not enough stock'
+    : 'Could not update cart';
+}
+
 type CartItemRowProps = {
   item: CartItemResponse;
 };
 
 export function CartItemRow({ item }: CartItemRowProps) {
   const [actionError, setActionError] = useState<string | null>(null);
+  const [maxAvailable, setMaxAvailable] = useState<number | null>(null);
+  const errorAlertRef = useRef<HTMLDivElement>(null);
 
   const updateQuantityMutation = useUpdateCartItemQuantity();
   const removeMutation = useRemoveCartItem();
@@ -27,8 +46,17 @@ export function CartItemRow({ item }: CartItemRowProps) {
   const isPending =
     updateQuantityMutation.isPending || removeMutation.isPending;
 
+  useEffect(() => {
+    if (actionError) {
+      errorAlertRef.current?.focus();
+    }
+  }, [actionError]);
+
   const handleUpdateQuantity = async (newQuantity: number) => {
     if (newQuantity < 1 || newQuantity > 99 || newQuantity === item.quantity) {
+      return;
+    }
+    if (maxAvailable !== null && newQuantity > maxAvailable) {
       return;
     }
     setActionError(null);
@@ -37,10 +65,14 @@ export function CartItemRow({ item }: CartItemRowProps) {
         itemId: item.id,
         quantity: newQuantity,
       });
+      setMaxAvailable(null);
     } catch (error) {
-      setActionError(
-        getErrorMessage(error, 'Could not update item quantity.'),
-      );
+      const message = getErrorMessage(error, 'Could not update item quantity.');
+      setActionError(message);
+      const available = parseAvailableStock(message);
+      if (available !== null) {
+        setMaxAvailable(available);
+      }
     }
   };
 
@@ -50,12 +82,18 @@ export function CartItemRow({ item }: CartItemRowProps) {
       await removeMutation.mutateAsync({
         itemId: item.id,
       });
+      setMaxAvailable(null);
     } catch (error) {
       setActionError(
         getErrorMessage(error, 'Could not remove item from cart.'),
       );
     }
   };
+
+  const increaseDisabled =
+    isPending ||
+    item.quantity >= 99 ||
+    (maxAvailable !== null && item.quantity >= maxAvailable);
 
   return (
     <li
@@ -113,7 +151,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
             variant="ghost"
             size="icon"
             onClick={() => handleUpdateQuantity(item.quantity + 1)}
-            disabled={item.quantity >= 99 || isPending}
+            disabled={increaseDisabled}
             aria-label={`Increase quantity of ${item.productName}`}
             className="h-8 w-8 rounded-l-none"
           >
@@ -141,8 +179,15 @@ export function CartItemRow({ item }: CartItemRowProps) {
       </div>
 
       {actionError ? (
-        <div className="w-full sm:col-span-2">
-          <ActionErrorAlert message={actionError} title="Cart update error" />
+        <div
+          ref={errorAlertRef}
+          tabIndex={-1}
+          className="w-full outline-none sm:col-span-2"
+        >
+          <ActionErrorAlert
+            message={actionError}
+            title={cartActionErrorTitle(actionError)}
+          />
         </div>
       ) : null}
     </li>
