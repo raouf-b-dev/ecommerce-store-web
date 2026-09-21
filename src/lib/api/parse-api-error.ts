@@ -1,5 +1,5 @@
 export type ParsedApiError = {
-  statusCode: number;
+  statusCode?: number;
   message: string;
   code?: string;
   errors?: string[];
@@ -15,7 +15,7 @@ export class ApiRequestError extends Error {
   constructor(parsed: ParsedApiError) {
     super(parsed.message);
     this.name = 'ApiRequestError';
-    this.statusCode = parsed.statusCode;
+    this.statusCode = parsed.statusCode ?? 500;
     this.code = parsed.code;
     this.errors = parsed.errors;
     this.retryAfterSeconds = parsed.retryAfterSeconds;
@@ -31,20 +31,21 @@ export function parseApiErrorBody(body: unknown): ParsedApiError | null {
     return null;
   }
 
-  const statusCode =
-    typeof body.statusCode === 'number' ? body.statusCode : null;
   const message = typeof body.message === 'string' ? body.message : null;
-
-  if (statusCode === null || message === null) {
+  if (message === null) {
     return null;
   }
+
+  // statusCode is optional here - toApiRequestError fills it from response.status
+  const statusCode =
+    typeof body.statusCode === 'number' ? body.statusCode : undefined;
 
   const errors = Array.isArray(body.errors)
     ? body.errors.filter((item): item is string => typeof item === 'string')
     : undefined;
 
   return {
-    statusCode,
+    ...(statusCode !== undefined ? { statusCode } : {}),
     message,
     code: typeof body.code === 'string' ? body.code : undefined,
     errors: errors && errors.length > 0 ? errors : undefined,

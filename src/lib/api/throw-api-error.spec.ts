@@ -34,6 +34,35 @@ describe('throwApiErrorFromResponse', () => {
       message: 'Network request failed',
     });
   });
+
+  it('prefers openapi-fetch error body when Response body is consumed', async () => {
+    const response = new Response(null, { status: 422 });
+    await expect(
+      throwApiErrorFromResponse(
+        response,
+        'Failed to update cart item quantity.',
+        {
+          statusCode: 422,
+          message: 'Insufficient stock for product. Available: 79',
+        },
+      ),
+    ).rejects.toMatchObject({
+      statusCode: 422,
+      message: 'Insufficient stock for product. Available: 79',
+    });
+  });
+
+  it('fills statusCode from response when error body has message only', async () => {
+    const response = new Response(null, { status: 422 });
+    await expect(
+      throwApiErrorFromResponse(response, 'Fallback', {
+        message: 'Insufficient stock',
+      }),
+    ).rejects.toMatchObject({
+      statusCode: 422,
+      message: 'Insufficient stock',
+    });
+  });
 });
 
 describe('throwTooManyRequests', () => {

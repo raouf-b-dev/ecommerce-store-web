@@ -94,6 +94,7 @@ describe('Cart hooks', () => {
       expect(result.current.cart).toBeNull();
       expect(result.current.cartId).toBeNull();
       expect(result.current.itemCount).toBe(0);
+      expect(result.current.lineItemCount).toBe(0);
       expect(result.current.totalAmount).toBe(0);
       expect(cartApi.getCurrentCartRequest).not.toHaveBeenCalled();
     });
@@ -148,6 +149,7 @@ describe('Cart hooks', () => {
 
       expect(result.current.cart?.id).toBe(42);
       expect(result.current.itemCount).toBe(2);
+      expect(result.current.lineItemCount).toBe(1);
       expect(result.current.totalAmount).toBe(5000);
       expect(result.current.items).toHaveLength(1);
     });

@@ -187,6 +187,80 @@ describe('storefront mock handlers', () => {
       expect(body.status).toBe('completed');
     });
 
+    it('rejects cart quantity updates above available stock with Nest-shaped 422', async () => {
+      await fetch(`${API}/v1/carts`, { method: 'POST' });
+      const products = await listProducts('?limit=1');
+      const productId = products.items[0]?.id;
+      expect(productId).toBeDefined();
+
+      const inventory = (await (
+        await fetch(`${API}/v1/inventory/check/${productId}`)
+      ).json()) as { availableQuantity: number };
+      const available = inventory.availableQuantity;
+      expect(available).toBeGreaterThan(0);
+
+      const add = await fetch(`${API}/v1/carts/42/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, quantity: 1 }),
+      });
+      expect(add.ok).toBe(true);
+      const cart = (await add.json()) as {
+        items: Array<{ id: number; quantity: number }>;
+        itemCount: number;
+      };
+      const itemId = cart.items[0]?.id;
+      expect(itemId).toBeDefined();
+      expect(cart.itemCount).toBe(1);
+
+      const patch = await fetch(`${API}/v1/carts/42/items/${itemId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: available + 1 }),
+      });
+      expect(patch.status).toBe(422);
+      const error = (await patch.json()) as {
+        success: boolean;
+        statusCode: number;
+        message: string;
+      };
+      expect(error.success).toBe(false);
+      expect(error.statusCode).toBe(422);
+      expect(error.message).toBe(
+        `Insufficient stock for product. Available: ${available}`,
+      );
+    });
+
+    it('rejects add-to-cart above available stock', async () => {
+      await fetch(`${API}/v1/carts`, { method: 'POST' });
+      const products = await listProducts('?limit=1');
+      const productId = products.items[0]?.id;
+      expect(productId).toBeDefined();
+
+      const inventory = (await (
+        await fetch(`${API}/v1/inventory/check/${productId}`)
+      ).json()) as { availableQuantity: number };
+      const productName = products.items[0]?.name;
+
+      const add = await fetch(`${API}/v1/carts/42/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId,
+          quantity: inventory.availableQuantity + 1,
+        }),
+      });
+      expect(add.status).toBe(422);
+      const error = (await add.json()) as {
+        statusCode: number;
+        message: string;
+      };
+      expect(error.statusCode).toBe(422);
+      expect(error.message).toBe(
+        `Insufficient stock for product ${productName}`,
+      );
+    });
+
     it('sets the default address via PATCH', async () => {
       const me = (await (await fetch(`${API}/v1/users/me`)).json()) as {
         id: number;

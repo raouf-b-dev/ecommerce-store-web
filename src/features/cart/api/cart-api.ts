@@ -10,7 +10,7 @@ export async function createCartRequest(): Promise<CartResponse> {
   const { data, error, response } = await browserClient.POST('/v1/carts');
 
   if (error || !data || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to create cart.');
+    await throwApiErrorFromResponse(response, 'Failed to create cart.', error);
   }
 
   return data;
@@ -28,7 +28,7 @@ export async function getCurrentCartRequest(): Promise<CartResponse | null> {
   }
 
   if (error || !data || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to load cart.');
+    await throwApiErrorFromResponse(response, 'Failed to load cart.', error);
   }
 
   return data as CartResponse;
@@ -42,7 +42,7 @@ export async function getCartRequest(id: number): Promise<CartResponse> {
   });
 
   if (error || !data || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to load cart.');
+    await throwApiErrorFromResponse(response, 'Failed to load cart.', error);
   }
 
   return data;
@@ -60,7 +60,11 @@ export async function addItemToCartRequest(
   });
 
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to add item to cart.');
+    await throwApiErrorFromResponse(
+      response,
+      'Failed to add item to cart.',
+      error,
+    );
   }
 }
 
@@ -83,6 +87,7 @@ export async function updateCartItemRequest(
     await throwApiErrorFromResponse(
       response,
       'Failed to update cart item quantity.',
+      error,
     );
   }
 }
@@ -104,6 +109,7 @@ export async function removeCartItemRequest(
     await throwApiErrorFromResponse(
       response,
       'Failed to remove cart item.',
+      error,
     );
   }
 }
@@ -116,6 +122,6 @@ export async function clearCartRequest(cartId: number): Promise<void> {
   });
 
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to clear cart.');
+    await throwApiErrorFromResponse(response, 'Failed to clear cart.', error);
   }
 }

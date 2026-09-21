@@ -152,7 +152,10 @@ describe('cart-api', () => {
 
       await expect(
         addItemToCartRequest(1, { productId: 5, quantity: 999 }),
-      ).rejects.toThrow();
+      ).rejects.toMatchObject({
+        statusCode: 422,
+        message: 'Insufficient stock',
+      });
     });
   });
 
@@ -173,6 +176,24 @@ describe('cart-api', () => {
           body: { quantity: 3 },
         },
       );
+    });
+
+    it('surfaces insufficient stock message from openapi error body', async () => {
+      mockClient.PATCH.mockResolvedValueOnce({
+        data: undefined,
+        error: {
+          statusCode: 422,
+          message: 'Insufficient stock for product. Available: 79',
+        },
+        response: new Response(null, { status: 422 }),
+      });
+
+      await expect(
+        updateCartItemRequest(1, 100, { quantity: 80 }),
+      ).rejects.toMatchObject({
+        statusCode: 422,
+        message: 'Insufficient stock for product. Available: 79',
+      });
     });
   });
 

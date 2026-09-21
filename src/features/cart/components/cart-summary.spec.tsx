@@ -27,7 +27,7 @@ describe('CartSummary', () => {
     );
 
     expect(screen.getByText('Order Summary')).toBeInTheDocument();
-    expect(screen.getByText('Subtotal (3 items)')).toBeInTheDocument();
+    expect(screen.getByText('Subtotal (3 units)')).toBeInTheDocument();
     expect(screen.getAllByText('$250.00')).toHaveLength(2); // subtotal & total
   });
 

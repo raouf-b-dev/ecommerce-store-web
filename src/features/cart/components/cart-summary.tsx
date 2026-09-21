@@ -42,7 +42,7 @@ export function CartSummary({
       <CardContent className="space-y-4 pt-4">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">
-            Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
+            Subtotal ({itemCount} {itemCount === 1 ? 'unit' : 'units'})
           </span>
           <span className="font-medium text-foreground">
             {formatMoney(subtotal, currency)}

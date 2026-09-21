@@ -20,7 +20,7 @@ describe('CartHeaderBadge', () => {
 
   it('renders 0 items label and no badge count when unauthenticated', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: false });
-    mockUseCart.mockReturnValue({ itemCount: 5 });
+    mockUseCart.mockReturnValue({ lineItemCount: 5 });
 
     render(<CartHeaderBadge />);
 
@@ -29,9 +29,9 @@ describe('CartHeaderBadge', () => {
     expect(screen.queryByText('5')).not.toBeInTheDocument();
   });
 
-  it('renders badge count when authenticated with items', () => {
+  it('renders badge count from line items when authenticated', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: true });
-    mockUseCart.mockReturnValue({ itemCount: 3 });
+    mockUseCart.mockReturnValue({ lineItemCount: 3 });
 
     render(<CartHeaderBadge />);
 
@@ -40,9 +40,21 @@ describe('CartHeaderBadge', () => {
     expect(screen.getByText('3')).toBeInTheDocument();
   });
 
-  it('renders 99+ when item count exceeds 99', () => {
+  it('pluralizes aria-label for a single line item', () => {
     mockUseAuth.mockReturnValue({ isAuthenticated: true });
-    mockUseCart.mockReturnValue({ itemCount: 105 });
+    mockUseCart.mockReturnValue({ lineItemCount: 1 });
+
+    render(<CartHeaderBadge />);
+
+    expect(
+      screen.getByRole('link', { name: /shopping cart, 1 item$/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
+  });
+
+  it('renders 99+ when line item count exceeds 99', () => {
+    mockUseAuth.mockReturnValue({ isAuthenticated: true });
+    mockUseCart.mockReturnValue({ lineItemCount: 105 });
 
     render(<CartHeaderBadge />);
 
