@@ -4,7 +4,7 @@
 >
 > Companions: [README.md](../README.md), [API-INTEGRATION.md](API-INTEGRATION.md), [ecommerce-store-api](https://github.com/raouf-b-dev/ecommerce-store-api).
 >
-> Revision (2026-09-08): Integer phases 0-14. Next.js 16 App Router architecture: TanStack Query is browser-only; catalog is RSC + Suspense; MSW mock preview covers both browser and Node runtimes.
+> Revision (2026-09-25): Phase 14 re-scoped to presentation (P1); hosted mock demo split into 14c. Next.js 16 App Router architecture: TanStack Query is browser-only; catalog is RSC + Suspense; MSW mock preview covers both browser and Node runtimes.
 
 ---
 
@@ -14,7 +14,7 @@
 - `[/]` in progress
 - `[x]` done
 - Finish each phase before starting the next.
-  - **Exceptions:** Phase 11 (order lifecycle verification) and Phase 14 (polish) do **not** block Phase 12 (release gate). Phase 13 (visuals) may record from Phase 10 mock, then re-verify after Phase 12.
+  - **Exceptions:** Phase 11 (order lifecycle verification), Phase 14 (polish), and Phase 14c (hosted mock demo) do **not** block Phase 12 (release gate). Phase 13 (visuals) may record from Phase 10 mock, then re-verify after Phase 12.
   - **Repeatable checklists** ([`RELEASE-GATE.md`](RELEASE-GATE.md)) stay unchecked; they are runbooks for manual verification, not phase status.
 - Keep business rules in the API. This repo is UI, routing, caching, and error mapping only.
 - For HTTP contracts, use **live OpenAPI/Swagger** (and the generated client). [API-INTEGRATION.md](API-INTEGRATION.md) covers client rules only, not an endpoint catalog.
@@ -22,9 +22,10 @@
 
 ## Next up
 
-Pick the first unchecked integer phase. Letter suffixes (`9b`-`9e`) are stable IDs - do not renumber them.
+Work this list top to bottom. Letter suffixes (`9b`-`9e`, `14c`) are stable IDs - do not renumber them.
 
 1. **Phase 14** - Storefront presentation and polish: make the shopper UI read as a real shop (imagery, merchandising homepage, filters, shop chrome). Does **not** block the release gate.
+2. **Phase 14c** - Hosted mock demo: `build:mock` / `start:mock`, a public server deploy, and a README link. Can start in parallel with 14; re-capture `docs/assets/` after 14.
 
 ---
 
@@ -72,7 +73,7 @@ Pin **latest stable** at scaffold time. Do not add backward-compat shims for Pag
 | Tests                      | Vitest + Testing Library + Playwright                                                                                                                                                                                                                                                 |
 | A11y lint                  | `eslint-plugin-jsx-a11y` + `eslint-plugin-react-hooks` (React 19 compatible) from Phase 0                                                                                                                                                                                             |
 
-**Ports (intent):** storefront `3100`, API `3000`. API CORS must allow `http://localhost:3100` with credentials.
+**Ports (intent):** storefront `3100`, API `3000`. API CORS must allow `http://localhost:3100` with credentials. While the API's optional monitoring stack still defaults `LOKI_HOST_PORT` to `3100`, set it to another port before running both.
 
 ---
 
@@ -175,15 +176,12 @@ The following patterns belong to administrative consoles and are explicitly **ex
 
 ## Pending work
 
-Pick the first unchecked phase. Phase 14 does not block the release gate.
+Pick the first unchecked phase. Phases 14 and 14c do not block the release gate.
 
-| Phase  | Name                                    | Status | Priority | Focus                                                                    |
-| ------ | --------------------------------------- | ------ | :------: | ------------------------------------------------------------------------ |
-| **10** | Standalone mock preview                 | `[x]`  |  `[P1]`  | MSW `dev:mock` (Playwright still needs a live API)                       |
-| **11** | End-to-end order lifecycle verification | `[x]`  |  `[P1]`  | Storefront checkout -> API order lifecycle -> polling confirmation       |
-| **12** | Release gate                            | `[x]`  |  `[P0]`  | Deploy/preview, stranger quick start, smoke                              |
-| **13** | Visual showcase                         | `[x]`  |  `[P1]`  | Hero recording, screenshots, README (assets folder + capture guide)      |
-| **14** | Storefront presentation & polish        | `[ ]`  |  `[P1]`  | Product imagery, merchandising home, filters, shop chrome, checkout copy |
+| Phase   | Name                             | Status | Priority | Focus                                                                    |
+| ------- | -------------------------------- | ------ | :------: | ------------------------------------------------------------------------ |
+| **14**  | Storefront presentation & polish | `[ ]`  |  `[P1]`  | Product imagery, merchandising home, filters, shop chrome, checkout copy |
+| **14c** | Hosted mock demo                 | `[ ]`  |  `[P1]`  | `build:mock` / `start:mock`, server deploy, demo banner, README link     |
 
 ---
 
@@ -202,7 +200,7 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 - [x] Worker / interceptor: `onUnhandledRequest: 'bypass'`, `quiet: true`
 - [x] Demo login chrome lazy-loaded only when mock is on. Persist a **flag** in `sessionStorage`, not an access token
 - [x] Realistic seed: active catalog, categories, one customer, cart, checkout → confirmed order
-- [x] Scripts: `dev:mock`, optional `build:mock` for a static demo
+- [x] Scripts: `dev:mock`. `build:mock` / `start:mock` moved to Phase 14c; the Node-runtime MSW preload rules out a static export.
 - [x] README badge for mock/demo. Playwright still targets a live API
 
 **Done when:** `npm run dev:mock` can browse, sign in, add to cart, and see a fake confirmation with the API process down.
@@ -278,12 +276,12 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 - [ ] **Shop chrome:** a neutral shop name in the header and a shopper footer (shop links, not developer or project wording). Keep `/status` out of shopper navigation
 - [ ] **Checkout copy and inputs:** country as a searchable select that submits ISO 3166-1 alpha-2; one shipping wording across cart, checkout, and confirmation driven by API totals; a proper heading on the confirmation state
 - [ ] **Mock demo sign-in:** the demo action signs in on click instead of only filling the fields (same Phase 10 gating: lazy-loaded, env-gated, flag not token)
-- [ ] **Hosted mock demo:** add a `build:mock` / `start:mock` pair (Phase 10 left it optional and it does not exist yet), deploy it as a public preview, and link it from the README. MSW must also run in the Node runtime for RSC, so this is a server deployment, not a static export. Payments stay mocked; update the README limits accordingly
 - [ ] **README trade-off note:** sign-in is required before adding to cart because the API has no guest cart (see Out of scope)
 
 **Depends on the API (do not work around in the client):**
 
 - Live product images on a fresh seed need the API seed to populate `imageUrl` for demo products. Until it does, live mode shows the placeholder.
+- API-served images load through `next/image` only from allowed hosts. Local dev already allows `localhost:3000`; any other API origin must be added to `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS` (see `src/lib/images/allowed-origins.ts` and `.env.example`).
 - Product gallery, category images, and product routes by slug need new API operations or fields. Adopt each only after it appears in OpenAPI and the client is regenerated.
 
 **Scope - later (optional):**
@@ -295,6 +293,24 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 **Done when:** in `dev:mock`, every catalog, cart, checkout, and order screen shows product imagery or the styled placeholder; the homepage merchandises categories; filters apply without a submit button; no shopper-facing text mentions the API, the project, or developer tooling. `docs/assets/` stills are re-captured afterwards.
 
 **Where:** `src/features/catalog/`, `src/features/cart/`, `src/features/checkout/`, `src/app/(shop)/`, `src/components/layout/`, `src/components/media/`, `src/lib/mock/`, `public/`
+
+---
+
+## Phase 14c: Hosted mock demo [P1]
+
+> Public zero-backend preview. MSW also runs in the Node runtime for RSC (`scripts/mock-server-preload.mjs`), so this is a server deployment (for example Vercel with `next start`), not a static export. Payments stay mocked. Does not block Phase 12.
+
+**Scope:**
+
+- [ ] **Scripts:** `build:mock` / `start:mock` using the same Node preload as `dev:mock`; production `build` / `start` unchanged and MSW-free
+- [ ] **Deploy:** one public preview from `master`; required env documented in `.env.example`
+- [ ] **Demo banner:** a visible "Demo data, resets on restart" banner in mock mode only
+- [ ] **README:** link the demo; update "Current limits" (hosted mock demo, mock payments, no live API)
+- [ ] **Later (live demo):** when the API offers a hosted demo environment, a live build that targets it: `NEXT_PUBLIC_*` API origin, the API host in `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS`, this origin registered in the API's CORS list, and hosting on a sibling subdomain of the API's domain so the refresh cookie reaches the API
+
+**Done when:** the README links a working hosted mock; browse → sign in → cart → checkout → confirmation works there; `npm run build` output has no MSW chunk.
+
+**Where:** `package.json`, `scripts/`, `src/lib/mock/`, `README.md`, `.env.example`
 
 ---
 
