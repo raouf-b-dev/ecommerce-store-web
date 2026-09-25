@@ -24,7 +24,7 @@
 
 Pick the first unchecked integer phase. Letter suffixes (`9b`-`9e`) are stable IDs - do not renumber them.
 
-1. **Phase 14** - Storefront polish (optional; does **not** block the release gate).
+1. **Phase 14** - Storefront presentation and polish: make the shopper UI read as a real shop (imagery, merchandising homepage, filters, shop chrome). Does **not** block the release gate.
 
 ---
 
@@ -182,7 +182,7 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 | **11** | End-to-end order lifecycle verification   | `[x]`  |  `[P1]`  | Storefront checkout -> API order lifecycle -> polling confirmation |
 | **12** | Release gate                              | `[x]`  |  `[P0]`  | Deploy/preview, stranger quick start, smoke                        |
 | **13** | Visual showcase                           | `[x]`  |  `[P1]`  | Hero recording, screenshots, README (assets folder + capture guide) |
-| **14** | Storefront polish                         | `[ ]`  |  `[P2]`  | Optional UX after the gate (empty-state guides, command palette)   |
+| **14** | Storefront presentation & polish          | `[ ]`  |  `[P1]`  | Product imagery, merchandising home, filters, shop chrome, checkout copy |
 
 ---
 
@@ -260,14 +260,40 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 
 ---
 
-## Phase 14: Storefront polish [P2]
+## Phase 14: Storefront presentation & polish [P1]
 
-> Optional. Does not block Phase 12.
+> Does not block Phase 12. Goal: a visitor sees a shop, not a developer demo. Use only fields OpenAPI already returns; missing capabilities are API work first (see the dependency notes below).
+
+**OpenAPI capabilities:** product `imageUrl` (nullable), categories, product list sort/filters, cart totals, checkout, own orders.
+
+**Scope - presentation:**
 
 - [x] Richer empty states / first-purchase guidance
+- [ ] **Product imagery everywhere:** render `imageUrl` on cards, product detail, cart, checkout summary, and order lines with one fixed aspect ratio. When `imageUrl` is `null`, show a styled placeholder (product initial + category tint), never a broken or empty box
+- [ ] **Mock image fixtures:** local files under `public/` referenced only by the MSW seed, so `dev:mock` shows a full catalog offline. Mock fixtures stay in this repo; they are not shared with the API
+- [ ] **Merchandising homepage:** hero, category tiles, and a "new arrivals" row built from existing category and product operations. No invented fields (category tiles use a representative product image until the API exposes a category image)
+- [ ] **Catalog filters:** compact filter bar (sheet on mobile) using shadcn `Select` instead of native selects; submit the existing GET form on change from a small client island so the URL stays the source of truth
+- [ ] **Product detail layout:** larger media area and a clear price / stock / add-to-cart hierarchy. Multi-image gallery waits on the API (see below)
+- [ ] **Shop chrome:** a neutral shop name in the header and a shopper footer (shop links, not developer or project wording). Keep `/status` out of shopper navigation
+- [ ] **Checkout copy and inputs:** country as a searchable select that submits ISO 3166-1 alpha-2; one shipping wording across cart, checkout, and confirmation driven by API totals; a proper heading on the confirmation state
+- [ ] **Mock demo sign-in:** the demo action signs in on click instead of only filling the fields (same Phase 10 gating: lazy-loaded, env-gated, flag not token)
+- [ ] **Hosted mock demo:** add a `build:mock` / `start:mock` pair (Phase 10 left it optional and it does not exist yet), deploy it as a public preview, and link it from the README. MSW must also run in the Node runtime for RSC, so this is a server deployment, not a static export. Payments stay mocked; update the README limits accordingly
+- [ ] **README trade-off note:** sign-in is required before adding to cart because the API has no guest cart (see Out of scope)
+
+**Depends on the API (do not work around in the client):**
+
+- Live product images on a fresh seed need the API seed to populate `imageUrl` for demo products. Until it does, live mode shows the placeholder.
+- Product gallery, category images, and product routes by slug need new API operations or fields. Adopt each only after it appears in OpenAPI and the client is regenerated.
+
+**Scope - later (optional):**
+
 - [ ] Command palette or keyboard product search (only if catalog search is already URL-driven)
 - [ ] View Transitions / React 19 `Activity` where they improve real navigation, not decoration
 - [ ] Customer-facing WebSocket for own-order updates **only if** the API documents a shopper event. If added: authenticate via `auth: { token }` on the Socket.IO handshake, connect on session / disconnect on logout, and invalidate customer order query keys. Otherwise keep Phase 7 polling.
+
+**Done when:** in `dev:mock`, every catalog, cart, checkout, and order screen shows product imagery or the styled placeholder; the homepage merchandises categories; filters apply without a submit button; no shopper-facing text mentions the API, the project, or developer tooling. `docs/assets/` stills are re-captured afterwards.
+
+**Where:** `src/features/catalog/`, `src/features/cart/`, `src/features/checkout/`, `src/app/(shop)/`, `src/components/layout/`, `src/components/media/`, `src/lib/mock/`, `public/`
 
 ---
 
