@@ -6,6 +6,20 @@ Thanks for your interest in improving the customer storefront. This repository i
 
 By participating, you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
+## Contributor License Agreement
+
+This project is dual-licensed. Read [LICENSING.md](LICENSING.md) and [CLA.md](CLA.md) before you contribute.
+
+The first time you open a pull request, CLA Assistant asks you to sign. Reply on that pull request with this exact sentence:
+
+```text
+I have read the CLA Document and I hereby sign the CLA
+```
+
+That comment is your signature. The maintainer (`raouf-b-dev`), Dependabot (`dependabot[bot]`), and other GitHub bots (usernames matching `*[bot]`) are allowlisted and do not sign.
+
+Signatures are stored in `signatures/version1/cla.json` on the `cla-signatures` branch. They are not stored on `master`, because `master` is protected by rulesets that require pull requests and signed commits. Do not add the signature file on `master`. The workflow creates it on `cla-signatures` when the first contributor signs.
+
 ## How we accept changes
 
 1. **Fork** this repository (write access on the upstream is not expected).
@@ -58,6 +72,7 @@ Playwright needs a live API; see [`e2e/README.md`](e2e/README.md). Prefer unit/c
 ### PR checklist
 
 - [ ] Targets `develop` from a fork branch
+- [ ] First-time contributors: CLA signed with the comment in [CLA.md](CLA.md)
 - [ ] Lint, typecheck, and unit tests pass locally
 - [ ] OpenAPI client regenerated if the contract changed
 - [ ] No secrets in `NEXT_PUBLIC_*` or committed env files

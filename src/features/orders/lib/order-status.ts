@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import type { OrderStatus } from '@/features/orders/types';
 
 export const TERMINAL_SUCCESS_STATUSES: readonly OrderStatus[] = [

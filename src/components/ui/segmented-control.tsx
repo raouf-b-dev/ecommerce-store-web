@@ -1,4 +1,6 @@
 'use client';
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
 
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';

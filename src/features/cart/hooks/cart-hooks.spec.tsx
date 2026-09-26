@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

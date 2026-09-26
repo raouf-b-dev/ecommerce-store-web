@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Safely serializes data to a JSON string for insertion into an HTML
  * <script type="application/ld+json"> tag, escaping dangerous characters

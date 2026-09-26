@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { generateMetadata } from '@/app/(shop)/products/[id]/page';
 import * as getProductModule from '@/features/catalog/api/get-product';

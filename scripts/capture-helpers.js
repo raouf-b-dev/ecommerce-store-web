@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 export const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3100';
 export const THEME_STORAGE_KEY = 'store-ui-theme';
 

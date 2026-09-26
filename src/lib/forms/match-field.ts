@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Match a class-validator / API validation line to a known form field name.
  * Longer / more specific names should be listed first when they share prefixes

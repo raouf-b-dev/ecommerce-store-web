@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 const AUTH_LOOP_PREFIXES = ['/login', '/register', '/change-password'] as const;
 
 export function safeRedirectPath(value: string | null | undefined): string {

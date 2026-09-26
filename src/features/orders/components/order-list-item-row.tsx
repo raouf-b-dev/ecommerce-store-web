@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import Link from 'next/link';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { formatDateTime, formatMoney } from '@/lib/format';
