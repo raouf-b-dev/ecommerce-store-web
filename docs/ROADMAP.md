@@ -4,7 +4,7 @@
 >
 > Companions: [README.md](../README.md), [API-INTEGRATION.md](API-INTEGRATION.md), [ecommerce-store-api](https://github.com/raouf-b-dev/ecommerce-store-api).
 >
-> Revision (2026-09-08): Integer phases 0-14. Next.js 16 App Router architecture: TanStack Query is browser-only; catalog is RSC + Suspense; MSW mock preview covers both browser and Node runtimes.
+> Revision (2026-09-25): Phase 14 re-scoped to presentation (P1); hosted mock demo split into 14c. Next.js 16 App Router architecture: TanStack Query is browser-only; catalog is RSC + Suspense; MSW mock preview covers both browser and Node runtimes.
 
 ---
 
@@ -14,7 +14,7 @@
 - `[/]` in progress
 - `[x]` done
 - Finish each phase before starting the next.
-  - **Exceptions:** Phase 11 (order lifecycle verification) and Phase 14 (polish) do **not** block Phase 12 (release gate). Phase 13 (visuals) may record from Phase 10 mock, then re-verify after Phase 12.
+  - **Exceptions:** Phase 11 (order lifecycle verification), Phase 14 (polish), and Phase 14c (hosted mock demo) do **not** block Phase 12 (release gate). Phase 13 (visuals) may record from Phase 10 mock, then re-verify after Phase 12.
   - **Repeatable checklists** ([`RELEASE-GATE.md`](RELEASE-GATE.md)) stay unchecked; they are runbooks for manual verification, not phase status.
 - Keep business rules in the API. This repo is UI, routing, caching, and error mapping only.
 - For HTTP contracts, use **live OpenAPI/Swagger** (and the generated client). [API-INTEGRATION.md](API-INTEGRATION.md) covers client rules only, not an endpoint catalog.
@@ -22,9 +22,10 @@
 
 ## Next up
 
-Pick the first unchecked integer phase. Letter suffixes (`9b`-`9e`) are stable IDs - do not renumber them.
+Work this list top to bottom. Letter suffixes (`9b`-`9e`, `14c`) are stable IDs - do not renumber them.
 
 1. **Phase 14** - Storefront presentation and polish: make the shopper UI read as a real shop (imagery, merchandising homepage, filters, shop chrome). Does **not** block the release gate.
+2. **Phase 14c** - Hosted mock demo: `build:mock` / `start:mock`, a public server deploy, and a README link. Can start in parallel with 14; re-capture `docs/assets/` after 14.
 
 ---
 
@@ -55,24 +56,24 @@ A feature phase is not done until its **Done when** checks pass.
 
 Pin **latest stable** at scaffold time. Do not add backward-compat shims for Pages Router or implicit App Router fetch cache.
 
-| Concern                    | Choice                                                                                                                                                                                                                                                 |
-| :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runtime                    | Node.js 24                                                                                                                                                                                                                                             |
-| Framework                  | Next.js 16 App Router (`create-next-app@latest`). Turbopack default. `cacheComponents: true`.                                                                                                                                                          |
-| UI                         | React 19 (whatever Next 16 ships). TypeScript strict (`noUncheckedIndexedAccess`).                                                                                                                                                                     |
-| Bundling / lint            | Turbopack; ESLint flat config (`eslint .` - do **not** use removed `next lint`)                                                                                                                                                                        |
-| Styling                    | Tailwind CSS v4 + shadcn/ui (Radix). Configured natively for Next.js App Router.                                                                                                                                                                       |
-| Rendering                  | Server Components by default. `"use client"` only for session, forms, cart, checkout, and other interactivity.                                                                                                                                         |
-| Public reads               | RSC fetchers in `features/*/api/` with `import 'server-only'`. Catalog is unauthenticated on purpose. **No** TanStack Query hydration for catalog.                                                                                                     |
-| Authenticated reads/writes | Browser `openapi-fetch` client + TanStack Query. **Not** Server Actions as an API proxy (that is a BFF).                                                                                                                                               |
+| Concern                    | Choice                                                                                                                                                                                                                                                                                |
+| :------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Runtime                    | Node.js 24                                                                                                                                                                                                                                                                            |
+| Framework                  | Next.js 16 App Router (`create-next-app@latest`). Turbopack default. `cacheComponents: true`.                                                                                                                                                                                         |
+| UI                         | React 19 (whatever Next 16 ships). TypeScript strict (`noUncheckedIndexedAccess`).                                                                                                                                                                                                    |
+| Bundling / lint            | Turbopack; ESLint flat config (`eslint .` - do **not** use removed `next lint`)                                                                                                                                                                                                       |
+| Styling                    | Tailwind CSS v4 + shadcn/ui (Radix). Configured natively for Next.js App Router.                                                                                                                                                                                                      |
+| Rendering                  | Server Components by default. `"use client"` only for session, forms, cart, checkout, and other interactivity.                                                                                                                                                                        |
+| Public reads               | RSC fetchers in `features/*/api/` with `import 'server-only'`. Catalog is unauthenticated on purpose. **No** TanStack Query hydration for catalog.                                                                                                                                    |
+| Authenticated reads/writes | Browser `openapi-fetch` client + TanStack Query. **Not** Server Actions as an API proxy (that is a BFF).                                                                                                                                                                              |
 | QueryClient                | Query is **browser-only** in v1 (no catalog hydration). A client `Providers` creates per-server-render clients and reuses one module instance only in the browser (`getQueryClient`) so Suspense cannot discard it and SSR users never share cache. Do **not** import Query from RSC. |
-| Local UI state             | React state. Session via `AuthProvider`. **No Zustand** unless a later phase proves a real cross-tree UI need that is not server state. React Compiler on by default; avoid manual `useMemo`/`useCallback` by default.                                    |
-| Forms                      | React Hook Form + Zod (current major the current shadcn/RHF resolver supports). Align to OpenAPI DTOs.                                                                                                                                                 |
-| API                        | `openapi-fetch` + generated `schema.d.ts`                                                                                                                                                                                                              |
-| Tests                      | Vitest + Testing Library + Playwright                                                                                                                                                                                                                  |
-| A11y lint                  | `eslint-plugin-jsx-a11y` + `eslint-plugin-react-hooks` (React 19 compatible) from Phase 0                                                                                                                                                              |
+| Local UI state             | React state. Session via `AuthProvider`. **No Zustand** unless a later phase proves a real cross-tree UI need that is not server state. React Compiler on by default; avoid manual `useMemo`/`useCallback` by default.                                                                |
+| Forms                      | React Hook Form + Zod (current major the current shadcn/RHF resolver supports). Align to OpenAPI DTOs.                                                                                                                                                                                |
+| API                        | `openapi-fetch` + generated `schema.d.ts`                                                                                                                                                                                                                                             |
+| Tests                      | Vitest + Testing Library + Playwright                                                                                                                                                                                                                                                 |
+| A11y lint                  | `eslint-plugin-jsx-a11y` + `eslint-plugin-react-hooks` (React 19 compatible) from Phase 0                                                                                                                                                                                             |
 
-**Ports (intent):** storefront `3100`, API `3000`. API CORS must allow `http://localhost:3100` with credentials.
+**Ports (intent):** storefront `3100`, API `3000`. API CORS must allow `http://localhost:3100` with credentials. While the API's optional monitoring stack still defaults `LOKI_HOST_PORT` to `3100`, set it to another port before running both.
 
 ---
 
@@ -80,24 +81,24 @@ Pin **latest stable** at scaffold time. Do not add backward-compat shims for Pag
 
 These decisions are locked here so phases do not fork.
 
-| Rule                       | Detail                                                                                                                                                                                                                                         |
-| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No BFF                     | No Next Route Handlers or Server Actions that forward cookies/tokens to the API. Storefront UI communicates directly with the API.                                                                                                             |
+| Rule                              | Detail                                                                                                                                                                                                                                                                                                                                         |
+| :-------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No BFF                            | No Next Route Handlers or Server Actions that forward cookies/tokens to the API. Storefront UI communicates directly with the API.                                                                                                                                                                                                             |
 | Security headers & auth placement | Security headers in `next.config.ts` `headers()`. Static redirects in `redirects()`. Client session gates for protected routes ([ADR-0006](architecture/adr/ADR-0006-security-headers-and-client-auth.md)). Resource 404s via App Router `notFound()` before streaming ([ADR-0008](architecture/adr/ADR-0008-resource-404-via-app-router.md)). |
-| Two HTTP clients           | **Browser** client: cookies + Bearer + 401 recovery. **Server** client: `import 'server-only'`, no `credentials`, no Bearer, no login redirect. Do not one-file both with `typeof window` branches.                                            |
-| RSC freshness              | With `cacheComponents`, wrap catalog fetch UI in `<Suspense>` so chrome is the static shell. Deduplicate `generateMetadata` + page with React `cache()`. After cart/checkout mutations, `router.refresh()` so RSC inventory/HTML is not stale. |
-| 401 / force-password       | The `openapi-fetch` browser interceptor redirects via `window.location.assign` on low-level unrecoverable auth failures. Form success (login, logout, change-password) uses `router.push` + `router.refresh()`.                                       |
-| Access token               | In-memory only (ADR-0002). Refresh via HttpOnly cookie on the **API** origin + `credentials: 'include'`. Next `cookies()` will not see it.                                                                                                   |
-| Silent refresh             | Domain `401`: single-flight refresh + one retry (ADR-0003). Never silent-retry `/authentication/*`.                                                                                                                                            |
-| RSC catalog                | Fetch **without** the shopper Bearer so `CatalogVisibilityPolicy` always sees a shopper (active-only). Sending an operator token from the server would leak inactive products into the storefront.                                             |
-| Catalog filters            | Server `searchParams` + Next `next/form` GET or `<Link href>`. Do **not** use client-side `useSearchParams` + `setSearchParams` which forces catalog rendering into client components.                                                         |
-| Cart                       | API requires `manage_own_cart`. **No guest line-item basket.** Authenticated load is `GET /v1/carts/current` (**404 → empty `null`**, never an error banner). Create-on-add is `POST /v1/carts`. Do not persist a cart id in `localStorage`. |
-| Checkout                   | `POST /v1/orders/checkout` is **async**. HTTP 201 returns `orderId` + `jobId`. Persist `?orderId=` in the URL. There is **no** public job-status route. Poll `GET` order by id until a documented status. Hold the idempotency key until **terminal** success. Do not invent `PENDING → PROCESSING → COMPLETED`. |
-| Product URLs               | OpenAPI product detail is by **numeric id**. `slug` is a field, not a lookup. Use `/products/[id]`. Do not build a client-side slug index.                                                                                                     |
-| Query parity               | Bind every list query param the **current** OpenAPI DTO already accepts in the same phase as the list. URL search params are the source of truth.                                                                                              |
-| Errors                     | Shared RFC 9110 helpers. Map payloads; do not re-validate domain rules. RSC failures use `error.tsx` / `not-found.tsx`. `QueryStateAlert` is for **client Query** only.                                                                        |
-| Shell                      | Document/body scroll for the storefront. Standard natural scrolling (avoid viewport-locked `h-screen overflow-hidden` layouts).                                                                                                                 |
-| DRY                        | No barrel `index.ts`. No cross-feature re-export shims. Pages in `src/app` stay thin.                                                                                                                                                          |
+| Two HTTP clients                  | **Browser** client: cookies + Bearer + 401 recovery. **Server** client: `import 'server-only'`, no `credentials`, no Bearer, no login redirect. Do not one-file both with `typeof window` branches.                                                                                                                                            |
+| RSC freshness                     | With `cacheComponents`, wrap catalog fetch UI in `<Suspense>` so chrome is the static shell. Deduplicate `generateMetadata` + page with React `cache()`. After cart/checkout mutations, `router.refresh()` so RSC inventory/HTML is not stale.                                                                                                 |
+| 401 / force-password              | The `openapi-fetch` browser interceptor redirects via `window.location.assign` on low-level unrecoverable auth failures. Form success (login, logout, change-password) uses `router.push` + `router.refresh()`.                                                                                                                                |
+| Access token                      | In-memory only (ADR-0002). Refresh via HttpOnly cookie on the **API** origin + `credentials: 'include'`. Next `cookies()` will not see it.                                                                                                                                                                                                     |
+| Silent refresh                    | Domain `401`: single-flight refresh + one retry (ADR-0003). Never silent-retry `/authentication/*`.                                                                                                                                                                                                                                            |
+| RSC catalog                       | Fetch **without** the shopper Bearer so `CatalogVisibilityPolicy` always sees a shopper (active-only). Sending an operator token from the server would leak inactive products into the storefront.                                                                                                                                             |
+| Catalog filters                   | Server `searchParams` + Next `next/form` GET or `<Link href>`. Do **not** use client-side `useSearchParams` + `setSearchParams` which forces catalog rendering into client components.                                                                                                                                                         |
+| Cart                              | API requires `manage_own_cart`. **No guest line-item basket.** Authenticated load is `GET /v1/carts/current` (**404 → empty `null`**, never an error banner). Create-on-add is `POST /v1/carts`. Do not persist a cart id in `localStorage`.                                                                                                   |
+| Checkout                          | `POST /v1/orders/checkout` is **async**. HTTP 201 returns `orderId` + `jobId`. Persist `?orderId=` in the URL. There is **no** public job-status route. Poll `GET` order by id until a documented status. Hold the idempotency key until **terminal** success. Do not invent `PENDING → PROCESSING → COMPLETED`.                               |
+| Product URLs                      | OpenAPI product detail is by **numeric id**. `slug` is a field, not a lookup. Use `/products/[id]`. Do not build a client-side slug index.                                                                                                                                                                                                     |
+| Query parity                      | Bind every list query param the **current** OpenAPI DTO already accepts in the same phase as the list. URL search params are the source of truth.                                                                                                                                                                                              |
+| Errors                            | Shared RFC 9110 helpers. Map payloads; do not re-validate domain rules. RSC failures use `error.tsx` / `not-found.tsx`. `QueryStateAlert` is for **client Query** only.                                                                                                                                                                        |
+| Shell                             | Document/body scroll for the storefront. Standard natural scrolling (avoid viewport-locked `h-screen overflow-hidden` layouts).                                                                                                                                                                                                                |
+| DRY                               | No barrel `index.ts`. No cross-feature re-export shims. Pages in `src/app` stay thin.                                                                                                                                                                                                                                                          |
 
 Exact client rules: [API-INTEGRATION.md](API-INTEGRATION.md).
 
@@ -107,35 +108,36 @@ Exact client rules: [API-INTEGRATION.md](API-INTEGRATION.md).
 
 The storefront's core modules are organized under `src/lib/` and `src/components/`, separating server-side rendering concerns from client-side state and token lifecycle:
 
-| Module | Responsibility | Rendering Boundary |
-| :--- | :--- | :--- |
-| `src/lib/api/browser-client.ts` | Browser `openapi-fetch` client. Attaches Bearer token, sets `credentials: 'include'`, proactively refreshes expiring tokens, and performs single-flight 401 recovery. Redirects on unrecoverable 401 or forced password change. | Client only (browser) |
-| `src/lib/api/server-client.ts` | Server-only `openapi-fetch` client (`import 'server-only'`). Unauthenticated; sends no cookies and no Bearer token. Used for catalog reads and `/status` diagnostics. | Server Components only |
-| `src/lib/api/silent-refresh.ts` | Raw `fetch` refresh implementation (avoids client interceptor re-entry). Implements single-flight promise reuse (`inFlightRefresh`) and Web Lock cross-tab synchronization. Fires `onSessionRefreshed` listener bus. | Client only (browser) |
-| `src/lib/api/parse-api-error.ts` | RFC 9110 error parsing: `ApiRequestError`, `getErrorMessage`, `getErrorStatusCode`, `hasHttpStatus`, `isClientError`, `isServerError`, `isOptimisticLockConflict`. | Universal |
-| `src/lib/api/throw-api-error.ts` | Standardized error throwing: `throwApiErrorFromResponse` and `throwTooManyRequests` for consistent error handling in feature API wrappers. | Client only (browser) |
-| `src/lib/api/form-api-errors.ts` | Form error mapper: `applyApiFormErrors` and `matchField`. Automatically sets RHF field errors from RFC 9110 problem details; skips inline field errors on optimistic lock conflict (`409`). | Client only (browser) |
-| `src/lib/auth/auth-session.ts` | In-memory storage for JWT access token. Accessible only in the browser runtime; never stored in localStorage. | Client only (browser) |
-| `src/lib/auth/auth-context.tsx` | `AuthProvider` managing `['auth', 'session']` via TanStack Query. Configures `staleTime: Infinity`, zero retries on 4xx, proactive JWT-expiration refresh, and clean cache teardown on logout. | Client only (browser) |
-| `src/lib/auth/auth-guard.tsx` | Layout guards: `ProtectedRoute` and `GuestRoute` enforcing authentication requirements with safe redirects. | Client only (browser) |
-| `src/lib/auth/safe-redirect-path.ts` | URL sanitizer: ensures redirect targets are same-origin relative paths (`/...`), rejecting `//` protocol-relative paths and `/login` or `/change-password` loops. | Universal |
-| `src/app/providers.tsx` | Application providers: ThemeProvider, client QueryClient manager (`getQueryClient()` with browser singleton reuse and per-render SSR isolation), AuthProvider, and ThemeAwareToaster. | Client only (browser) |
-| `src/components/feedback/query-state.tsx` | Query feedback components: `QueryStateAlert` (handles soft vs hard error states based on `hasData`), `QueryLoading`, and `QueryListRegion` (`aria-busy`). | Client only (browser) |
-| `src/components/feedback/action-error-alert.tsx` | Mutation error alert with `aria-live="polite"` for forms and dialogs. | Client only (browser) |
-| `src/components/layout/storefront-chrome.tsx` | Storefront layout: skip link to `#main`, accessible header, navigation, and footer. | Universal |
-| `src/components/layout/focus-main-on-navigate.tsx` | Accessible focus manager: moves focus to `#main` on App Router pathname changes. | Client only (browser) |
-| `src/components/theme/*` | Light/Dark/System theme system using `useSyncExternalStore`, inline zero-FOUC script in root layout, and Sonner `ThemeAwareToaster`. Key: `store-ui-theme`. | Universal / Client |
-| `src/lib/format.ts` | Formatting helpers: `formatMoney`, `formatDate`, `formatDateTime`, `formatStatusLabel` (defaulting to `en-US` locale). | Universal |
-| `src/lib/list-filters.ts` | URL query parsing: typed numeric and boolean query parameter helpers (`parsePositiveInt`, `parseNonNegativeNumber`, `parseIsActiveParam`). | Universal |
-| `src/lib/utils.ts` | Class utility: re-exports `cn` from the `cn` package. | Universal |
-| `src/components/ui/status-badge.tsx` | Visual badges for order status (OpenAPI `OrderStatus`). Reused in checkout confirmation and Phase 8 orders. | Universal |
-| `scripts/generate-api-client.js` | Script generating `src/lib/api/generated/schema.d.ts` from live OpenAPI/Swagger documentation. | Build tooling |
-| `scripts/generate-env.js` | Template initialization: generates `.env.local` and `.secrets` from `.env.example` and `.secrets.example`. | Build tooling |
-| `e2e/global-setup.ts` + `e2e/README.md` | Playwright setup: API connectivity, optional `db:seed:auth` (skip with `E2E_SKIP_DB_SEED`), login throttle (~61s), secrets. | Testing harness |
+| Module                                             | Responsibility                                                                                                                                                                                                                  | Rendering Boundary     |
+| :------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------- |
+| `src/lib/api/browser-client.ts`                    | Browser `openapi-fetch` client. Attaches Bearer token, sets `credentials: 'include'`, proactively refreshes expiring tokens, and performs single-flight 401 recovery. Redirects on unrecoverable 401 or forced password change. | Client only (browser)  |
+| `src/lib/api/server-client.ts`                     | Server-only `openapi-fetch` client (`import 'server-only'`). Unauthenticated; sends no cookies and no Bearer token. Used for catalog reads and `/status` diagnostics.                                                           | Server Components only |
+| `src/lib/api/silent-refresh.ts`                    | Raw `fetch` refresh implementation (avoids client interceptor re-entry). Implements single-flight promise reuse (`inFlightRefresh`) and Web Lock cross-tab synchronization. Fires `onSessionRefreshed` listener bus.            | Client only (browser)  |
+| `src/lib/api/parse-api-error.ts`                   | RFC 9110 error parsing: `ApiRequestError`, `getErrorMessage`, `getErrorStatusCode`, `hasHttpStatus`, `isClientError`, `isServerError`, `isOptimisticLockConflict`.                                                              | Universal              |
+| `src/lib/api/throw-api-error.ts`                   | Standardized error throwing: `throwApiErrorFromResponse` and `throwTooManyRequests` for consistent error handling in feature API wrappers.                                                                                      | Client only (browser)  |
+| `src/lib/api/form-api-errors.ts`                   | Form error mapper: `applyApiFormErrors` and `matchField`. Automatically sets RHF field errors from RFC 9110 problem details; skips inline field errors on optimistic lock conflict (`409`).                                     | Client only (browser)  |
+| `src/lib/auth/auth-session.ts`                     | In-memory storage for JWT access token. Accessible only in the browser runtime; never stored in localStorage.                                                                                                                   | Client only (browser)  |
+| `src/lib/auth/auth-context.tsx`                    | `AuthProvider` managing `['auth', 'session']` via TanStack Query. Configures `staleTime: Infinity`, zero retries on 4xx, proactive JWT-expiration refresh, and clean cache teardown on logout.                                  | Client only (browser)  |
+| `src/lib/auth/auth-guard.tsx`                      | Layout guards: `ProtectedRoute` and `GuestRoute` enforcing authentication requirements with safe redirects.                                                                                                                     | Client only (browser)  |
+| `src/lib/auth/safe-redirect-path.ts`               | URL sanitizer: ensures redirect targets are same-origin relative paths (`/...`), rejecting `//` protocol-relative paths and `/login` or `/change-password` loops.                                                               | Universal              |
+| `src/app/providers.tsx`                            | Application providers: ThemeProvider, client QueryClient manager (`getQueryClient()` with browser singleton reuse and per-render SSR isolation), AuthProvider, and ThemeAwareToaster.                                           | Client only (browser)  |
+| `src/components/feedback/query-state.tsx`          | Query feedback components: `QueryStateAlert` (handles soft vs hard error states based on `hasData`), `QueryLoading`, and `QueryListRegion` (`aria-busy`).                                                                       | Client only (browser)  |
+| `src/components/feedback/action-error-alert.tsx`   | Mutation error alert with `aria-live="polite"` for forms and dialogs.                                                                                                                                                           | Client only (browser)  |
+| `src/components/layout/storefront-chrome.tsx`      | Storefront layout: skip link to `#main`, accessible header, navigation, and footer.                                                                                                                                             | Universal              |
+| `src/components/layout/focus-main-on-navigate.tsx` | Accessible focus manager: moves focus to `#main` on App Router pathname changes.                                                                                                                                                | Client only (browser)  |
+| `src/components/theme/*`                           | Light/Dark/System theme system using `useSyncExternalStore`, inline zero-FOUC script in root layout, and Sonner `ThemeAwareToaster`. Key: `store-ui-theme`.                                                                     | Universal / Client     |
+| `src/lib/format.ts`                                | Formatting helpers: `formatMoney`, `formatDate`, `formatDateTime`, `formatStatusLabel` (defaulting to `en-US` locale).                                                                                                          | Universal              |
+| `src/lib/list-filters.ts`                          | URL query parsing: typed numeric and boolean query parameter helpers (`parsePositiveInt`, `parseNonNegativeNumber`, `parseIsActiveParam`).                                                                                      | Universal              |
+| `src/lib/utils.ts`                                 | Class utility: re-exports `cn` from the `cn` package.                                                                                                                                                                           | Universal              |
+| `src/components/ui/status-badge.tsx`               | Visual badges for order status (OpenAPI `OrderStatus`). Reused in checkout confirmation and Phase 8 orders.                                                                                                                     | Universal              |
+| `scripts/generate-api-client.js`                   | Script generating `src/lib/api/generated/schema.d.ts` from live OpenAPI/Swagger documentation.                                                                                                                                  | Build tooling          |
+| `scripts/generate-env.js`                          | Template initialization: generates `.env.local` and `.secrets` from `.env.example` and `.secrets.example`.                                                                                                                      | Build tooling          |
+| `e2e/global-setup.ts` + `e2e/README.md`            | Playwright setup: API connectivity, optional `db:seed:auth` (skip with `E2E_SKIP_DB_SEED`), login throttle (~61s), secrets.                                                                                                     | Testing harness        |
 
 ### Storefront Architectural Boundaries & Exclusions
 
 The following patterns belong to administrative consoles and are explicitly **excluded** from this customer storefront:
+
 - Operator role guards (`OperatorRoute`, `PermissionRoute`, navigation permission matrices)
 - Heavy administrative data tables (e.g. TanStack Table with complex multi-sort or column reordering)
 - Operator charting dashboards and metric summaries
@@ -149,40 +151,37 @@ The following patterns belong to administrative consoles and are explicitly **ex
 
 > Full checklists for Phases 0-9 (including 9b-9e) are collapsed. History is in git. IDs stay; do not renumber.
 
-| Phase  | Name                                      | Status | Focus                                                              |
-| ------ | ----------------------------------------- | ------ | ------------------------------------------------------------------ |
-| **0**  | Foundation                                | Done   | Next 16 scaffold, tooling, tests, OpenAPI client, Cache Components |
-| **1**  | Agent ecosystem and conventions           | Done   | AGENT policy, Next-specific CONVENTIONS, ADR template, adapters    |
-| **2**  | App shell                                 | Done   | Layouts, chrome, error/loading, theme, health page                 |
-| **3**  | Authentication and session                | Done   | Login, register, silent refresh, customer chrome                   |
-| **4**  | Forced password change                    | Done   | Seeded customer `mustChangePassword` (do not skip)               |
-| **5**  | Catalog                                   | Done   | RSC list/detail, categories, query parity, SEO                     |
-| **6**  | Cart                                      | Done   | Authenticated cart: `GET /v1/carts/current` (404 = empty)        |
-| **7**  | Checkout                                  | Done   | Idempotency + `?orderId=` polling + confirmation                 |
-| **8**  | Orders and account                        | Done   | Own orders, `GET /v1/users/me`, address book                     |
-| **9**  | Quality sweep                             | Done   | Full journey, a11y, consistency, CI e2e policy                     |
-| **9b** | Staff conventions                         | Done   | CONVENTIONS + ANTI-PATTERNS + ESLint lib must not import features  |
-| **9c** | API-independent correctness               | Done   | Checkout `?orderId=`, idempotency key, image allowlist, `/` links |
-| **9d** | Consume API shopper contract              | Done   | `GET /me`, current cart, shopper inventory; drop workarounds     |
-| **9e** | Layering, DRY, tests                      | Done   | Slot composition, shared helpers, typed factories                  |
-| **10** | Standalone mock preview                   | Done   | MSW `dev:mock` (browser + Node); Playwright still needs live API |
-| **11** | End-to-end order lifecycle verification   | Done   | Checkout → polling; [`ORDER-VERIFICATION.md`](ORDER-VERIFICATION.md) |
-| **12** | Release gate                              | Done   | Stranger quickstart; [`RELEASE-GATE.md`](RELEASE-GATE.md) runbook |
-| **13** | Visual showcase                           | Done   | Hero WebP, Retina stills, README embeds; [`docs/assets/`](assets/)  |
+| Phase  | Name                                    | Status | Focus                                                                |
+| ------ | --------------------------------------- | ------ | -------------------------------------------------------------------- |
+| **0**  | Foundation                              | Done   | Next 16 scaffold, tooling, tests, OpenAPI client, Cache Components   |
+| **1**  | Agent ecosystem and conventions         | Done   | AGENT policy, Next-specific CONVENTIONS, ADR template, adapters      |
+| **2**  | App shell                               | Done   | Layouts, chrome, error/loading, theme, health page                   |
+| **3**  | Authentication and session              | Done   | Login, register, silent refresh, customer chrome                     |
+| **4**  | Forced password change                  | Done   | Seeded customer `mustChangePassword` (do not skip)                   |
+| **5**  | Catalog                                 | Done   | RSC list/detail, categories, query parity, SEO                       |
+| **6**  | Cart                                    | Done   | Authenticated cart: `GET /v1/carts/current` (404 = empty)            |
+| **7**  | Checkout                                | Done   | Idempotency + `?orderId=` polling + confirmation                     |
+| **8**  | Orders and account                      | Done   | Own orders, `GET /v1/users/me`, address book                         |
+| **9**  | Quality sweep                           | Done   | Full journey, a11y, consistency, CI e2e policy                       |
+| **9b** | Staff conventions                       | Done   | CONVENTIONS + ANTI-PATTERNS + ESLint lib must not import features    |
+| **9c** | API-independent correctness             | Done   | Checkout `?orderId=`, idempotency key, image allowlist, `/` links    |
+| **9d** | Consume API shopper contract            | Done   | `GET /me`, current cart, shopper inventory; drop workarounds         |
+| **9e** | Layering, DRY, tests                    | Done   | Slot composition, shared helpers, typed factories                    |
+| **10** | Standalone mock preview                 | Done   | MSW `dev:mock` (browser + Node); Playwright still needs live API     |
+| **11** | End-to-end order lifecycle verification | Done   | Checkout → polling; [`ORDER-VERIFICATION.md`](ORDER-VERIFICATION.md) |
+| **12** | Release gate                            | Done   | Stranger quickstart; [`RELEASE-GATE.md`](RELEASE-GATE.md) runbook    |
+| **13** | Visual showcase                         | Done   | Hero WebP, Retina stills, README embeds; [`docs/assets/`](assets/)   |
 
 ---
 
 ## Pending work
 
-Pick the first unchecked phase. Phase 14 does not block the release gate.
+Pick the first unchecked phase. Phases 14 and 14c do not block the release gate.
 
-| Phase  | Name                                      | Status | Priority | Focus                                                              |
-| ------ | ----------------------------------------- | ------ | :------: | ------------------------------------------------------------------ |
-| **10** | Standalone mock preview                   | `[x]`  |  `[P1]`  | MSW `dev:mock` (Playwright still needs a live API)                 |
-| **11** | End-to-end order lifecycle verification   | `[x]`  |  `[P1]`  | Storefront checkout -> API order lifecycle -> polling confirmation |
-| **12** | Release gate                              | `[x]`  |  `[P0]`  | Deploy/preview, stranger quick start, smoke                        |
-| **13** | Visual showcase                           | `[x]`  |  `[P1]`  | Hero recording, screenshots, README (assets folder + capture guide) |
-| **14** | Storefront presentation & polish          | `[ ]`  |  `[P1]`  | Product imagery, merchandising home, filters, shop chrome, checkout copy |
+| Phase   | Name                             | Status | Priority | Focus                                                                    |
+| ------- | -------------------------------- | ------ | :------: | ------------------------------------------------------------------------ |
+| **14**  | Storefront presentation & polish | `[ ]`  |  `[P1]`  | Product imagery, merchandising home, filters, shop chrome, checkout copy |
+| **14c** | Hosted mock demo                 | `[ ]`  |  `[P1]`  | `build:mock` / `start:mock`, server deploy, demo banner, README link     |
 
 ---
 
@@ -201,7 +200,7 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 - [x] Worker / interceptor: `onUnhandledRequest: 'bypass'`, `quiet: true`
 - [x] Demo login chrome lazy-loaded only when mock is on. Persist a **flag** in `sessionStorage`, not an access token
 - [x] Realistic seed: active catalog, categories, one customer, cart, checkout → confirmed order
-- [x] Scripts: `dev:mock`, optional `build:mock` for a static demo
+- [x] Scripts: `dev:mock`. `build:mock` / `start:mock` moved to Phase 14c; the Node-runtime MSW preload rules out a static export.
 - [x] README badge for mock/demo. Playwright still targets a live API
 
 **Done when:** `npm run dev:mock` can browse, sign in, add to cart, and see a fake confirmation with the API process down.
@@ -277,12 +276,12 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 - [ ] **Shop chrome:** a neutral shop name in the header and a shopper footer (shop links, not developer or project wording). Keep `/status` out of shopper navigation
 - [ ] **Checkout copy and inputs:** country as a searchable select that submits ISO 3166-1 alpha-2; one shipping wording across cart, checkout, and confirmation driven by API totals; a proper heading on the confirmation state
 - [ ] **Mock demo sign-in:** the demo action signs in on click instead of only filling the fields (same Phase 10 gating: lazy-loaded, env-gated, flag not token)
-- [ ] **Hosted mock demo:** add a `build:mock` / `start:mock` pair (Phase 10 left it optional and it does not exist yet), deploy it as a public preview, and link it from the README. MSW must also run in the Node runtime for RSC, so this is a server deployment, not a static export. Payments stay mocked; update the README limits accordingly
 - [ ] **README trade-off note:** sign-in is required before adding to cart because the API has no guest cart (see Out of scope)
 
 **Depends on the API (do not work around in the client):**
 
 - Live product images on a fresh seed need the API seed to populate `imageUrl` for demo products. Until it does, live mode shows the placeholder.
+- API-served images load through `next/image` only from allowed hosts. Local dev already allows `localhost:3000`; any other API origin must be added to `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS` (see `src/lib/images/allowed-origins.ts` and `.env.example`).
 - Product gallery, category images, and product routes by slug need new API operations or fields. Adopt each only after it appears in OpenAPI and the client is regenerated.
 
 **Scope - later (optional):**
@@ -294,6 +293,24 @@ Pick the first unchecked phase. Phase 14 does not block the release gate.
 **Done when:** in `dev:mock`, every catalog, cart, checkout, and order screen shows product imagery or the styled placeholder; the homepage merchandises categories; filters apply without a submit button; no shopper-facing text mentions the API, the project, or developer tooling. `docs/assets/` stills are re-captured afterwards.
 
 **Where:** `src/features/catalog/`, `src/features/cart/`, `src/features/checkout/`, `src/app/(shop)/`, `src/components/layout/`, `src/components/media/`, `src/lib/mock/`, `public/`
+
+---
+
+## Phase 14c: Hosted mock demo [P1]
+
+> Public zero-backend preview. MSW also runs in the Node runtime for RSC (`scripts/mock-server-preload.mjs`), so this is a server deployment (for example Vercel with `next start`), not a static export. Payments stay mocked. Does not block Phase 12.
+
+**Scope:**
+
+- [ ] **Scripts:** `build:mock` / `start:mock` using the same Node preload as `dev:mock`; production `build` / `start` unchanged and MSW-free
+- [ ] **Deploy:** one public preview from `master`; required env documented in `.env.example`
+- [ ] **Demo banner:** a visible "Demo data, resets on restart" banner in mock mode only
+- [ ] **README:** link the demo; update "Current limits" (hosted mock demo, mock payments, no live API)
+- [ ] **Later (live demo):** when the API offers a hosted demo environment, a live build that targets it: `NEXT_PUBLIC_*` API origin, the API host in `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS`, this origin registered in the API's CORS list, and hosting on a sibling subdomain of the API's domain so the refresh cookie reaches the API
+
+**Done when:** the README links a working hosted mock; browse → sign in → cart → checkout → confirmation works there; `npm run build` output has no MSW chunk.
+
+**Where:** `package.json`, `scripts/`, `src/lib/mock/`, `README.md`, `.env.example`
 
 ---
 
