@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Clean typed fixtures for openapi-fetch API responses in unit tests.
  */

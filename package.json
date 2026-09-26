@@ -2,6 +2,8 @@
   "name": "ecommerce-store-web",
   "private": true,
   "version": "0.2.0",
+  "license": "AGPL-3.0-only",
+  "author": "Abderaouf Bouzerara <https://github.com/raouf-b-dev>",
   "description": "Customer storefront for the E-commerce Store API.",
   "type": "module",
   "scripts": {

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 export const CART_ID_STORAGE_KEY = 'storefront_cart_id';
 
 export function getStoredCartId(): number | null {

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { expect, test } from '@playwright/test';
 
 test.use({ viewport: { width: 390, height: 844 } });

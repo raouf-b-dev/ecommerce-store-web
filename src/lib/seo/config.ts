@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import type { Metadata } from 'next';
 
 /** Site identity and shared SEO defaults (not assembled Metadata). */

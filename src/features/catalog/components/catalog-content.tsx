@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { redirect } from 'next/navigation';
 import { getCategories } from '@/features/catalog/api/get-categories';
 import { getProducts } from '@/features/catalog/api/get-products';

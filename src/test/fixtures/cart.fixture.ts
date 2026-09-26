@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { vi } from 'vitest';
 import type { CartItemResponse, CartResponse } from '@/features/cart/types';
 import type { UseCartResult } from '@/features/cart/hooks/use-cart';

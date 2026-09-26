@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Abderaouf Bouzerara
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Encodes multiple WebP screenshots into an official RIFF/VP8X animated WebP.
  * https://developers.google.com/speed/webp/docs/riff_container#extended_file_format
