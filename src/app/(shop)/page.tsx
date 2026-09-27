@@ -1,69 +1,30 @@
 import { Suspense } from 'react';
-import type { PageMetadata } from '@/lib/seo/metadata';
-import { PageHeader } from '@/components/layout/page-header';
-import { CatalogContent } from '@/features/catalog/components/catalog-content';
-import { CatalogShellSkeleton } from '@/features/catalog/components/catalog-shell-skeleton';
+import { buildCanonicalUrl } from '@/lib/seo/canonical';
+import { INDEX_FOLLOW_ROBOTS } from '@/lib/seo/config';
+import { createPageMetadata, type PageMetadata } from '@/lib/seo/metadata';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
-import { parseCatalogSearchParams } from '@/features/catalog/lib/catalog-params';
-import { getCategories } from '@/features/catalog/api/get-categories';
-import {
-  buildCatalogMetadata,
-  isCategoryIdMalformed,
-  type CatalogCategoryState,
-} from '@/features/catalog/lib/catalog-seo';
+import { HomeHero } from '@/features/catalog/components/home-hero';
+import { LandingSections } from '@/features/catalog/components/landing-sections';
+import { LandingSectionsSkeleton } from '@/features/catalog/components/landing-sections-skeleton';
 
-type HomePageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
-
-/** Catalog metadata depends on searchParams; opt out of instant-shell validation. */
+// This route depends on browser-only session bootstrap, so exempt it from instant-navigation validation.
 export const instant = false;
 
-export async function generateMetadata({
-  searchParams,
-}: HomePageProps): Promise<PageMetadata> {
-  const rawParams = await searchParams;
+export function generateMetadata(): PageMetadata {
   const origin = getStorefrontOrigin();
-  const parsedParams = parseCatalogSearchParams(rawParams);
-
-  let categoryState: CatalogCategoryState;
-
-  if (rawParams.categoryId !== undefined) {
-    if (isCategoryIdMalformed(rawParams.categoryId)) {
-      categoryState = { status: 'malformed' };
-    } else {
-      const categories = await getCategories();
-      const found = categories.find((c) => c.id === parsedParams.categoryId);
-      if (found && found.isActive) {
-        categoryState = {
-          status: 'valid',
-          category: found,
-          hasProducts: found.productCount > 0,
-        };
-      } else {
-        categoryState = { status: 'nonexistent' };
-      }
-    }
-  } else {
-    categoryState = { status: 'none' };
-  }
-
-  return buildCatalogMetadata({
+  return createPageMetadata({
+    canonicalUrl: buildCanonicalUrl(origin, '/'),
+    robots: INDEX_FOLLOW_ROBOTS,
     origin,
-    params: parsedParams,
-    categoryState,
   });
 }
 
-export default function HomePage({ searchParams }: HomePageProps) {
+export default function HomePage() {
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Products"
-        description="Browse our collection of high quality products."
-      />
-      <Suspense fallback={<CatalogShellSkeleton />}>
-        <CatalogContent searchParams={searchParams} />
+    <div className="space-y-14">
+      <HomeHero />
+      <Suspense fallback={<LandingSectionsSkeleton />}>
+        <LandingSections />
       </Suspense>
     </div>
   );
