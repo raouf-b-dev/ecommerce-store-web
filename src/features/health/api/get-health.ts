@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import 'server-only';
 
 import { serverClient } from '@/lib/api/server-client';

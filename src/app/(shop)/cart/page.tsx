@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { CartContent } from '@/features/cart/components/cart-content';
 
 // ProtectedRoute must finish browser-only cookie bootstrap before cart UI.

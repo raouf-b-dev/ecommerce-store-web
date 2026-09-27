@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import Link from 'next/link';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { formatDateTime, formatMoney } from '@/lib/format';

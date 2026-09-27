@@ -1,6 +1,4 @@
 'use client';
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
 
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';

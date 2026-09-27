@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import Link from 'next/link';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { StorefrontNav } from '@/components/layout/storefront-nav';

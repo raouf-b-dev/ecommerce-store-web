@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 export function getStorefrontOrigin(): string {
   const isProd = process.env.NODE_ENV === 'production';
   const raw = process.env.NEXT_PUBLIC_STOREFRONT_ORIGIN;

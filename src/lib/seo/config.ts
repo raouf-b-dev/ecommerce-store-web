@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { Metadata } from 'next';
 
 /** Site identity and shared SEO defaults (not assembled Metadata). */

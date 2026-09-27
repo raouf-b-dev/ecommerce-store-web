@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { createCatalogFilterHref } from '@/features/catalog/lib/catalog-params';

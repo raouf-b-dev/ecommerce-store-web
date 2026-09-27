@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { MetadataRoute } from 'next';
 import { notFound } from 'next/navigation';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';

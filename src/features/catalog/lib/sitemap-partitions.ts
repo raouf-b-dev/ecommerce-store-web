@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import 'server-only';
 
 import { unstable_cache } from 'next/cache';

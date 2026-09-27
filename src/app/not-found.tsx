@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { PageHeader } from '@/components/layout/page-header';
 import { StorefrontChrome } from '@/components/layout/storefront-chrome';
 

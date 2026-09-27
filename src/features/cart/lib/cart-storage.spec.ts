@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   CART_ID_STORAGE_KEY,

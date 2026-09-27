@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { Metadata } from 'next';
 import { OrderDetailContent } from '@/features/orders/components/order-detail-content';
 import { parsePositiveInt } from '@/lib/list-filters';

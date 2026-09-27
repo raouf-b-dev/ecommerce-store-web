@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { ShopperOrderListQuery } from '@/features/orders/types';
 
 export const orderKeys = {

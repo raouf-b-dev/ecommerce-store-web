@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { describe, it, expect } from 'vitest';
 import { matchCheckoutField } from './match-checkout-field';
 

@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { ReactNode } from 'react';
 import { StorefrontChrome } from '@/components/layout/storefront-chrome';
 import { RequirePasswordChanged } from '@/lib/auth/password-change-routes';

@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { OrderStatus } from '@/features/orders/types';
 
 export const TERMINAL_SUCCESS_STATUSES: readonly OrderStatus[] = [

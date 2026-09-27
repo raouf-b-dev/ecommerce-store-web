@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { generateMetadata } from '@/app/(shop)/page';
 import * as getCategoriesModule from '@/features/catalog/api/get-categories';

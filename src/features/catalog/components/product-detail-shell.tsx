@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';

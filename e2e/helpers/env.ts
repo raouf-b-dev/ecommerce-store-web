@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { test } from '@playwright/test';
 
 /** Fail closed in CI; skip locally when a seeded-secret test needs env. */

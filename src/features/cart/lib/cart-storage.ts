@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 export const CART_ID_STORAGE_KEY = 'storefront_cart_id';
 
 export function getStoredCartId(): number | null {

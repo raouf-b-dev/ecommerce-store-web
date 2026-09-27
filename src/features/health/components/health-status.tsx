@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { getApiHealthSnapshot } from '@/features/health/api/get-health';
 import { HealthStatusView } from '@/features/health/components/health-status-view';
 

@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 const IDEMPOTENCY_KEY_STORAGE = 'checkout_in_flight_idempotency_key';
 
 export function getOrCreateInFlightKey(): string {

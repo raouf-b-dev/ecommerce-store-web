@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { setupServer } from 'msw/node';
 import { handlers } from '@/lib/mock/handlers';
 import { registerNodeMockServer } from '@/lib/mock/sync-node-handlers';

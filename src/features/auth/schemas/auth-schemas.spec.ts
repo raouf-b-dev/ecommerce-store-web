@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { describe, expect, it } from 'vitest';
 import { loginSchema } from '@/features/auth/schemas/login-schema';
 import { registerSchema } from '@/features/auth/schemas/register-schema';

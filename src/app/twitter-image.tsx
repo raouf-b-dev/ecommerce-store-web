@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { ImageResponse } from 'next/og';
 import { seoConfig } from '@/lib/seo/config';
 import { renderSocialCard } from '@/lib/seo/social-image';
