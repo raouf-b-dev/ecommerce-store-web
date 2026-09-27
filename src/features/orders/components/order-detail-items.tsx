@@ -1,3 +1,4 @@
+import { ProductImageFrame } from '@/components/media/product-image';
 import { formatMoney } from '@/lib/format';
 import type { OrderItemDetailResponseDto } from '@/features/orders/types';
 
@@ -9,7 +10,9 @@ type OrderDetailItemsProps = {
 export function OrderDetailItems({ items, currency }: OrderDetailItemsProps) {
   if (items.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">This order has no line items.</p>
+      <p className="text-sm text-muted-foreground">
+        This order has no line items.
+      </p>
     );
   }
 
@@ -28,7 +31,15 @@ export function OrderDetailItems({ items, currency }: OrderDetailItemsProps) {
           {items.map((item) => (
             <tr key={`${item.productId}-${item.sku}`}>
               <td className="py-3 pr-4 font-medium text-foreground">
-                {item.title}
+                <div className="flex items-center gap-3">
+                  <ProductImageFrame
+                    src={item.imageUrl}
+                    name={item.title}
+                    sizes="48px"
+                    className="w-12 rounded-md border"
+                  />
+                  <span>{item.title}</span>
+                </div>
               </td>
               <td className="py-3 pr-4 text-muted-foreground">{item.sku}</td>
               <td className="py-3 pr-4 text-muted-foreground">

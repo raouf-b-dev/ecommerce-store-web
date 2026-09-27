@@ -48,7 +48,7 @@ See also root [`SECURITY.md`](../SECURITY.md).
 
 - Never put secrets in `NEXT_PUBLIC_*` env vars.
 - Access token in memory only. Refresh token is the API's HttpOnly cookie. Avoid `localStorage` for tokens.
-- Security headers belong in `next.config.ts` `headers()`. Static redirects belong in `redirects()`. Auth gates stay in client layouts/providers ([ADR-0006](architecture/adr/ADR-0006-security-headers-and-client-auth.md)). Missing catalog resources use App Router `notFound()` before streaming ([ADR-0008](architecture/adr/ADR-0008-resource-404-via-app-router.md)). The access token is not in a cookie Next can read.
+- Security headers belong in `next.config.ts` `headers()`. Static redirects belong in `redirects()`. Auth gates stay in client layouts/providers ([ADR-0006](architecture/adr/ADR-0006-security-headers-and-client-auth.md)). Missing catalog resources are soft 404s (`200` + `noindex`) via App Router `notFound()` ([ADR-0009](architecture/adr/ADR-0009-resource-soft-404-with-noindex.md)). The access token is not in a cookie Next can read.
 - Map errors to UI text; do not render API HTML.
 - UI gating is not authorization.
 

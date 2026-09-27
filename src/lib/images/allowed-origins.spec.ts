@@ -43,6 +43,15 @@ describe('isAllowedImageOrigin', () => {
     expect(isAllowedImageOrigin('not-a-url')).toBe(false);
   });
 
+  it('allows root-relative public files and rejects protocol-relative URLs', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    delete process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS;
+    expect(isAllowedImageOrigin('/mock/products/elec-anc-001.webp')).toBe(true);
+    expect(isAllowedImageOrigin('//evil.com/pic.jpg')).toBe(false);
+    expect(isAllowedImageOrigin('/\\evil.com/pic.jpg')).toBe(false);
+    expect(isAllowedImageOrigin('/\t/evil.com/pic.jpg')).toBe(false);
+  });
+
   it('allows production hosts from NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS', () => {
     vi.stubEnv('NODE_ENV', 'production');
     process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS = 'cdn.example.com,http://img.local:8080';

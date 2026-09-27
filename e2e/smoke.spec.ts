@@ -7,14 +7,19 @@ test('home shell renders chrome', async ({ page }) => {
     page.getByRole('link', { name: 'Skip to main content' }),
   ).toBeAttached();
   await expect(
-    page.getByRole('banner').getByRole('link', { name: 'Storefront' }),
+    page.getByRole('banner').getByRole('link', { name: 'Everyday Goods' }),
   ).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Products', level: 1 }),
+    page.getByRole('heading', {
+      name: 'Well-made things for every day.',
+      level: 1,
+    }),
   ).toBeVisible();
   await expect(page.locator('#main')).toBeVisible();
   await expect(page.getByRole('contentinfo')).toBeVisible();
-  await expect(page.getByRole('radiogroup', { name: 'Theme selector' })).toBeVisible();
+  await expect(
+    page.getByRole('radiogroup', { name: 'Theme selector' }),
+  ).toBeVisible();
 });
 
 test('skip link moves focus to main', async ({ page }) => {
@@ -45,5 +50,7 @@ test('status page is noindex and reports API health', async ({ page }) => {
   ).toBeVisible();
   const robots = page.locator('meta[name="robots"]');
   await expect(robots).toHaveAttribute('content', /noindex/);
-  await expect(page.getByRole('status')).toHaveText(/API is (up|degraded|down)/i);
+  await expect(page.getByRole('status')).toHaveText(
+    /API is (up|degraded|down)/i,
+  );
 });

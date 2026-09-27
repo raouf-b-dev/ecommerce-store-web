@@ -6,7 +6,7 @@ export default function NotFound() {
     <StorefrontChrome>
       <PageHeader
         title="Page not found"
-        description="That address is not a storefront page."
+        description="We could not find the page you were looking for."
       />
     </StorefrontChrome>
   );

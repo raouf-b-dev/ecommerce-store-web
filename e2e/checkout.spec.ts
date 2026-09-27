@@ -8,13 +8,17 @@ test.describe('Checkout Flow', () => {
     await page.context().clearCookies();
     await page.goto('/checkout');
 
-    const sessionErrorAlert = page.getByText('Too many requests. Wait a moment and try again.');
+    const sessionErrorAlert = page.getByText(
+      'Too many requests. Wait a moment and try again.',
+    );
     if (await sessionErrorAlert.isVisible().catch(() => false)) {
       await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
       await page.goto('/checkout');
     }
 
-    await expect(page).toHaveURL(/\/login\?redirect=%2Fcheckout/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/login\?redirect=%2Fcheckout/, {
+      timeout: 15_000,
+    });
     await expect(
       page.getByRole('heading', { name: 'Sign in', level: 1 }),
     ).toBeVisible({ timeout: 15_000 });
@@ -49,7 +53,9 @@ test.describe('Checkout Flow', () => {
 
     // 2. Go to /cart and proceed to checkout
     await page.goto('/cart');
-    const checkoutLink = page.getByRole('link', { name: /proceed to checkout/i });
+    const checkoutLink = page.getByRole('link', {
+      name: /proceed to checkout/i,
+    });
     await expect(checkoutLink).toBeVisible();
     await checkoutLink.click();
 
@@ -70,7 +76,9 @@ test.describe('Checkout Flow', () => {
     await page.locator('#city').fill('San Francisco');
     await page.locator('#state').fill('CA');
     await page.locator('#postalCode').fill('94105');
-    await page.locator('#country').fill('US');
+    await expect(page.getByRole('combobox', { name: 'Country' })).toHaveText(
+      /United States/,
+    );
 
     // 4. Place order
     const placeOrderBtn = page.getByRole('button', { name: /place order/i });
@@ -79,9 +87,9 @@ test.describe('Checkout Flow', () => {
 
     // 5. Verify transition to confirmation and polling to confirmed status
     // Order number badge and confirmation header should become visible
-    await expect(
-      page.getByText(/thank you for your order!/i),
-    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/thank you for your order!/i)).toBeVisible({
+      timeout: 20_000,
+    });
 
     await expect(page.getByText(/ORD-\d+/)).toBeVisible();
     await expect(page.getByText('Confirmed').first()).toBeVisible();

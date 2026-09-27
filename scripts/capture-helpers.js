@@ -1,5 +1,7 @@
 export const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3100';
 export const THEME_STORAGE_KEY = 'store-ui-theme';
+/** Header link text; keep in sync with `name` in src/lib/shop.ts. */
+export const shopName = 'Everyday Goods';
 
 /** Force a theme for portfolio stills (`light` or `dark`). */
 export async function applyTheme(page, theme) {
@@ -70,11 +72,11 @@ export async function captureScreenshot(page, filePath) {
 
 export async function mockLogin(page, baseUrl = BASE_URL) {
   await page.goto(`${baseUrl}/login`);
-  await page.waitForSelector('text=Fill demo customer credentials', { timeout: 30_000 });
+  await page.waitForSelector('text=Sign in as demo shopper', {
+    timeout: 30_000,
+  });
   await page.waitForTimeout(800);
-  await page.click('text=Fill demo customer credentials');
-  await page.waitForTimeout(300);
-  await page.click('button[type="submit"]:has-text("Sign in")');
+  await page.click('text=Sign in as demo shopper');
   await page.waitForURL(
     (url) =>
       url.pathname === '/' ||
@@ -88,18 +90,38 @@ export async function waitForCatalogReady(page) {
   await page.waitForSelector('a[href^="/products/"]', { timeout: 20_000 });
 }
 
+/** Open the full catalog through the header nav so the mock session carries over. */
+export async function openCatalogViaNav(page) {
+  await page
+    .getByRole('navigation', { name: 'Storefront' })
+    .getByRole('link', { name: 'All products' })
+    .first()
+    .click();
+  await page.waitForURL((url) => url.pathname === '/products', {
+    timeout: 15_000,
+  });
+  await page.waitForSelector('h1:has-text("All products")', {
+    timeout: 15_000,
+  });
+  await waitForCatalogReady(page);
+}
+
 export async function openFirstProduct(page) {
   await waitForCatalogReady(page);
   const productLink = page.locator('a[href^="/products/"]').first();
   await productLink.click();
   await page.waitForURL(/\/products\/\d+/, { timeout: 15_000 });
-  await page.waitForSelector('button:has-text("Add to cart")', { timeout: 15_000 });
+  await page.waitForSelector('button:has-text("Add to cart")', {
+    timeout: 15_000,
+  });
 }
 
 export async function addCurrentProductToCart(page) {
-  await page.waitForSelector('button:has-text("Add to cart")', { timeout: 15_000 });
+  await page.waitForSelector('button:has-text("Add to cart")', {
+    timeout: 15_000,
+  });
   await page.click('button:has-text("Add to cart")');
-  await page.waitForSelector('a[aria-label="Shopping cart, 1 items"]', {
+  await page.waitForSelector('a[aria-label^="Shopping cart, 1 item"]', {
     timeout: 15_000,
   });
 }
@@ -118,19 +140,28 @@ export async function openCheckoutViaCart(page) {
   });
 }
 
+/** Keeps the saved default address when the shopper has one; otherwise fills a custom address. */
 export async function fillCheckoutAddress(page) {
-  await page.waitForSelector('#firstName', { timeout: 15_000 });
+  await page.waitForSelector(
+    '#firstName, #address-option-saved:checked:not([disabled])',
+    { timeout: 15_000 },
+  );
+  if (!(await page.locator('#firstName').isVisible())) {
+    return;
+  }
   await page.fill('#firstName', 'Demo');
   await page.fill('#lastName', 'Customer');
   await page.fill('#street', '123 Demo Street');
   await page.fill('#city', 'Austin');
   await page.fill('#state', 'TX');
   await page.fill('#postalCode', '78701');
-  await page.fill('#country', 'US');
+  // Country is a combobox that defaults to United States.
 }
 
 export async function submitCheckout(page) {
-  const placeOrder = page.locator('button[type="submit"]:has-text("Place Order")');
+  const placeOrder = page.locator(
+    'button[type="submit"]:has-text("Place Order")',
+  );
   if (await placeOrder.isVisible()) {
     const firstName = page.locator('#firstName');
     if (await firstName.isVisible()) {
@@ -141,5 +172,7 @@ export async function submitCheckout(page) {
     }
     await placeOrder.click();
   }
-  await page.waitForSelector('text=Thank You For Your Order!', { timeout: 20_000 });
+  await page.waitForSelector('text=Your order is confirmed', {
+    timeout: 20_000,
+  });
 }

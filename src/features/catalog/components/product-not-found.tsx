@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { CATALOG_PATH } from '@/features/catalog/lib/catalog-params';
 
 export function ProductNotFound() {
   return (
@@ -32,7 +33,7 @@ export function ProductNotFound() {
 
       <div className="mt-6">
         <Button asChild>
-          <Link href="/">Back to catalog</Link>
+          <Link href={CATALOG_PATH}>Back to catalog</Link>
         </Button>
       </div>
     </div>

@@ -16,6 +16,14 @@ Playwright runs two distinct test projects defined in `playwright.config.ts`:
 1. **`guest`**: Runs in parallel for unauthenticated flows (smoke tests, catalog browsing, guest session, and public accessibility audits in `a11y-guest.spec.ts`).
 2. **`customer`**: Serialized with a single worker (`workers: 1`) for authenticated flows (auth, cart, checkout, orders, account, unified `journey.spec.ts`, and protected accessibility audits in `a11y-customer.spec.ts`). This prevents refresh-cookie rotation collisions and adheres to the API's ~61s rate limits.
 
+## Production status check
+
+`playwright.prod.config.ts` builds the storefront, serves it with `next start` on port 3199, and runs `product-production-status.spec.ts`. It checks the product soft 404 contract from [ADR-0009](../docs/architecture/adr/ADR-0009-resource-soft-404-with-noindex.md): missing IDs return `200` with `noindex` in the server `<head>`, and valid products stay indexable. Node-side MSW answers catalog requests, so no API is needed:
+
+```bash
+npm run test:e2e:prod
+```
+
 ## Database Seeding & Global Setup
 
 `e2e/global-setup.ts` automatically runs before test execution:

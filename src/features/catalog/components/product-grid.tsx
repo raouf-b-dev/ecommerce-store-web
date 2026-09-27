@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { ProductCard } from '@/features/catalog/components/product-card';
+import { CATALOG_PATH } from '@/features/catalog/lib/catalog-params';
 import type { ProductListItem } from '@/features/catalog/types';
 
 type ProductGridProps = {
@@ -36,10 +37,10 @@ export function ProductGrid({ products, hasActiveFilters }: ProductGridProps) {
           className="p-12"
           icon={<CatalogSearchIcon />}
           title="No products found"
-          description="We couldn&apos;t find any products matching your current filters. Try adjusting your search or clear your filters to see more results."
+          description="We couldn't find any products matching your current filters. Try adjusting your search or clear your filters to see more results."
         >
           <Button asChild variant="outline" size="sm">
-            <Link href="/">Clear all filters</Link>
+            <Link href={CATALOG_PATH}>Clear all filters</Link>
           </Button>
         </EmptyState>
       );

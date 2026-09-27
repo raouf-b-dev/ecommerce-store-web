@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import { shop } from '@/lib/shop';
 
 /** Site identity and shared SEO defaults (not assembled Metadata). */
 export const seoConfig = {
-  siteName: 'Storefront',
-  description: 'Customer storefront for the E-commerce Store API.',
+  siteName: shop.name,
+  description: shop.description,
   defaultOgImagePath: '/opengraph-image',
   defaultTwitterImagePath: '/twitter-image',
 } as const;

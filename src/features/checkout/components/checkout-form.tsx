@@ -1,15 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import {
-  CreditCard,
-  Lock,
-  Truck,
-  CheckCircle2,
-} from 'lucide-react';
+import { CreditCard, Lock, Truck, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -19,15 +14,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-} from '@/components/ui/field';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
+import { CountryCombobox } from '@/components/forms/country-combobox';
+import { ProductImageFrame } from '@/components/media/product-image';
 import { CartEmptyState } from '@/features/cart/components/cart-empty-state';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatShipping, shippingSentence } from '@/lib/format';
 import { hasHttpStatus } from '@/lib/api/parse-api-error';
 import { applyApiFormErrors } from '@/lib/api/form-api-errors';
 import { useCart } from '@/features/cart/hooks/use-cart';
@@ -49,7 +42,9 @@ interface CheckoutFormProps {
 
 export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
   const { user: profile, isLoading: isProfileLoading } = useUserProfile();
-  const defaultAddress = profile?.addresses.find((address) => address.isDefault);
+  const defaultAddress = profile?.addresses.find(
+    (address) => address.isDefault,
+  );
 
   const {
     cart,
@@ -62,10 +57,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
   const currency = cart?.currency ?? 'USD';
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  const {
-    mutateAsync: submitCheckout,
-    isPending,
-  } = useCheckoutMutation({
+  const { mutateAsync: submitCheckout, isPending } = useCheckoutMutation({
     onSuccess: (data) => {
       onOrderCreated(data.orderId);
     },
@@ -147,7 +139,11 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" noValidate>
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="space-y-8"
+      noValidate
+    >
       <div className="grid gap-8 lg:grid-cols-12">
         {/* Left column: Address, Payment & Notes */}
         <div className="space-y-6 lg:col-span-7">
@@ -161,7 +157,8 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                 </CardTitle>
               </div>
               <CardDescription>
-                Select your default address on file or specify a custom destination.
+                Select your default address on file or specify a custom
+                destination.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
@@ -169,9 +166,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
               <div className="space-y-3">
                 <div
                   className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
-                    defaultAddress
-                      ? 'hover:bg-muted/40'
-                      : 'opacity-60'
+                    defaultAddress ? 'hover:bg-muted/40' : 'opacity-60'
                   }`}
                 >
                   <input
@@ -185,7 +180,9 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                   />
                   <label
                     htmlFor="address-option-saved"
-                    className={defaultAddress ? 'cursor-pointer' : 'cursor-not-allowed'}
+                    className={
+                      defaultAddress ? 'cursor-pointer' : 'cursor-not-allowed'
+                    }
                   >
                     <span className="block text-sm font-medium text-foreground">
                       Use saved address on file
@@ -229,12 +226,16 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                     checked={!useDefaultAddress}
                     onChange={() => form.setValue('useDefaultAddress', false)}
                   />
-                  <label htmlFor="address-option-custom" className="cursor-pointer">
+                  <label
+                    htmlFor="address-option-custom"
+                    className="cursor-pointer"
+                  >
                     <span className="block text-sm font-medium text-foreground">
                       Ship to a custom address
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      Enter a new recipient and destination address for this delivery.
+                      Enter a new recipient and destination address for this
+                      delivery.
                     </span>
                   </label>
                 </div>
@@ -252,7 +253,10 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                         {...form.register('shippingAddress.firstName')}
                       />
                       <FieldError>
-                        {form.formState.errors.shippingAddress?.firstName?.message}
+                        {
+                          form.formState.errors.shippingAddress?.firstName
+                            ?.message
+                        }
                       </FieldError>
                     </Field>
 
@@ -264,7 +268,10 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                         {...form.register('shippingAddress.lastName')}
                       />
                       <FieldError>
-                        {form.formState.errors.shippingAddress?.lastName?.message}
+                        {
+                          form.formState.errors.shippingAddress?.lastName
+                            ?.message
+                        }
                       </FieldError>
                     </Field>
                   </div>
@@ -325,18 +332,28 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                         {...form.register('shippingAddress.postalCode')}
                       />
                       <FieldError>
-                        {form.formState.errors.shippingAddress?.postalCode?.message}
+                        {
+                          form.formState.errors.shippingAddress?.postalCode
+                            ?.message
+                        }
                       </FieldError>
                     </Field>
                   </div>
 
                   <Field>
-                    <FieldLabel htmlFor="country">Country (2-Letter ISO Code)</FieldLabel>
-                    <Input
-                      id="country"
-                      maxLength={2}
-                      placeholder="US"
-                      {...form.register('shippingAddress.country')}
+                    <FieldLabel htmlFor="country">Country</FieldLabel>
+                    <Controller
+                      control={form.control}
+                      name="shippingAddress.country"
+                      render={({ field, fieldState }) => (
+                        <CountryCombobox
+                          id="country"
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          invalid={Boolean(fieldState.error)}
+                        />
+                      )}
                     />
                     <FieldError>
                       {form.formState.errors.shippingAddress?.country?.message}
@@ -363,10 +380,12 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
             <CardHeader className="border-b pb-4">
               <div className="flex items-center gap-2">
                 <CreditCard className="size-5 text-primary" />
-                <CardTitle className="text-lg font-semibold">Payment Method</CardTitle>
+                <CardTitle className="text-lg font-semibold">
+                  Payment Method
+                </CardTitle>
               </div>
               <CardDescription>
-                All transactions are encrypted and processed through our mock gateway.
+                Card payments are processed securely by Stripe.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
@@ -377,15 +396,15 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-foreground">
-                      Mock Stripe Payment
+                      Card payment
                     </span>
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                      <CheckCircle2 className="size-3" /> Auto-Completing
+                      <CheckCircle2 className="size-3" /> Test mode
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-foreground/80 dark:text-foreground/80">
-                    Instant sandbox simulation: creates a Stripe PaymentIntent and
-                    auto-completes via delayed asynchronous webhook.
+                    No real card is charged. Your payment confirms a few seconds
+                    after you place the order.
                   </p>
                 </div>
               </div>
@@ -395,7 +414,9 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
           {/* Customer Notes */}
           <Card className="border shadow-xs">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base font-medium">Order Notes</CardTitle>
+              <CardTitle className="text-base font-medium">
+                Order Notes
+              </CardTitle>
               <CardDescription>
                 Add any special requests or notes regarding your order.
               </CardDescription>
@@ -419,7 +440,9 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
         <div className="space-y-6 lg:col-span-5">
           <Card className="border shadow-xs sticky top-8">
             <CardHeader className="border-b pb-4">
-              <CardTitle className="text-lg font-semibold">Order Summary</CardTitle>
+              <CardTitle className="text-lg font-semibold">
+                Order Summary
+              </CardTitle>
               <CardDescription>
                 Review your items and charges before placing your order.
               </CardDescription>
@@ -431,12 +454,21 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                   {cart.items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between text-sm py-1 border-b border-border/50 last:border-0"
+                      className="flex items-center gap-3 text-sm py-2 border-b border-border/50 last:border-0"
                     >
-                      <div className="flex-1 pr-2 truncate">
-                        <p className="font-medium truncate">{item.productName}</p>
+                      <ProductImageFrame
+                        src={item.imageUrl}
+                        name={item.productName}
+                        sizes="48px"
+                        className="w-12 rounded-md border"
+                      />
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-medium truncate">
+                          {item.productName}
+                        </p>
                         <p className="text-xs text-muted-foreground">
-                          Qty: {item.quantity} × {formatMoney(item.price, currency)}
+                          Qty: {item.quantity} ×{' '}
+                          {formatMoney(item.price, currency)}
                         </p>
                       </div>
                       <span className="font-medium text-foreground">
@@ -459,7 +491,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
                   <span className="font-medium text-foreground">
-                    {formatMoney(shippingCost, currency)}
+                    {formatShipping(shippingCost, currency)}
                   </span>
                 </div>
                 <div className="flex justify-between border-t pt-3 text-base font-bold">
@@ -468,9 +500,15 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                     {formatMoney(totalAmount, currency)}
                   </span>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  {shippingSentence(shippingCost, currency)}
+                </p>
               </div>
 
-              <ActionErrorAlert message={generalError} title="Checkout Notice" />
+              <ActionErrorAlert
+                message={generalError}
+                title="Checkout Notice"
+              />
             </CardContent>
             <CardFooter className="flex flex-col gap-4 border-t pt-4">
               <Button
@@ -491,7 +529,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
 
               <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
                 <Lock className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>SSL Encrypted Checkout • Zero Risk Simulation</span>
+                <span>Secure checkout</span>
               </div>
             </CardFooter>
           </Card>

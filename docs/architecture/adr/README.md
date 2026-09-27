@@ -49,15 +49,16 @@ If a decision changes or is extended:
 
 ## ADR index
 
-| ADR                                                                         | Status   | Summary                                                                             | Date       | Supersedes | Superseded By |
-| :-------------------------------------------------------------------------- | :------- | :---------------------------------------------------------------------------------- | :--------- | :--------- | :------------ |
-| [ADR-0001](ADR-0001-rsc-catalog-browser-session-no-bff.md)                  | Accepted | RSC public catalog; browser client for session/mutations; no BFF                    | 2026-09-07 | -          | -             |
-| [ADR-0002](ADR-0002-in-memory-access-token-with-httponly-refresh-cookie.md) | Accepted | Access token in memory; refresh via HttpOnly cookie; no `localStorage` tokens       | 2026-09-07 | -          | -             |
-| [ADR-0003](ADR-0003-single-flight-silent-refresh.md)                        | Accepted | Silent one-shot refresh + single-flight on domain 401                               | 2026-09-07 | -          | -             |
-| [ADR-0004](ADR-0004-no-guest-cart.md)                                       | Accepted | No guest line-item basket; login gate on cart and checkout                          | 2026-09-07 | -          | -             |
-| [ADR-0005](ADR-0005-checkout-order-polling.md)                              | Accepted | Checkout completion is own-order polling, not a job-queue API                       | 2026-09-07 | -          | -             |
-| [ADR-0006](ADR-0006-security-headers-and-client-auth.md)                    | Accepted | Security headers in `next.config.ts`; auth at the client session boundary           | 2026-09-07 | -          | -             |
-| [ADR-0007](ADR-0007-keep-session-alive-for-refresh-token-lifetime.md)       | Accepted | Refresh missing or expiring in-memory access tokens for the refresh-cookie lifetime | 2026-09-07 | -          | -             |
-| [ADR-0008](ADR-0008-resource-404-via-app-router.md)                         | Accepted | Missing resource URLs use App Router `notFound()` before streaming                  | 2026-09-10 | -          | -             |
+| ADR                                                                         | Status     | Summary                                                                             | Date       | Supersedes | Superseded By |
+| :-------------------------------------------------------------------------- | :--------- | :---------------------------------------------------------------------------------- | :--------- | :--------- | :------------ |
+| [ADR-0001](ADR-0001-rsc-catalog-browser-session-no-bff.md)                  | Accepted   | RSC public catalog; browser client for session/mutations; no BFF                    | 2026-09-07 | -          | -             |
+| [ADR-0002](ADR-0002-in-memory-access-token-with-httponly-refresh-cookie.md) | Accepted   | Access token in memory; refresh via HttpOnly cookie; no `localStorage` tokens       | 2026-09-07 | -          | -             |
+| [ADR-0003](ADR-0003-single-flight-silent-refresh.md)                        | Accepted   | Silent one-shot refresh + single-flight on domain 401                               | 2026-09-07 | -          | -             |
+| [ADR-0004](ADR-0004-no-guest-cart.md)                                       | Accepted   | No guest line-item basket; login gate on cart and checkout                          | 2026-09-07 | -          | -             |
+| [ADR-0005](ADR-0005-checkout-order-polling.md)                              | Accepted   | Checkout completion is own-order polling, not a job-queue API                       | 2026-09-07 | -          | -             |
+| [ADR-0006](ADR-0006-security-headers-and-client-auth.md)                    | Accepted   | Security headers in `next.config.ts`; auth at the client session boundary           | 2026-09-07 | -          | -             |
+| [ADR-0007](ADR-0007-keep-session-alive-for-refresh-token-lifetime.md)       | Accepted   | Refresh missing or expiring in-memory access tokens for the refresh-cookie lifetime | 2026-09-07 | -          | -             |
+| [ADR-0008](ADR-0008-resource-404-via-app-router.md)                         | Superseded | Missing resource URLs use App Router `notFound()` before streaming                  | 2026-09-10 | -          | ADR-0009      |
+| [ADR-0009](ADR-0009-resource-soft-404-with-noindex.md)                      | Accepted   | Missing resource URLs are soft 404s (`200` + `noindex`) under Cache Components      | 2026-09-26 | ADR-0008   | -             |
 
 Cross-link API ADRs when relevant; do not duplicate backend decision records here.

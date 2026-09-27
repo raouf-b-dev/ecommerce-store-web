@@ -8,6 +8,7 @@ import { createPageMetadata, type PageMetadata } from '@/lib/seo/metadata';
 import { parsePositiveInt } from '@/lib/list-filters';
 import type { Category, CatalogFilterParams } from '@/features/catalog/types';
 import {
+  CATALOG_PATH,
   DEFAULT_LIMIT,
   DEFAULT_SORT_BY,
   DEFAULT_SORT_ORDER,
@@ -86,7 +87,7 @@ export function buildCatalogCanonicalUrl(
     allowlisted.page = params.page;
   }
 
-  return buildCanonicalUrl(origin, '/', allowlisted);
+  return buildCanonicalUrl(origin, CATALOG_PATH, allowlisted);
 }
 
 export interface BuildCatalogMetadataOptions {
@@ -133,7 +134,7 @@ export function buildCatalogMetadata(
         : INDEX_FOLLOW_ROBOTS;
     }
   } else {
-    // categoryState.status === 'none' (root catalog)
+    // categoryState.status === 'none' (all products)
     if (params.search) {
       title =
         params.page > 1
@@ -142,13 +143,13 @@ export function buildCatalogMetadata(
       description = `Search results for "${params.search}" in our store catalog.`;
       robots = NO_INDEX_FOLLOW_ROBOTS;
     } else if (params.page > 1) {
-      title = `Browse Products - Page ${params.page}`;
+      title = `All products - Page ${params.page}`;
       description = `Explore our catalog of high quality products - Page ${params.page}.`;
       robots = isCatalogFacetedVariant(params)
         ? NO_INDEX_FOLLOW_ROBOTS
         : INDEX_FOLLOW_ROBOTS;
     } else {
-      title = 'Browse Products';
+      title = 'All products';
       description = 'Explore our catalog of high quality products.';
       robots = isCatalogFacetedVariant(params)
         ? NO_INDEX_FOLLOW_ROBOTS

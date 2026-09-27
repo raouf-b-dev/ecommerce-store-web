@@ -10,9 +10,8 @@ page.on('response', (r) => {
 });
 
 await page.goto('http://localhost:3100/login');
-await page.waitForSelector('text=Fill demo customer credentials', { timeout: 30000 });
-await page.click('text=Fill demo customer credentials');
-await page.click('button[type="submit"]:has-text("Sign in")');
+await page.waitForSelector('text=Sign in as demo shopper', { timeout: 30000 });
+await page.click('text=Sign in as demo shopper');
 await page.waitForTimeout(8000);
 console.log('url', page.url());
 const alert = page.locator('[title="Could not sign in"]');

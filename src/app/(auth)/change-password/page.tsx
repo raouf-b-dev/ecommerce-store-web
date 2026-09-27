@@ -17,9 +17,7 @@ async function ChangePasswordFormWithRedirect({
   searchParams,
 }: Pick<PageProps<'/change-password'>, 'searchParams'>) {
   const params = await searchParams;
-  return (
-    <ChangePasswordForm redirect={firstSearchValue(params.redirect)} />
-  );
+  return <ChangePasswordForm redirect={firstSearchValue(params.redirect)} />;
 }
 
 export default function ChangePasswordPage({
@@ -31,7 +29,7 @@ export default function ChangePasswordPage({
         <div className="space-y-6">
           <PageHeader
             title="Change your password"
-            description="Choose a new password before continuing to the storefront."
+            description="Choose a new password before you continue shopping."
           />
           <ChangePasswordFormWithRedirect searchParams={searchParams} />
         </div>

@@ -1,14 +1,44 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Catalog storefront', () => {
-  test('renders catalog home with products and category navigation', async ({
+  test('homepage leads with the hero, category tiles, and new arrivals', async ({
     page,
   }) => {
     await page.goto('/');
 
     await expect(
-      page.getByRole('heading', { name: 'Products', level: 1 }),
+      page.getByRole('heading', { name: 'Shop by category', level: 2 }),
     ).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'New arrivals', level: 2 }),
+    ).toBeVisible();
+    await expect(
+      page.locator('#categories a[href*="categoryId="]').first(),
+    ).toBeVisible();
+    await expect(
+      page.locator('main a[href^="/products/"]').first(),
+    ).toBeVisible();
+
+    await page.getByRole('link', { name: 'Shop all products' }).first().click();
+    await expect(page).toHaveURL(/\/products$/);
+    await expect(
+      page.getByRole('heading', { name: 'All products', level: 1 }),
+    ).toBeVisible();
+  });
+
+  test('renders the full catalog with products and category navigation', async ({
+    page,
+  }) => {
+    await page.goto('/products');
+
+    await expect(
+      page.getByRole('heading', { name: 'All products', level: 1 }),
+    ).toBeVisible();
+    await expect(page).toHaveTitle('All products | Everyday Goods');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      /https?:\/\/[^/]+\/products$/,
+    );
 
     await expect(
       page.getByRole('navigation', { name: 'Categories' }),
@@ -18,14 +48,26 @@ test.describe('Catalog storefront', () => {
       page.getByRole('link', { name: 'All Products' }),
     ).toBeVisible();
 
-    // Check that search filter exists
-    await expect(page.getByLabel('Search')).toBeVisible();
-    await expect(page.getByLabel('Sort By')).toBeVisible();
-    await expect(page.getByLabel('Order')).toBeVisible();
+    await expect(
+      page.getByRole('searchbox', { name: 'Search products' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('combobox', { name: 'Sort products' }),
+    ).toBeVisible();
 
-    // Assert that product cards or empty state render
     const cards = page.locator('main a[href^="/products/"]');
     await expect(cards.first()).toBeVisible();
+  });
+
+  test('choosing a sort option applies it without a submit button', async ({
+    page,
+  }) => {
+    await page.goto('/products');
+
+    await page.getByRole('combobox', { name: 'Sort products' }).click();
+    await page.getByRole('option', { name: 'Price: low to high' }).click();
+
+    await expect(page).toHaveURL(/sortBy=price&sortOrder=asc/);
   });
 
   test('declares correct canonical, title, social metadata, and image routes on homepage', async ({
@@ -34,10 +76,13 @@ test.describe('Catalog storefront', () => {
   }) => {
     await page.goto('/');
 
-    await expect(page).toHaveTitle('Browse Products | Storefront');
+    await expect(page).toHaveTitle('Everyday Goods');
 
     const canonical = page.locator('link[rel="canonical"]');
-    await expect(canonical).toHaveAttribute('href', /https?:\/\/[^/?#]+(?:\/)?$/);
+    await expect(canonical).toHaveAttribute(
+      'href',
+      /https?:\/\/[^/?#]+(?:\/)?$/,
+    );
 
     // Robots should be index, follow
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
@@ -46,11 +91,11 @@ test.describe('Catalog storefront', () => {
     );
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
       'content',
-      'Browse Products',
+      'Everyday Goods',
     );
     await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute(
       'content',
-      'Storefront',
+      'Everyday Goods',
     );
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       'content',
@@ -80,7 +125,7 @@ test.describe('Catalog storefront', () => {
   test('navigates pagination unconditionally against seeded catalog and verifies products and metadata', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto('/products');
 
     const cards = page.locator('main a[href^="/products/"]');
     await expect(cards.first()).toBeVisible();
@@ -99,12 +144,12 @@ test.describe('Catalog storefront', () => {
     await expect(page).toHaveURL(/(?:[?&])page=2(?:&|$)/);
     await expect(pageTwoLink).toHaveAttribute('aria-current', 'page');
 
-    await expect(page).toHaveTitle('Browse Products - Page 2 | Storefront');
+    await expect(page).toHaveTitle('All products - Page 2 | Everyday Goods');
 
     const canonical = page.locator('link[rel="canonical"]');
     await expect(canonical).toHaveAttribute(
       'href',
-      /https?:\/\/[^/]+\/\?page=2$/,
+      /https?:\/\/[^/]+\/products\?page=2$/,
     );
 
     // Page 2 should remain indexable (index, follow)
@@ -122,7 +167,7 @@ test.describe('Catalog storefront', () => {
   test('selecting category filters products and round-trips through URL with self-canonical', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto('/products');
 
     const categoryNav = page.getByRole('navigation', { name: 'Categories' });
     await expect(categoryNav).toBeVisible();
@@ -136,13 +181,15 @@ test.describe('Catalog storefront', () => {
     await expect(categoryLink).toHaveAttribute('aria-current', 'page');
 
     if (categoryName) {
-      await expect(page).toHaveTitle(new RegExp(`${categoryName} \\| Storefront`));
+      await expect(page).toHaveTitle(
+        new RegExp(`${categoryName} \\| Everyday Goods`),
+      );
     }
 
     const canonical = page.locator('link[rel="canonical"]');
     await expect(canonical).toHaveAttribute(
       'href',
-      /https?:\/\/[^/]+\/\?categoryId=\d+$/,
+      /https?:\/\/[^/]+\/products\?categoryId=\d+$/,
     );
 
     const cards = page.locator('main a[href^="/products/"]');
@@ -152,10 +199,11 @@ test.describe('Catalog storefront', () => {
   test('submitting search filters product list and applies noindex, follow with normalized self-canonical', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto('/products');
 
-    await page.getByLabel('Search').fill('Headphones');
-    await page.getByRole('button', { name: 'Apply' }).click();
+    const search = page.getByRole('searchbox', { name: 'Search products' });
+    await search.fill('Headphones');
+    await search.press('Enter');
 
     await expect(page).toHaveURL(/search=Headphones/);
 
@@ -169,7 +217,7 @@ test.describe('Catalog storefront', () => {
     const canonical = page.locator('link[rel="canonical"]');
     await expect(canonical).toHaveAttribute(
       'href',
-      /https?:\/\/[^/]+\/\?search=Headphones$/,
+      /https?:\/\/[^/]+\/products\?search=Headphones$/,
     );
 
     const cards = page.locator('main a[href^="/products/"]');
@@ -180,7 +228,7 @@ test.describe('Catalog storefront', () => {
   test('custom sort applies noindex, follow with normalized self-canonical', async ({
     page,
   }) => {
-    await page.goto('/?sortBy=price');
+    await page.goto('/products?sortBy=price');
 
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       'content',
@@ -190,14 +238,14 @@ test.describe('Catalog storefront', () => {
     const canonical = page.locator('link[rel="canonical"]');
     await expect(canonical).toHaveAttribute(
       'href',
-      /https?:\/\/[^/]+\/\?sortBy=price$/,
+      /https?:\/\/[^/]+\/products\?sortBy=price$/,
     );
   });
 
   test('non-matching search renders in-page empty state rather than 404', async ({
     page,
   }) => {
-    await page.goto('/?search=xyznonexistentproduct99999');
+    await page.goto('/products?search=xyznonexistentproduct99999');
 
     await expect(page.getByText('No products found')).toBeVisible();
     await expect(
@@ -279,9 +327,9 @@ test.describe('Catalog storefront', () => {
   test('malformed category parameter emits noindex, follow without a canonical link', async ({
     page,
   }) => {
-    await page.goto('/?categoryId=invalid');
+    await page.goto('/products?categoryId=invalid');
 
-    await expect(page).toHaveTitle('Category Not Found | Storefront');
+    await expect(page).toHaveTitle('Category Not Found | Everyday Goods');
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
       'content',
       'noindex, follow',
@@ -324,15 +372,16 @@ test.describe('Catalog storefront', () => {
     expect(malformedResponse.status()).toBe(404);
   });
 
-  test('invalid and missing product IDs return HTTP 404 with product not-found UI', async ({
+  // Cache Components streams the static shell as 200 before notFound() runs (ADR-0009).
+  // playwright.prod.config.ts checks noindex in the production server HTML.
+  test('invalid and missing product IDs render a noindex soft 404 with product not-found UI', async ({
     page,
     request,
   }) => {
-    const malformed = await request.get('/products/0');
-    expect(malformed.status()).toBe(404);
-
-    const missing = await request.get('/products/999999');
-    expect(missing.status()).toBe(404);
+    for (const path of ['/products/0', '/products/999999']) {
+      const response = await request.get(path);
+      expect(response.status()).toBe(200);
+    }
 
     await page.goto('/products/0');
 
@@ -351,10 +400,10 @@ test.describe('Catalog storefront', () => {
   test('out-of-range page redirects to last valid page while preserving filters', async ({
     page,
   }) => {
-    await page.goto('/?sortBy=name&sortOrder=asc&page=999');
+    await page.goto('/products?sortBy=name&sortOrder=asc&page=999');
 
     // Should redirect to the last available page (page 2 in the seeded catalog) preserving filters
-    await expect(page).toHaveURL(/\/\?sortBy=name&sortOrder=asc&page=2$/);
+    await expect(page).toHaveURL(/\/products\?sortBy=name&sortOrder=asc&page=2$/);
 
     const cards = page.locator('main a[href^="/products/"]');
     await expect(cards.first()).toBeVisible();

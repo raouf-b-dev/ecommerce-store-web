@@ -61,7 +61,7 @@ describe('catalog-json-ld', () => {
   it('builds valid BreadcrumbList structured data with position numbers and canonical item URLs', () => {
     const breadcrumbs = createBreadcrumbJsonLd([
       { name: 'Home', url: 'https://storefront.test/' },
-      { name: 'Furniture', url: 'https://storefront.test/?categoryId=2' },
+      { name: 'Furniture', url: 'https://storefront.test/products?categoryId=2' },
       { name: 'Ergonomic Desk', url: canonicalUrl },
     ]);
 
@@ -78,7 +78,7 @@ describe('catalog-json-ld', () => {
       '@type': 'ListItem',
       position: 2,
       name: 'Furniture',
-      item: 'https://storefront.test/?categoryId=2',
+      item: 'https://storefront.test/products?categoryId=2',
     });
     expect(breadcrumbs.itemListElement[2]).toEqual({
       '@type': 'ListItem',
