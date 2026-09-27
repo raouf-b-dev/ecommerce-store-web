@@ -212,8 +212,27 @@ const seedCategories: CategoryResponseDto[] = [
   },
 ];
 
+/** Product ids newest first, one day apart, so "New arrivals" mixes categories. */
+const ARRIVAL_ORDER = [6, 9, 12, 2, 14, 7, 10, 1, 13, 4, 15, 8, 3, 11, 5];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function arrivalTimestamp(productId: number): string {
+  const rank = ARRIVAL_ORDER.indexOf(productId);
+  if (rank === -1) {
+    throw new Error(`Mock product ${productId} is missing from ARRIVAL_ORDER`);
+  }
+  return new Date(Date.parse(SEED_TIMESTAMP) - rank * DAY_MS).toISOString();
+}
+
+/** Same photos the API seed serves, copied into `public/mock/products/`. */
+function mockProductImageUrl(sku: string): string {
+  return `/mock/products/${sku.toLowerCase()}.webp`;
+}
+
 function categoryNameForId(categoryId: number): string | null {
-  return seedCategories.find((category) => category.id === categoryId)?.name ?? null;
+  return (
+    seedCategories.find((category) => category.id === categoryId)?.name ?? null
+  );
 }
 
 export function createSeedCategories(): CategoryResponseDto[] {
@@ -228,11 +247,11 @@ export function createSeedProducts(): ProductDetailResponseDto[] {
     sku: product.sku,
     price: product.price,
     currency: 'USD',
-    imageUrl: null,
+    imageUrl: mockProductImageUrl(product.sku),
     categoryId: product.categoryId,
     categoryName: categoryNameForId(product.categoryId),
     isActive: true,
-    createdAt: SEED_TIMESTAMP,
+    createdAt: arrivalTimestamp(product.id),
     updatedAt: SEED_TIMESTAMP,
     description: product.description,
   }));

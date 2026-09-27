@@ -41,7 +41,28 @@ export function getConfiguredImageRemotePatterns(): ImageRemotePattern[] {
   return patterns;
 }
 
+const SAME_ORIGIN_PROBE = 'http://same-origin.invalid';
+
+/**
+ * Root-relative paths are files in this app's `public/` and are always allowed.
+ * Resolving against a probe origin catches `//host` and `/\host`, which
+ * browsers treat as another origin.
+ */
+function isRootRelativePath(urlStr: string): boolean {
+  if (!urlStr.startsWith('/')) {
+    return false;
+  }
+  try {
+    return new URL(urlStr, SAME_ORIGIN_PROBE).origin === SAME_ORIGIN_PROBE;
+  } catch {
+    return false;
+  }
+}
+
 export function isAllowedImageOrigin(urlStr: string): boolean {
+  if (isRootRelativePath(urlStr)) {
+    return true;
+  }
   try {
     const parsed = new URL(urlStr);
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {

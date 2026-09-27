@@ -27,9 +27,9 @@ export default function LoginPage({ searchParams }: PageProps<'/login'>) {
         <div className="space-y-6">
           <PageHeader
             title="Sign in"
-            description="Use your storefront account. A short-lived access token stays in memory; the API refresh cookie keeps you signed in."
+            description="Sign in to shop, check out, and track your orders."
           />
-        <LoginFormWithRedirect searchParams={searchParams} />
+          <LoginFormWithRedirect searchParams={searchParams} />
         </div>
       </GuestRoute>
     </Suspense>

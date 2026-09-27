@@ -187,6 +187,40 @@ describe('storefront mock handlers', () => {
       expect(body.status).toBe('completed');
     });
 
+    it('ships to the address sent with checkout', async () => {
+      const products = await listProducts('?limit=1');
+      await fetch(`${API}/v1/carts/42/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: products.items[0]?.id, quantity: 1 }),
+      });
+
+      const checkout = await fetch(`${API}/v1/orders/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cartId: 42,
+          paymentMethod: 'STRIPE',
+          shippingAddress: {
+            firstName: 'Ada',
+            lastName: 'Lovelace',
+            street: '1 Unter den Linden',
+            city: 'Berlin',
+            state: 'BE',
+            postalCode: '10117',
+            country: 'DE',
+          },
+        }),
+      });
+      expect(checkout.status).toBe(201);
+      const { orderId } = (await checkout.json()) as { orderId: number };
+
+      const order = (await (
+        await fetch(`${API}/v1/orders/${orderId}`)
+      ).json()) as { shippingAddress: string };
+      expect(order.shippingAddress).toBe('1 Unter den Linden, Berlin, BE 10117, DE');
+    });
+
     it('rejects cart quantity updates above available stock with Nest-shaped 422', async () => {
       await fetch(`${API}/v1/carts`, { method: 'POST' });
       const products = await listProducts('?limit=1');
