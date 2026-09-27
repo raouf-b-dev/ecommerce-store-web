@@ -11,7 +11,7 @@
 
 Server Components by default. `"use client"` only for interactivity.
 
-`src/app` is thin routes only (`layout.tsx`, `page.tsx`, `error.tsx`, `not-found.tsx`, metadata, `robots.ts`, `sitemap.ts`). Feature code lives in `src/features/<name>/`. Prefer explicit `<Suspense>` holes over route-segment `loading.tsx`, especially above detail routes that must return hard HTTP 404.
+`src/app` is thin routes only (`layout.tsx`, `page.tsx`, `error.tsx`, `not-found.tsx`, metadata, `robots.ts`, `sitemap.ts`). Feature code lives in `src/features/<name>/`. Prefer explicit `<Suspense>` holes over route-segment `loading.tsx`, especially above detail routes whose not-found UI must replace the whole page.
 
 **Thin routes = slot composition:** the route (or a thin shell) composes feature pieces. Do not put `AddToCart` inside `features/catalog`. Catalog owns product chrome; cart owns the CTA; the product page wires both as children/slots.
 
@@ -65,7 +65,7 @@ Do **not** use Route Handlers or Server Actions as a BFF in front of the ecommer
 
 - Catalog is RSC + awaited `searchParams`. Filters: Next `next/form` GET or `Link`. Never `useSearchParams` + `setSearchParams` (or `nuqs`) for the product list.
 - Cart, checkout, orders, and session use TanStack Query in Client Components. Do **not** prefetch or hydrate catalog into Query (`HydrationBoundary`).
-- Server catalog fetchers: wrap with React `cache()` so `generateMetadata` and the page share one HTTP call. Wrap async catalog UI in `<Suspense>` (Cache Components static shell). Prefer that over a route-segment `loading.tsx` for list/detail holes - especially above detail routes that must return hard HTTP 404 ([ADR-0008](../architecture/adr/ADR-0008-resource-404-via-app-router.md)).
+- Server catalog fetchers: wrap with React `cache()` so `generateMetadata` and the page share one HTTP call. Wrap async catalog UI in `<Suspense>` (Cache Components static shell). Prefer that over a route-segment `loading.tsx` for list/detail holes - especially above detail routes whose not-found UI must replace the whole page ([ADR-0009](../architecture/adr/ADR-0009-resource-soft-404-with-noindex.md)).
 - `"use cache"` only if catalog HTML can be stale versus stock. Default: request-time RSC. Do not put `"use cache"` on product or inventory reads.
 - After cart/checkout mutations, invalidate Query **and** `router.refresh()` so RSC inventory HTML is not stale.
 
@@ -98,7 +98,7 @@ Do **not** use Route Handlers or Server Actions as a BFF in front of the ecommer
   - `lib/auth` - browser session, providers, and client route gates.
   - `components/media` - shared `ProductImage`.
   - `components/layout` - chrome including `AccountNav`. Feature folders import these; do not add feature re-export shims.
-- **Hard HTTP 404 for missing resources:** resolve existence with the feature fetcher, then call `notFound()` in `generateMetadata` and the page **before** any Suspense boundary that would start streaming. Prefer explicit `<Suspense>` holes over ancestor `loading.tsx` on those detail routes. Use segment `not-found.tsx` for resource-specific UI; keep root `not-found.tsx` generic ([ADR-0008](../architecture/adr/ADR-0008-resource-404-via-app-router.md)).
+- **Soft 404 for missing resources:** resolve existence with the feature fetcher, then call `notFound()` in `generateMetadata` and the page **before** any page-level Suspense boundary. Cache Components streams the static shell as `200` first, so the response stays `200` and Next.js injects `noindex`; do not add a second robots tag. Prefer explicit `<Suspense>` holes over ancestor `loading.tsx` on those detail routes. Use segment `not-found.tsx` for resource-specific UI; keep root `not-found.tsx` generic. `playwright.prod.config.ts` checks the status and `noindex` on a production build ([ADR-0009](../architecture/adr/ADR-0009-resource-soft-404-with-noindex.md)).
 - Storefront scrolls the document. Avoid viewport-locked `h-screen overflow-hidden` layouts.
 - Loading: `QueryLoading` / `role="status"` / `aria-busy` on client fetches. RSC: `<Suspense>` holes. No skeleton requirement in v1.
 - React Compiler is on. Do not add `useMemo` / `useCallback` by habit.
@@ -124,7 +124,7 @@ Do **not** use Route Handlers or Server Actions as a BFF in front of the ecommer
 - After checkout starts polling, keep `?orderId=` in the URL via `router.replace` so refresh resumes confirmation.
 - Keep the checkout idempotency key until a **terminal** success; do not clear it on every mount or non-terminal failure.
 - Production `next/image` hosts must come from a shared allowlist (env-driven), not one-off per-page config.
-- Prefer `Link` to `/` for the catalog home. `/products` permanently redirects; avoid spurious hops.
+- `/` is the landing page and `/products` is the full catalog. Link to the catalog through `CATALOG_PATH` / `catalogHref()` from `features/catalog/lib/catalog-params.ts`; never hand-build catalog URLs.
 
 ## 9. No-workaround contract rule
 

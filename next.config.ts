@@ -17,15 +17,6 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: getConfiguredImageRemotePatterns(),
   },
-  async redirects() {
-    return [
-      {
-        source: '/products',
-        destination: '/',
-        permanent: true,
-      },
-    ];
-  },
   async headers() {
     return [
       {

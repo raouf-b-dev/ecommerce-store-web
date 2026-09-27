@@ -1,6 +1,7 @@
 # ADR-0008: Resource 404s via App Router `notFound()`
 
-- **Status**: Accepted
+- **Status**: Superseded
+- **Superseded By**: [ADR-0009](ADR-0009-resource-soft-404-with-noindex.md)
 - **Date**: 2026-09-10
 - **Does not supersede**: [ADR-0006](ADR-0006-security-headers-and-client-auth.md)
 - **Context**: Missing `/products/[id]` must return a genuine HTTP 404 under Cache Components.

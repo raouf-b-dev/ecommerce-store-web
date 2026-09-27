@@ -24,8 +24,7 @@
 
 Work this list top to bottom. Letter suffixes (`9b`-`9e`, `14c`) are stable IDs - do not renumber them.
 
-1. **Phase 14** - Storefront presentation and polish: make the shopper UI read as a real shop (imagery, merchandising homepage, filters, shop chrome). Does **not** block the release gate.
-2. **Phase 14c** - Hosted mock demo: `build:mock` / `start:mock`, a public server deploy, and a README link. Can start in parallel with 14; re-capture `docs/assets/` after 14.
+1. **Phase 14c** - Hosted mock demo: `build:mock` / `start:mock`, a public server deploy, and a README link. Phase 14 presentation has shipped; its optional "later" items stay open.
 
 ---
 
@@ -84,7 +83,7 @@ These decisions are locked here so phases do not fork.
 | Rule                              | Detail                                                                                                                                                                                                                                                                                                                                         |
 | :-------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | No BFF                            | No Next Route Handlers or Server Actions that forward cookies/tokens to the API. Storefront UI communicates directly with the API.                                                                                                                                                                                                             |
-| Security headers & auth placement | Security headers in `next.config.ts` `headers()`. Static redirects in `redirects()`. Client session gates for protected routes ([ADR-0006](architecture/adr/ADR-0006-security-headers-and-client-auth.md)). Resource 404s via App Router `notFound()` before streaming ([ADR-0008](architecture/adr/ADR-0008-resource-404-via-app-router.md)). |
+| Security headers & auth placement | Security headers in `next.config.ts` `headers()`. Static redirects in `redirects()`. Client session gates for protected routes ([ADR-0006](architecture/adr/ADR-0006-security-headers-and-client-auth.md)). Missing resources are soft 404s (`200` + `noindex`) via App Router `notFound()` ([ADR-0009](architecture/adr/ADR-0009-resource-soft-404-with-noindex.md)). |
 | Two HTTP clients                  | **Browser** client: cookies + Bearer + 401 recovery. **Server** client: `import 'server-only'`, no `credentials`, no Bearer, no login redirect. Do not one-file both with `typeof window` branches.                                                                                                                                            |
 | RSC freshness                     | With `cacheComponents`, wrap catalog fetch UI in `<Suspense>` so chrome is the static shell. Deduplicate `generateMetadata` + page with React `cache()`. After cart/checkout mutations, `router.refresh()` so RSC inventory/HTML is not stale.                                                                                                 |
 | 401 / force-password              | The `openapi-fetch` browser interceptor redirects via `window.location.assign` on low-level unrecoverable auth failures. Form success (login, logout, change-password) uses `router.push` + `router.refresh()`.                                                                                                                                |
@@ -180,7 +179,7 @@ Pick the first unchecked phase. Phases 14 and 14c do not block the release gate.
 
 | Phase   | Name                             | Status | Priority | Focus                                                                    |
 | ------- | -------------------------------- | ------ | :------: | ------------------------------------------------------------------------ |
-| **14**  | Storefront presentation & polish | `[ ]`  |  `[P1]`  | Product imagery, merchandising home, filters, shop chrome, checkout copy |
+| **14**  | Storefront presentation & polish | `[x]`  |  `[P1]`  | Product imagery, merchandising home, filters, shop chrome, checkout copy |
 | **14c** | Hosted mock demo                 | `[ ]`  |  `[P1]`  | `build:mock` / `start:mock`, server deploy, demo banner, README link     |
 
 ---
@@ -268,15 +267,15 @@ Pick the first unchecked phase. Phases 14 and 14c do not block the release gate.
 **Scope - presentation:**
 
 - [x] Richer empty states / first-purchase guidance
-- [ ] **Product imagery everywhere:** render `imageUrl` on cards, product detail, cart, checkout summary, and order lines with one fixed aspect ratio. When `imageUrl` is `null`, show a styled placeholder (product initial + category tint), never a broken or empty box
-- [ ] **Mock image fixtures:** local files under `public/` referenced only by the MSW seed, so `dev:mock` shows a full catalog offline. Mock fixtures stay in this repo; they are not shared with the API
-- [ ] **Merchandising homepage:** hero, category tiles, and a "new arrivals" row built from existing category and product operations. No invented fields (category tiles use a representative product image until the API exposes a category image)
-- [ ] **Catalog filters:** compact filter bar (sheet on mobile) using shadcn `Select` instead of native selects; submit the existing GET form on change from a small client island so the URL stays the source of truth
-- [ ] **Product detail layout:** larger media area and a clear price / stock / add-to-cart hierarchy. Multi-image gallery waits on the API (see below)
-- [ ] **Shop chrome:** a neutral shop name in the header and a shopper footer (shop links, not developer or project wording). Keep `/status` out of shopper navigation
-- [ ] **Checkout copy and inputs:** country as a searchable select that submits ISO 3166-1 alpha-2; one shipping wording across cart, checkout, and confirmation driven by API totals; a proper heading on the confirmation state
-- [ ] **Mock demo sign-in:** the demo action signs in on click instead of only filling the fields (same Phase 10 gating: lazy-loaded, env-gated, flag not token)
-- [ ] **README trade-off note:** sign-in is required before adding to cart because the API has no guest cart (see Out of scope)
+- [x] **Product imagery everywhere:** render `imageUrl` on cards, product detail, cart, checkout summary, and order lines with one fixed aspect ratio. When `imageUrl` is `null`, show a styled placeholder (product initial + category tint), never a broken or empty box
+- [x] **Mock image fixtures:** local files under `public/` referenced only by the MSW seed, so `dev:mock` shows a full catalog offline. Mock fixtures stay in this repo; they are not shared with the API
+- [x] **Merchandising homepage:** hero, category tiles, and a "new arrivals" row built from existing category and product operations. No invented fields (category tiles use a representative product image until the API exposes a category image)
+- [x] **Catalog filters:** compact filter bar (sheet on mobile) using shadcn `Select` instead of native selects; submit the existing GET form on change from a small client island so the URL stays the source of truth
+- [x] **Product detail layout:** larger media area and a clear price / stock / add-to-cart hierarchy. Multi-image gallery waits on the API (see below)
+- [x] **Shop chrome:** a neutral shop name in the header and a shopper footer (shop links, not developer or project wording). Keep `/status` out of shopper navigation
+- [x] **Checkout copy and inputs:** country as a searchable select that submits ISO 3166-1 alpha-2; one shipping wording across cart, checkout, and confirmation driven by API totals; a proper heading on the confirmation state
+- [x] **Mock demo sign-in:** the demo action signs in on click instead of only filling the fields (same Phase 10 gating: lazy-loaded, env-gated, flag not token)
+- [x] **README trade-off note:** sign-in is required before adding to cart because the API has no guest cart (see Out of scope)
 
 **Depends on the API (do not work around in the client):**
 

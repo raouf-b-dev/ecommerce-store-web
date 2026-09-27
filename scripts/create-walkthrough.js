@@ -11,8 +11,10 @@ import {
   fillCheckoutAddress,
   mockLogin,
   openCartViaHeader,
+  openCatalogViaNav,
   openCheckoutViaCart,
   openFirstProduct,
+  shopName,
   submitCheckout,
   switchToDarkTheme,
   waitForCatalogReady,
@@ -43,31 +45,37 @@ async function captureWalkthrough() {
 
   await mockLogin(page);
   if (new URL(page.url()).pathname !== '/') {
-    await page.getByRole('link', { name: 'Storefront' }).click();
+    await page
+      .getByRole('banner')
+      .getByRole('link', { name: shopName })
+      .click();
     await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 });
   }
   await waitForCatalogReady(page);
-  await snap('1. Catalog home in light mode');
+  await snap('1. Shop homepage in light mode');
+
+  await openCatalogViaNav(page);
+  await snap('2. Full catalog in light mode');
 
   await openFirstProduct(page);
-  await snap('2. Product detail in light mode');
+  await snap('3. Product detail in light mode');
 
   await switchToDarkTheme(page);
-  await snap('3. Theme toggle to dark mode');
+  await snap('4. Theme toggle to dark mode');
 
   await addCurrentProductToCart(page);
   await page.waitForTimeout(400);
-  await snap('4. Product added to cart in dark mode');
+  await snap('5. Product added to cart in dark mode');
 
   await openCartViaHeader(page);
-  await snap('5. Cart with line item');
+  await snap('6. Cart with line item');
 
   await openCheckoutViaCart(page);
   await fillCheckoutAddress(page);
-  await snap('6. Checkout form with shipping address');
+  await snap('7. Checkout form with shipping address');
 
   await submitCheckout(page);
-  await snap('7. Order confirmation');
+  await snap('8. Order confirmation');
 
   await browser.close();
 
@@ -77,7 +85,9 @@ async function captureWalkthrough() {
   fs.mkdirSync(path.dirname(destPath), { recursive: true });
   fs.writeFileSync(destPath, animWebp);
   const sizeMB = (animWebp.length / (1024 * 1024)).toFixed(2);
-  console.log(`Successfully generated ${destPath}! Size: ${animWebp.length} bytes (${sizeMB} MB)`);
+  console.log(
+    `Successfully generated ${destPath}! Size: ${animWebp.length} bytes (${sizeMB} MB)`,
+  );
 }
 
 captureWalkthrough().catch((err) => {

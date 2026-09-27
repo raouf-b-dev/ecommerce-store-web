@@ -10,6 +10,14 @@ test.describe('Guest Accessibility & Keyboard Navigation', () => {
     await checkA11y(page, 'Home page');
   });
 
+  test('catalog page passes automated accessibility audit', async ({ page }) => {
+    await page.goto('/products');
+    await expect(
+      page.getByRole('heading', { name: 'All products', level: 1 }),
+    ).toBeVisible({ timeout: 15_000 });
+    await checkA11y(page, 'Catalog page');
+  });
+
   test('skip link focuses main content', async ({ page }) => {
     await page.goto('/');
     const skipLink = page.getByRole('link', { name: /skip to main content/i });

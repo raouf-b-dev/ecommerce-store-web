@@ -9,8 +9,10 @@ import {
   fillCheckoutAddress,
   mockLogin,
   openCartViaHeader,
+  openCatalogViaNav,
   openCheckoutViaCart,
   openFirstProduct,
+  shopName,
   submitCheckout,
   waitForCatalogReady,
 } from './capture-helpers.js';
@@ -29,10 +31,19 @@ async function captureThemeStills(browser, assetsDir, theme) {
 
   await mockLogin(page);
   if (new URL(page.url()).pathname !== '/') {
-    await page.getByRole('link', { name: 'Storefront' }).click();
+    await page
+      .getByRole('banner')
+      .getByRole('link', { name: shopName })
+      .click();
     await page.waitForURL((url) => url.pathname === '/', { timeout: 15_000 });
   }
   await waitForCatalogReady(page);
+  await page.waitForTimeout(600);
+  const homePath = path.join(assetsDir, `screenshot-home-${suffix}.png`);
+  await captureScreenshot(page, homePath);
+  console.log('Saved:', homePath);
+
+  await openCatalogViaNav(page);
   await page.waitForTimeout(600);
   const catalogPath = path.join(assetsDir, `screenshot-catalog-${suffix}.png`);
   await captureScreenshot(page, catalogPath);
@@ -40,7 +51,10 @@ async function captureThemeStills(browser, assetsDir, theme) {
 
   await openFirstProduct(page);
   await page.waitForTimeout(600);
-  const productPath = path.join(assetsDir, `screenshot-product-detail-${suffix}.png`);
+  const productPath = path.join(
+    assetsDir,
+    `screenshot-product-detail-${suffix}.png`,
+  );
   await captureScreenshot(page, productPath);
   console.log('Saved:', productPath);
 
@@ -55,7 +69,10 @@ async function captureThemeStills(browser, assetsDir, theme) {
   await openCheckoutViaCart(page);
   await fillCheckoutAddress(page);
   await page.waitForTimeout(600);
-  const checkoutPath = path.join(assetsDir, `screenshot-checkout-${suffix}.png`);
+  const checkoutPath = path.join(
+    assetsDir,
+    `screenshot-checkout-${suffix}.png`,
+  );
   await captureScreenshot(page, checkoutPath);
   console.log('Saved:', checkoutPath);
 
@@ -77,14 +94,18 @@ async function main() {
     fs.mkdirSync(assetsDir, { recursive: true });
   }
 
-  console.log(`Starting storefront showcase capture at ${BASE_URL} (1440x900 @ 2x)...`);
+  console.log(
+    `Starting storefront showcase capture at ${BASE_URL} (1440x900 @ 2x)...`,
+  );
   const browser = await chromium.launch({ headless: true });
 
   await captureThemeStills(browser, assetsDir, 'dark');
   await captureThemeStills(browser, assetsDir, 'light');
 
   await browser.close();
-  console.log('\nStorefront Retina stills (dark + light) captured successfully.');
+  console.log(
+    '\nStorefront Retina stills (dark + light) captured successfully.',
+  );
 }
 
 main().catch((err) => {

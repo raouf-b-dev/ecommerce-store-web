@@ -29,7 +29,8 @@ Override base URL if needed: `BASE_URL=http://localhost:3100 npm run assets:capt
 | File | Purpose |
 | :--- | :------ |
 | `storefront-walkthrough.webp` | Hero animated walkthrough |
-| `screenshot-catalog-{dark,light}.png` | Catalog home |
+| `screenshot-home-{dark,light}.png` | Homepage (`/`): hero, category tiles, new arrivals |
+| `screenshot-catalog-{dark,light}.png` | Full catalog (`/products`): category pills, search, filters, product grid |
 | `screenshot-product-detail-{dark,light}.png` | Product detail |
 | `screenshot-cart-{dark,light}.png` | Cart with line item |
 | `screenshot-checkout-{dark,light}.png` | Checkout form |
