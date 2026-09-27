@@ -1,6 +1,4 @@
 'use client';
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth/auth-context';

@@ -1,6 +1,4 @@
 'use client';
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
 
 export default function GlobalError({
   reset,

@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { vi } from 'vitest';
 import type { CartItemResponse, CartResponse } from '@/features/cart/types';
 import type { UseCartResult } from '@/features/cart/hooks/use-cart';

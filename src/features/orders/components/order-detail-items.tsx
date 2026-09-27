@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { formatMoney } from '@/lib/format';
 import type { OrderItemDetailResponseDto } from '@/features/orders/types';
 

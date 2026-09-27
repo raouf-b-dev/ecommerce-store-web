@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { Metadata } from 'next';
 import { AccountContent } from '@/features/account/components/account-content';
 

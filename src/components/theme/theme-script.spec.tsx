@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { ThemeScript } from '@/components/theme/theme-script';

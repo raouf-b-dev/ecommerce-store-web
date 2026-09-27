@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { CatalogPagination } from '@/features/catalog/components/catalog-pagination';

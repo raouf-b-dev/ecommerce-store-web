@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { AddressResponseDto } from '@/features/account/types';
 
 /** Multi-line display: street, optional street2, city/state/postal, country. */

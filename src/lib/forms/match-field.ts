@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 /**
  * Match a class-validator / API validation line to a known form field name.
  * Longer / more specific names should be listed first when they share prefixes

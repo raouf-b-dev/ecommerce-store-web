@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import 'client-only';
 
 import { API_BASE_URL } from '@/lib/api/api-base-url';

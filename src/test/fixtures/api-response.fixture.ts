@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 /**
  * Clean typed fixtures for openapi-fetch API responses in unit tests.
  */

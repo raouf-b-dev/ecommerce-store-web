@@ -7,7 +7,7 @@
   <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-App%20Router-black?style=flat&logo=next.js&logoColor=white" alt="Next.js"></a>
   <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"></a>
   <a href="https://tanstack.com/query"><img src="https://img.shields.io/badge/TanStack-Query-FF4154?style=flat&logo=react-query&logoColor=white" alt="TanStack Query"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
 </p>
 
 > Customer storefront for the [E-commerce Store API](https://github.com/raouf-b-dev/ecommerce-store-api). Next.js 16 App Router. Business rules stay in the API.
@@ -167,8 +167,7 @@ Regenerate: [`docs/assets/README.md`](docs/assets/README.md).
 
 | Document                                             | Description                                                                                       |
 | :--------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md)                 | Fork workflow, CLA, setup, PR expectations                                                        |
-| [`CLA.md`](CLA.md)                                   | Contributor License Agreement                                                                     |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md)                 | Fork workflow, setup, PR expectations                                                             |
 | [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)           | Community standards                                                                               |
 | [`SECURITY.md`](SECURITY.md)                         | Frontend security baseline                                                                        |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md)                 | Delivery plan, Next.js 16 conventions, ship gates                                                 |
@@ -240,8 +239,8 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md). Please follow the [`CODE_OF_CONDUCT.md
 
 ## License
 
-[MIT](LICENSE). Contributions require signing the [Contributor License Agreement](CLA.md).
+[MIT](LICENSE)
 
 ---
 
-Built by [Abderaouf .B](https://github.com/raouf-b-dev) | [Issues](https://github.com/raouf-b-dev/ecommerce-store-web/issues) | [Repository](https://github.com/raouf-b-dev/ecommerce-store-web)
+Built by [Abderaouf Bouzerara](https://github.com/raouf-b-dev) | [Issues](https://github.com/raouf-b-dev/ecommerce-store-web/issues) | [Repository](https://github.com/raouf-b-dev/ecommerce-store-web)

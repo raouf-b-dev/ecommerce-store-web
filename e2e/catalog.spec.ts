@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { expect, test } from '@playwright/test';
 
 test.describe('Catalog storefront', () => {

@@ -1,6 +1,4 @@
 'use client';
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
 
 import { Menu } from 'lucide-react';
 import { useState } from 'react';

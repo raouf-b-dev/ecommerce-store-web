@@ -1,6 +1,4 @@
 'use client';
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
 
 import { useQuery } from '@tanstack/react-query';
 import { getOrderPaymentRequest } from '@/features/orders/api/orders-api';

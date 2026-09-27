@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { checkoutRequest } from './checkout-api';
 import type { ApiRequestError } from '@/lib/api/parse-api-error';

@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { vi } from 'vitest';
 import type { CheckoutResponseDto } from '@/features/checkout/types';
 import type { UseOrderPollingResult } from '@/features/checkout/hooks/use-order-polling';

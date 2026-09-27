@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 /**
  * Safely serializes data to a JSON string for insertion into an HTML
  * <script type="application/ld+json"> tag, escaping dangerous characters

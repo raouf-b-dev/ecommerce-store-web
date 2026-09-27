@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import { describe, expect, it } from 'vitest';
 import { formatAddressLines, formatAddressOneLine } from './format-address';
 import { createMockAddress } from '@/test/fixtures/account.fixture';

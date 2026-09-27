@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import Link from 'next/link';
 
 export const STOREFRONT_NAV = [{ href: '/', label: 'Home' }] as const;

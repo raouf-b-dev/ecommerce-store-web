@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 export const accountKeys = {
   all: ['account'] as const,
   me: () => [...accountKeys.all, 'me'] as const,

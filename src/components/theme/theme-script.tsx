@@ -1,6 +1,4 @@
 'use client';
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
 
 import { useServerInsertedHTML } from 'next/navigation';
 import { THEME_FOUC_SCRIPT } from '@/components/theme/theme-constants';

@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import type { SetupServer } from 'msw/node';
 
 const GLOBAL_KEY = '__ecommerce_store_web_msw__';

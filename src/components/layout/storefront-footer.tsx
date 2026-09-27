@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 export function StorefrontFooter() {
   return (
     <footer className="border-t">

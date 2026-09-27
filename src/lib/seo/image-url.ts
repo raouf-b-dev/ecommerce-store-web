@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 /**
  * Validates that an image URL is a non-empty string with an absolute HTTP or HTTPS protocol.
  * Rejects relative paths, javascript: URIs, data URIs, and malformed strings.

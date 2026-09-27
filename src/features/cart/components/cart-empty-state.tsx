@@ -1,6 +1,3 @@
-// Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: MIT
-
 import Link from 'next/link';
 import { ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
