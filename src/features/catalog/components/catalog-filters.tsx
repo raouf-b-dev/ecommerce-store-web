@@ -1,12 +1,16 @@
 import Form from 'next/form';
 import Link from 'next/link';
+import { SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CatalogFiltersSheet } from '@/features/catalog/components/catalog-filters-sheet';
+import { CatalogSortSelect } from '@/features/catalog/components/catalog-sort-select';
 import {
+  CATALOG_PATH,
   DEFAULT_LIMIT,
-  SORT_BY_OPTIONS,
-  SORT_ORDER_OPTIONS,
-  hasActiveCatalogFilters,
+  DEFAULT_SORT_BY,
+  DEFAULT_SORT_ORDER,
+  createCatalogFilterHref,
 } from '@/features/catalog/lib/catalog-params';
 import type { CatalogFilterParams } from '@/features/catalog/types';
 
@@ -14,154 +18,123 @@ type CatalogFiltersProps = {
   activeParams: CatalogFilterParams;
 };
 
+/**
+ * Compact GET form. The URL stays the source of truth: search and price apply
+ * on Enter (or the Apply button), the sort select applies on change.
+ */
 export function CatalogFilters({ activeParams }: CatalogFiltersProps) {
-  const hasActiveFilters = hasActiveCatalogFilters(activeParams);
+  const hasPrice =
+    activeParams.minPrice !== undefined || activeParams.maxPrice !== undefined;
+  const hasCustomSort =
+    activeParams.sortBy !== DEFAULT_SORT_BY ||
+    activeParams.sortOrder !== DEFAULT_SORT_ORDER;
+  const canClear = Boolean(activeParams.search) || hasPrice || hasCustomSort;
+  const sheetCount = Number(hasPrice) + Number(hasCustomSort);
 
   return (
-    <Form
-      action="/"
-      className="flex flex-col gap-3 rounded-xl border bg-card/60 p-4 shadow-xs backdrop-blur-xs"
-    >
-      {activeParams.categoryId !== undefined ? (
-        <input
-          type="hidden"
-          name="categoryId"
-          value={activeParams.categoryId}
-        />
-      ) : null}
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <Form
+          action={CATALOG_PATH}
+          role="search"
+          aria-label="Search and filter products"
+          className="flex min-w-0 flex-1 items-center gap-2"
+        >
+          {activeParams.categoryId !== undefined ? (
+            <input
+              type="hidden"
+              name="categoryId"
+              value={activeParams.categoryId}
+            />
+          ) : null}
+          {activeParams.limit !== DEFAULT_LIMIT ? (
+            <input type="hidden" name="limit" value={activeParams.limit} />
+          ) : null}
 
-      {activeParams.limit && activeParams.limit !== DEFAULT_LIMIT ? (
-        <input type="hidden" name="limit" value={activeParams.limit} />
-      ) : null}
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {/* Search */}
-        <div className="lg:col-span-2">
-          <label
-            htmlFor="catalog-search"
-            className="mb-1 block text-xs font-medium text-muted-foreground"
-          >
-            Search
-          </label>
-          <Input
-            id="catalog-search"
-            name="search"
-            defaultValue={activeParams.search ?? ''}
-            placeholder="Search by name, SKU..."
-            className="h-9"
-          />
-        </div>
-
-        {/* Price Range */}
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label
-              htmlFor="catalog-min-price"
-              className="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              Min Price
+          <div className="relative min-w-0 flex-1">
+            <label htmlFor="catalog-search" className="sr-only">
+              Search products
             </label>
+            <SearchIcon
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
-              id="catalog-min-price"
+              id="catalog-search"
+              name="search"
+              type="search"
+              enterKeyHint="search"
+              defaultValue={activeParams.search ?? ''}
+              placeholder="Search products"
+              className="h-9 pl-9"
+            />
+          </div>
+
+          {/* Price and sort sit inline from md up; the sheet carries them on small screens. */}
+          <div className="hidden items-center gap-2 md:flex">
+            <Input
+              aria-label="Minimum price"
               name="minPrice"
               type="number"
               min="0"
               step="any"
+              inputMode="decimal"
+              placeholder="Min price"
               defaultValue={activeParams.minPrice ?? ''}
-              placeholder="0"
-              className="h-9"
+              className="h-9 w-28"
             />
-          </div>
-          <div>
-            <label
-              htmlFor="catalog-max-price"
-              className="mb-1 block text-xs font-medium text-muted-foreground"
-            >
-              Max Price
-            </label>
+            <span aria-hidden="true" className="text-sm text-muted-foreground">
+              to
+            </span>
             <Input
-              id="catalog-max-price"
+              aria-label="Maximum price"
               name="maxPrice"
               type="number"
               min="0"
               step="any"
+              inputMode="decimal"
+              placeholder="Max price"
               defaultValue={activeParams.maxPrice ?? ''}
-              placeholder="Max"
-              className="h-9"
+              className="h-9 w-28"
+            />
+            <Button type="submit" variant="outline" className="h-9 px-3">
+              Apply
+            </Button>
+            <label htmlFor="catalog-sort" className="sr-only">
+              Sort products
+            </label>
+            <CatalogSortSelect
+              id="catalog-sort"
+              sortBy={activeParams.sortBy ?? DEFAULT_SORT_BY}
+              sortOrder={activeParams.sortOrder ?? DEFAULT_SORT_ORDER}
+              className="w-48"
             />
           </div>
-        </div>
+        </Form>
 
-        {/* Sort By */}
-        <div>
-          <label
-            htmlFor="catalog-sort-by"
-            className="mb-1 block text-xs font-medium text-muted-foreground"
-          >
-            Sort By
-          </label>
-          <select
-            id="catalog-sort-by"
-            name="sortBy"
-            defaultValue={activeParams.sortBy}
-            className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 dark:bg-input/30"
-          >
-            {SORT_BY_OPTIONS.map((opt) => (
-              <option
-                key={opt.value}
-                value={opt.value}
-                className="bg-background text-foreground"
-              >
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Sort Order */}
-        <div>
-          <label
-            htmlFor="catalog-sort-order"
-            className="mb-1 block text-xs font-medium text-muted-foreground"
-          >
-            Order
-          </label>
-          <select
-            id="catalog-sort-order"
-            name="sortOrder"
-            defaultValue={activeParams.sortOrder}
-            className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 dark:bg-input/30"
-          >
-            {SORT_ORDER_OPTIONS.map((opt) => (
-              <option
-                key={opt.value}
-                value={opt.value}
-                className="bg-background text-foreground"
-              >
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Outside the form above: React bubbles submit events through the sheet's portal. */}
+        <CatalogFiltersSheet
+          activeParams={activeParams}
+          activeCount={sheetCount}
+        />
       </div>
 
-      <div className="flex items-center justify-between gap-3 pt-1">
+      {canClear ? (
         <div>
-          {hasActiveFilters ? (
-            <Link
-              href="/"
-              className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Reset filters
-            </Link>
-          ) : null}
+          <Link
+            href={createCatalogFilterHref(activeParams, {
+              search: undefined,
+              minPrice: undefined,
+              maxPrice: undefined,
+              sortBy: DEFAULT_SORT_BY,
+              sortOrder: DEFAULT_SORT_ORDER,
+            })}
+            className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Clear search and filters
+          </Link>
         </div>
-        <div className="flex items-center gap-2">
-          <Button type="submit" size="sm" className="h-9 px-4">
-            Apply
-          </Button>
-        </div>
-      </div>
-    </Form>
+      ) : null}
+    </div>
   );
 }

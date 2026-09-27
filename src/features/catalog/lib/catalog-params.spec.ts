@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  CATALOG_PATH,
   DEFAULT_LIMIT,
   DEFAULT_PAGE,
   DEFAULT_SORT_BY,
   DEFAULT_SORT_ORDER,
   MAX_LIMIT,
   buildCatalogQueryString,
+  catalogHref,
   createCatalogFilterHref,
   hasActiveCatalogFilters,
   parseCatalogSearchParams,
@@ -16,9 +18,7 @@ import {
 describe('catalog-params', () => {
   describe('hasActiveCatalogFilters', () => {
     it('returns false when only defaults are set', () => {
-      expect(hasActiveCatalogFilters(parseCatalogSearchParams({}))).toBe(
-        false,
-      );
+      expect(hasActiveCatalogFilters(parseCatalogSearchParams({}))).toBe(false);
     });
 
     it('returns true when search, category, price, or non-default sort is set', () => {
@@ -156,7 +156,15 @@ describe('catalog-params', () => {
     it('omits defaults from query string', () => {
       const base = parseCatalogSearchParams({});
       expect(buildCatalogQueryString(base)).toBe('');
-      expect(createCatalogFilterHref(base, {})).toBe('/');
+      expect(createCatalogFilterHref(base, {})).toBe(CATALOG_PATH);
+    });
+
+    it('builds catalog URLs under the catalog route', () => {
+      expect(CATALOG_PATH).toBe('/products');
+      expect(catalogHref({ categoryId: 3 })).toBe('/products?categoryId=3');
+      expect(
+        createCatalogFilterHref(parseCatalogSearchParams({}), { page: 2 }),
+      ).toBe('/products?page=2');
     });
 
     it('preserves other filters when changing category and resets page to 1', () => {

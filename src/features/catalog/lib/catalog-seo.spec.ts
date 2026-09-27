@@ -112,19 +112,19 @@ describe('catalog-seo', () => {
   });
 
   describe('buildCatalogCanonicalUrl', () => {
-    it('omits all defaults for root catalog', () => {
+    it('omits all defaults for the full catalog', () => {
       expect(buildCatalogCanonicalUrl(origin, defaultParams)).toBe(
-        'https://storefront.test/',
+        'https://storefront.test/products',
       );
     });
 
-    it('builds clean self-canonical for paginated root', () => {
+    it('builds clean self-canonical for the paginated catalog', () => {
       expect(
         buildCatalogCanonicalUrl(origin, {
           ...defaultParams,
           page: 2,
         }),
-      ).toBe('https://storefront.test/?page=2');
+      ).toBe('https://storefront.test/products?page=2');
     });
 
     it('builds clean self-canonical for category page', () => {
@@ -133,7 +133,7 @@ describe('catalog-seo', () => {
           ...defaultParams,
           categoryId: 5,
         }),
-      ).toBe('https://storefront.test/?categoryId=5');
+      ).toBe('https://storefront.test/products?categoryId=5');
     });
 
     it('builds clean self-canonical for category page with pagination', () => {
@@ -143,17 +143,17 @@ describe('catalog-seo', () => {
           categoryId: 5,
           page: 3,
         }),
-      ).toBe('https://storefront.test/?categoryId=5&page=3');
+      ).toBe('https://storefront.test/products?categoryId=5&page=3');
     });
 
-    it('builds normalized self-canonical for faceted search and never collapses to root', () => {
+    it('builds normalized self-canonical for faceted search and never collapses to the bare catalog', () => {
       expect(
         buildCatalogCanonicalUrl(origin, {
           ...defaultParams,
           search: 'shoes',
           page: 2,
         }),
-      ).toBe('https://storefront.test/?page=2&search=shoes');
+      ).toBe('https://storefront.test/products?page=2&search=shoes');
     });
 
     it('builds normalized self-canonical for price filter and sort', () => {
@@ -166,13 +166,13 @@ describe('catalog-seo', () => {
           sortOrder: 'asc',
         }),
       ).toBe(
-        'https://storefront.test/?maxPrice=50&minPrice=15&sortBy=price&sortOrder=asc',
+        'https://storefront.test/products?maxPrice=50&minPrice=15&sortBy=price&sortOrder=asc',
       );
     });
   });
 
   describe('buildCatalogMetadata', () => {
-    it('creates indexable metadata for root homepage', () => {
+    it('creates indexable metadata for the full catalog', () => {
       const state: CatalogCategoryState = { status: 'none' };
       const meta = buildCatalogMetadata({
         origin,
@@ -180,13 +180,13 @@ describe('catalog-seo', () => {
         categoryState: state,
       });
 
-      expect(meta.title).toBe('Browse Products');
+      expect(meta.title).toBe('All products');
       expect(meta.description).toBe('Explore our catalog of high quality products.');
       expect(meta.robots).toEqual({ index: true, follow: true });
-      expect(meta.alternates?.canonical).toBe('https://storefront.test/');
+      expect(meta.alternates?.canonical).toBe('https://storefront.test/products');
     });
 
-    it('creates unique title and description for root pagination', () => {
+    it('creates unique title and description for catalog pagination', () => {
       const state: CatalogCategoryState = { status: 'none' };
       const meta = buildCatalogMetadata({
         origin,
@@ -194,12 +194,12 @@ describe('catalog-seo', () => {
         categoryState: state,
       });
 
-      expect(meta.title).toBe('Browse Products - Page 2');
+      expect(meta.title).toBe('All products - Page 2');
       expect(meta.description).toBe(
         'Explore our catalog of high quality products - Page 2.',
       );
       expect(meta.robots).toEqual({ index: true, follow: true });
-      expect(meta.alternates?.canonical).toBe('https://storefront.test/?page=2');
+      expect(meta.alternates?.canonical).toBe('https://storefront.test/products?page=2');
     });
 
     it('creates indexable metadata with unique title and description for valid category', () => {
@@ -218,7 +218,7 @@ describe('catalog-seo', () => {
       expect(meta.description).toBe('Browse our collection of Electronics products.');
       expect(meta.robots).toEqual({ index: true, follow: true });
       expect(meta.alternates?.canonical).toBe(
-        'https://storefront.test/?categoryId=3',
+        'https://storefront.test/products?categoryId=3',
       );
     });
 
@@ -240,7 +240,7 @@ describe('catalog-seo', () => {
       );
       expect(meta.robots).toEqual({ index: true, follow: true });
       expect(meta.alternates?.canonical).toBe(
-        'https://storefront.test/?categoryId=3&page=4',
+        'https://storefront.test/products?categoryId=3&page=4',
       );
     });
 
@@ -263,7 +263,7 @@ describe('catalog-seo', () => {
       // Empty category must be noindex, follow with self-canonical
       expect(meta.robots).toEqual({ index: false, follow: true });
       expect(meta.alternates?.canonical).toBe(
-        'https://storefront.test/?categoryId=3',
+        'https://storefront.test/products?categoryId=3',
       );
     });
 
@@ -278,7 +278,7 @@ describe('catalog-seo', () => {
       expect(meta.title).toBe('Search: "Keyboard"');
       expect(meta.robots).toEqual({ index: false, follow: true });
       expect(meta.alternates?.canonical).toBe(
-        'https://storefront.test/?search=Keyboard',
+        'https://storefront.test/products?search=Keyboard',
       );
     });
 
