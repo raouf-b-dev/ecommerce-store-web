@@ -11,7 +11,7 @@ export default function GlobalError({
       <body>
         <main id="main" tabIndex={-1} className="outline-none">
           <h1>Something went wrong</h1>
-          <p>The storefront could not be loaded. You can try again.</p>
+          <p>The shop could not be loaded. You can try again.</p>
           <button type="button" onClick={reset}>
             Try again
           </button>

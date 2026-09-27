@@ -26,7 +26,7 @@ describe('Root NotFound', () => {
       screen.getByRole('heading', { name: 'Page not found' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('That address is not a storefront page.'),
+      screen.getByText('We could not find the page you were looking for.'),
     ).toBeInTheDocument();
   });
 });
