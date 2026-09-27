@@ -27,5 +27,5 @@ jobs:
           path-to-signatures: signatures/version1/cla.json
           path-to-document: https://github.com/raouf-b-dev/ecommerce-store-web/blob/master/CLA.md
           branch: cla-signatures
-          allowlist: "raouf-b-dev,dependabot[bot],*[bot]"
-          custom-pr-sign-comment: "I have read the CLA Document and I hereby sign the CLA"
+          allowlist: 'raouf-b-dev,dependabot[bot],*[bot]'
+          custom-pr-sign-comment: 'I have read the CLA Document and I hereby sign the CLA'

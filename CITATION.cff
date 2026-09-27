@@ -6,6 +6,6 @@ authors:
   - given-names: Abderaouf
     family-names: Bouzerara
 repository-code: https://github.com/raouf-b-dev/ecommerce-store-web
-license: AGPL-3.0-only
-version: "0.2.0"
-date-released: "2026-09-20"
+license: MIT
+version: '0.2.0'
+date-released: '2026-09-20'

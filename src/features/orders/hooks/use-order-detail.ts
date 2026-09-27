@@ -1,6 +1,6 @@
 'use client';
 // Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: MIT
 
 import { useQuery } from '@tanstack/react-query';
 import { getOrderRequest } from '@/features/orders/api/orders-api';

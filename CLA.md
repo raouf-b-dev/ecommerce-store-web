@@ -6,7 +6,7 @@ The recipient of this Agreement is Abderaouf Bouzerara (the "Maintainer").
 
 This Agreement clarifies the intellectual property license granted with Contributions from any person or entity. It protects you as a Contributor, and it protects the Maintainer and users of the project. It does not change your rights to use your own Contributions for any other purpose.
 
-You accept and agree to the following terms for Your Contributions, present and future, that you submit to the Maintainer. The Maintainer may use Your Contributions under this project's dual-license model, including under AGPL-3.0-only and under proprietary or commercial licenses. Except for the license granted here to the Maintainer and to recipients of software distributed by the Maintainer, You reserve all right, title, and interest in and to Your Contributions.
+This project is distributed under the MIT License. You accept and agree to the following terms for Your Contributions, present and future, that you submit to the Maintainer. Except for the license granted here to the Maintainer and to recipients of software distributed by the Maintainer, You reserve all right, title, and interest in and to Your Contributions.
 
 You sign this Agreement by commenting on a pull request in this repository with this exact sentence:
 
@@ -26,7 +26,7 @@ Subject to the terms and conditions of this Agreement, You hereby grant to the M
 
 ## 3. Right to sublicense and relicense
 
-In addition to the copyright license in section 2, You grant the Maintainer a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable right to sublicense and to relicense Your Contributions, and derivative works of them, under any terms, including proprietary and commercial licenses.
+In addition to the copyright license in section 2, You grant the Maintainer a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable right to sublicense and to relicense Your Contributions, and derivative works of them, under any terms, including other open-source or proprietary licenses.
 
 ## 4. Grant of Patent License
 

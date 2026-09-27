@@ -8,7 +8,7 @@ By participating, you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Contributor License Agreement
 
-This project is dual-licensed. Read [LICENSING.md](LICENSING.md) and [CLA.md](CLA.md) before you contribute.
+This project is licensed under the MIT License. Contributors sign the [Contributor License Agreement](CLA.md).
 
 The first time you open a pull request, CLA Assistant asks you to sign. Reply on that pull request with this exact sentence:
 

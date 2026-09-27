@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: MIT
 
 import { redirect } from 'next/navigation';
 import { getCategories } from '@/features/catalog/api/get-categories';

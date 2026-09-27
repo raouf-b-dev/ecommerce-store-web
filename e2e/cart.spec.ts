@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Abderaouf Bouzerara
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: MIT
 
 import { expect, test } from '@playwright/test';
 import { AUTH_THROTTLE_WAIT_MS, registerFreshCustomer } from './helpers/auth';
