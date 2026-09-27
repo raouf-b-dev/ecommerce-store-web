@@ -58,10 +58,22 @@ describe('CheckoutConfirmation', () => {
 
     render(<CheckoutConfirmation orderId={123} />);
 
+    expect(screen.getByText('Payment failed')).toBeInTheDocument();
     expect(
-      screen.getByText('Payment Could Not Be Completed'),
+      screen.getByRole('link', { name: /return to cart/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /return to cart/i })).toBeInTheDocument();
+  });
+
+  it('renders a cancelled heading when the order was cancelled', () => {
+    vi.mocked(pollingHook.useOrderPolling).mockReturnValue(
+      createMockUseOrderPollingResult({
+        order: createMockOrderDetail({ status: 'cancelled' }),
+      }),
+    );
+
+    render(<CheckoutConfirmation orderId={123} />);
+
+    expect(screen.getByText('Order cancelled')).toBeInTheDocument();
   });
 
   it('renders confirmed state with items and address summary when order succeeds', () => {
@@ -73,16 +85,20 @@ describe('CheckoutConfirmation', () => {
 
     render(<CheckoutConfirmation orderId={123} />);
 
-    expect(screen.getByText('Thank You For Your Order!')).toBeInTheDocument();
+    expect(screen.getByText('Your order is confirmed')).toBeInTheDocument();
     expect(screen.getByText('Ergonomic Desk Chair')).toBeInTheDocument();
     expect(screen.getByText(/456 Oak Avenue/)).toBeInTheDocument();
     expect(
       screen.getByText(/is confirmed\. Check your account for status updates/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/included in total/i)).toBeInTheDocument();
+    expect(
+      screen.getByText('Shipping is free on this order.'),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: /view order details/i }),
     ).toHaveAttribute('href', '/orders/123');
-    expect(screen.getByRole('link', { name: /continue shopping/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /continue shopping/i }),
+    ).toBeInTheDocument();
   });
 });

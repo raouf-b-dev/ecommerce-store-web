@@ -11,7 +11,7 @@ import { OrderDetailItems } from '@/features/orders/components/order-detail-item
 import { OrderPaymentSummary } from '@/features/orders/components/order-payment-summary';
 import { useOrderDetail } from '@/features/orders/hooks/use-order-detail';
 import { ORDERS_LIST_HREF } from '@/features/orders/lib/order-list-filters';
-import { formatDateTime, formatMoney } from '@/lib/format';
+import { formatDateTime, formatMoney, formatShipping } from '@/lib/format';
 
 type OrderDetailContentProps = {
   orderId: number;
@@ -27,7 +27,10 @@ export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
         <AccountNav />
         <p className="text-sm text-muted-foreground">
           This order link is invalid. Check the address or return to your{' '}
-          <Link href={ORDERS_LIST_HREF} className="font-medium underline underline-offset-4">
+          <Link
+            href={ORDERS_LIST_HREF}
+            className="font-medium underline underline-offset-4"
+          >
             orders
           </Link>
           .
@@ -53,7 +56,10 @@ export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
       {isError && !order ? (
         <p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
           You may not have access to this order, or it may no longer exist.{' '}
-          <Link href={ORDERS_LIST_HREF} className="font-medium underline underline-offset-4">
+          <Link
+            href={ORDERS_LIST_HREF}
+            className="font-medium underline underline-offset-4"
+          >
             Back to orders
           </Link>
         </p>
@@ -115,7 +121,9 @@ export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
-                <span>{formatMoney(order.shippingCost, order.currency)}</span>
+                <span>
+                  {formatShipping(order.shippingCost, order.currency)}
+                </span>
               </div>
               <div className="flex justify-between border-t pt-2 text-base font-semibold text-foreground">
                 <span>Total</span>

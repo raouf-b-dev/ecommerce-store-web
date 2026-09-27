@@ -3,14 +3,21 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatShipping, shippingSentence } from '@/lib/format';
 import { getErrorMessage } from '@/lib/api/parse-api-error';
 import { useClearCart } from '@/features/cart/hooks/use-cart-mutations';
 
 type CartSummaryProps = {
   subtotal: number;
+  shippingCost: number;
   totalAmount: number;
   currency: string;
   itemCount: number;
@@ -18,6 +25,7 @@ type CartSummaryProps = {
 
 export function CartSummary({
   subtotal,
+  shippingCost,
   totalAmount,
   currency,
   itemCount,
@@ -51,18 +59,21 @@ export function CartSummary({
 
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Shipping</span>
-          <span className="text-xs text-muted-foreground">
-            Calculated at checkout
+          <span className="font-medium text-foreground">
+            {formatShipping(shippingCost, currency)}
           </span>
         </div>
 
         <div className="border-t pt-4">
           <div className="flex justify-between text-base font-bold">
-            <span className="text-foreground">Estimated Total</span>
+            <span className="text-foreground">Total</span>
             <span className="text-foreground">
               {formatMoney(totalAmount, currency)}
             </span>
           </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {shippingSentence(shippingCost, currency)}
+          </p>
         </div>
 
         <ActionErrorAlert message={actionError} title="Error" />

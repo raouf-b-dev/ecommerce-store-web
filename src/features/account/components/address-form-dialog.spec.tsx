@@ -30,15 +30,21 @@ describe('AddressFormDialog', () => {
     await user.clear(screen.getByLabelText(/^city$/i));
     await user.clear(screen.getByLabelText(/state \/ province/i));
     await user.clear(screen.getByLabelText(/postal code/i));
-    await user.clear(screen.getByLabelText(/^country$/i));
+    expect(
+      screen.getByRole('combobox', { name: /^country$/i }),
+    ).toHaveTextContent('United States');
 
     await user.click(screen.getByRole('button', { name: /^add address$/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Street address is required')).toBeInTheDocument();
+      expect(
+        screen.getByText('Street address is required'),
+      ).toBeInTheDocument();
     });
     expect(screen.getByText('City is required')).toBeInTheDocument();
-    expect(screen.getByText('State or province is required')).toBeInTheDocument();
+    expect(
+      screen.getByText('State or province is required'),
+    ).toBeInTheDocument();
     expect(screen.getByText('Postal code is required')).toBeInTheDocument();
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });

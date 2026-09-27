@@ -16,6 +16,7 @@ export function CartContent() {
     itemCount,
     lineItemCount,
     subtotal,
+    shippingCost,
     totalAmount,
     isLoading,
     isFetching,
@@ -75,6 +76,7 @@ export function CartContent() {
                 {cart?.currency ? (
                   <CartSummary
                     subtotal={subtotal}
+                    shippingCost={shippingCost}
                     totalAmount={totalAmount}
                     currency={cart.currency}
                     itemCount={itemCount}

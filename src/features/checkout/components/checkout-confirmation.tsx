@@ -20,10 +20,34 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { formatDateTime, formatMoney } from '@/lib/format';
+import { ProductImageFrame } from '@/components/media/product-image';
+import {
+  formatDateTime,
+  formatMoney,
+  formatShipping,
+  formatStatusLabel,
+  shippingSentence,
+} from '@/lib/format';
+import { CATALOG_PATH } from '@/features/catalog/lib/catalog-params';
 import { useOrderPolling } from '@/features/checkout/hooks/use-order-polling';
 import { TERMINAL_FAILURE_STATUSES } from '@/features/orders/lib/order-status';
 import { buildOrderDetailHref } from '@/features/orders/lib/order-list-filters';
+import type { OrderStatus } from '@/features/orders/types';
+
+function confirmationHeading(status: OrderStatus): string {
+  switch (status) {
+    case 'confirmed':
+      return 'Your order is confirmed';
+    case 'payment_failed':
+      return 'Payment failed';
+    case 'cancelled':
+      return 'Order cancelled';
+    case 'refunded':
+      return 'Order refunded';
+    default:
+      return 'Thank you for your order';
+  }
+}
 
 interface CheckoutConfirmationProps {
   orderId: number;
@@ -34,14 +58,8 @@ export function CheckoutConfirmation({
   orderId,
   onRetry,
 }: CheckoutConfirmationProps) {
-  const {
-    order,
-    isLoading,
-    isError,
-    error,
-    isTimedOut,
-    handleManualRefetch,
-  } = useOrderPolling(orderId, { clearCartOnSuccess: true });
+  const { order, isLoading, isError, error, isTimedOut, handleManualRefetch } =
+    useOrderPolling(orderId, { clearCartOnSuccess: true });
 
   // 1. Initial Loading Skeleton
   if (isLoading && !order) {
@@ -53,7 +71,7 @@ export function CheckoutConfirmation({
             Processing Order Confirmation…
           </h2>
           <p className="text-sm text-muted-foreground">
-            Retrieving payment and order status from the server.
+            Checking your payment and order status.
           </p>
         </CardContent>
       </Card>
@@ -106,8 +124,11 @@ export function CheckoutConfirmation({
             <StatusBadge status={order.status} />
           </div>
           <CardDescription className="text-base max-w-md mx-auto pt-2">
-            Order <span className="font-semibold text-foreground">{order.orderNumber}</span> is
-            verifying payment with the gateway and confirming stock reservations.
+            We are confirming payment for order{' '}
+            <span className="font-semibold text-foreground">
+              {order.orderNumber}
+            </span>{' '}
+            and reserving your items.
           </CardDescription>
         </CardHeader>
 
@@ -146,11 +167,7 @@ export function CheckoutConfirmation({
             <XCircle className="size-8" />
           </div>
           <CardTitle className="text-2xl font-bold text-destructive">
-            {order.status === 'refunded'
-              ? 'Order Refunded'
-              : order.status === 'cancelled'
-                ? 'Order Cancelled'
-                : 'Payment Could Not Be Completed'}
+            {confirmationHeading(order.status)}
           </CardTitle>
           <div className="flex justify-center">
             <StatusBadge status={order.status} />
@@ -158,18 +175,28 @@ export function CheckoutConfirmation({
           <CardDescription className="text-base max-w-md mx-auto pt-2">
             {order.status === 'payment_failed' ? (
               <>
-                Order <span className="font-semibold text-foreground">{order.orderNumber}</span> could
-                not be finalized. Your items have been preserved in your cart.
+                Order{' '}
+                <span className="font-semibold text-foreground">
+                  {order.orderNumber}
+                </span>{' '}
+                could not be finalized. Your items have been preserved in your
+                cart.
               </>
             ) : order.status === 'refunded' ? (
               <>
-                Order <span className="font-semibold text-foreground">{order.orderNumber}</span> has
-                been refunded.
+                Order{' '}
+                <span className="font-semibold text-foreground">
+                  {order.orderNumber}
+                </span>{' '}
+                has been refunded.
               </>
             ) : (
               <>
-                Order <span className="font-semibold text-foreground">{order.orderNumber}</span> was
-                cancelled.
+                Order{' '}
+                <span className="font-semibold text-foreground">
+                  {order.orderNumber}
+                </span>{' '}
+                was cancelled.
               </>
             )}
           </CardDescription>
@@ -201,7 +228,7 @@ export function CheckoutConfirmation({
             <CheckCircle2 className="size-8" />
           </div>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Thank You For Your Order!
+            {confirmationHeading(order.status)}
           </CardTitle>
           <div className="flex justify-center pt-1">
             <StatusBadge status={order.status} />
@@ -211,7 +238,8 @@ export function CheckoutConfirmation({
             <span className="font-semibold text-foreground">
               {order.orderNumber}
             </span>{' '}
-            is confirmed. Check your account for status updates.
+            is {formatStatusLabel(order.status)}. Check your account for status
+            updates.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -231,7 +259,7 @@ export function CheckoutConfirmation({
             <div className="flex items-center gap-2">
               <PackageCheck className="size-5 text-emerald-600 dark:text-emerald-400" />
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Confirmed
+                {formatStatusLabel(order.status)}
               </span>
             </div>
           </div>
@@ -247,12 +275,19 @@ export function CheckoutConfirmation({
               {order.items.map((item) => (
                 <div
                   key={`${item.productId}-${item.sku}`}
-                  className="flex items-center justify-between p-4 text-sm"
+                  className="flex items-center gap-4 p-4 text-sm"
                 >
-                  <div className="space-y-0.5">
+                  <ProductImageFrame
+                    src={item.imageUrl}
+                    name={item.title}
+                    sizes="56px"
+                    className="w-14 rounded-md border"
+                  />
+                  <div className="min-w-0 flex-1 space-y-0.5">
                     <p className="font-medium text-foreground">{item.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      Quantity: {item.quantity} × {formatMoney(item.unitPrice, order.currency)}
+                      Quantity: {item.quantity} ×{' '}
+                      {formatMoney(item.unitPrice, order.currency)}
                     </p>
                   </div>
                   <span className="font-semibold text-foreground">
@@ -285,21 +320,21 @@ export function CheckoutConfirmation({
               </h4>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>
-                  {formatMoney(
-                    order.items.reduce((sum, item) => sum + item.subtotal, 0),
-                    order.currency,
-                  )}
-                </span>
+                <span>{formatMoney(order.subtotal, order.currency)}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Shipping</span>
-                <span className="text-muted-foreground">Included in total</span>
+                <span>
+                  {formatShipping(order.shippingCost, order.currency)}
+                </span>
               </div>
               <div className="flex justify-between border-t pt-2 font-bold text-base text-foreground">
                 <span>Total Paid</span>
                 <span>{formatMoney(order.totalPrice, order.currency)}</span>
               </div>
+              <p className="text-xs text-muted-foreground">
+                {shippingSentence(order.shippingCost, order.currency)}
+              </p>
             </div>
           </div>
         </CardContent>
@@ -311,7 +346,7 @@ export function CheckoutConfirmation({
             </Link>
           </Button>
           <Button asChild size="lg" className="font-medium">
-            <Link href="/">
+            <Link href={CATALOG_PATH}>
               Continue Shopping <ArrowRight className="ml-2 size-4" />
             </Link>
           </Button>

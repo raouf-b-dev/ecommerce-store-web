@@ -112,7 +112,10 @@ describe('CheckoutForm', () => {
 
     expect(screen.getByText('Shipping Address')).toBeInTheDocument();
     expect(screen.getByText('Use saved address on file')).toBeInTheDocument();
-    expect(screen.getByText('Mock Stripe Payment')).toBeInTheDocument();
+    expect(screen.getByText('Card payment')).toBeInTheDocument();
+    expect(
+      screen.getByText('Shipping is free on this order.'),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /place order/i }),
     ).toBeInTheDocument();
@@ -200,7 +203,9 @@ describe('CheckoutForm', () => {
       new ApiRequestError({
         statusCode: 400,
         message: 'Validation failed',
-        errors: ['customerNotes must be shorter than or equal to 500 characters'],
+        errors: [
+          'customerNotes must be shorter than or equal to 500 characters',
+        ],
       }),
     );
     mockCartWithItems();
@@ -212,7 +217,9 @@ describe('CheckoutForm', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/customerNotes must be shorter than or equal to 500 characters/i),
+        screen.getByText(
+          /customerNotes must be shorter than or equal to 500 characters/i,
+        ),
       ).toBeInTheDocument();
     });
   });

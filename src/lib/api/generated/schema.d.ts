@@ -202,7 +202,7 @@ export interface paths {
         put?: never;
         /**
          * Initiate checkout process
-         * @description Starts the asynchronous checkout process. Returns an orderId and jobId. Order progress is tracked via order polling (GET /v1/orders/{id}).
+         * @description Starts the asynchronous checkout process. Returns an orderId and jobId. Poll GET /v1/orders/{id} until the order reaches a terminal status (or client timeout). The cart is cleared (consumed) only after checkout finalization succeeds - not on the HTTP 201 response. If shippingAddress is omitted, the user default address is used; without a default address the request fails with 400.
          */
         post: operations["OrdersController_checkout_v1"];
         delete?: never;
@@ -605,7 +605,7 @@ export interface paths {
         };
         /**
          * Get the authenticated caller profile
-         * @description Returns UserDetailResponseDto for the caller from CallerContext.userId. Requires view_own_profile.
+         * @description Returns UserDetailResponseDto for the caller from CallerContext.userId. Requires view_own_profile (handler decorator overrides class-level manage_users via getAllAndOverride).
          */
         get: operations["UsersController_getMe_v1"];
         put?: never;
@@ -818,7 +818,7 @@ export interface paths {
         };
         /**
          * Get the authenticated caller's current cart
-         * @description Idempotent read via GetCartUseCase user scope. Does not create a cart. 404 means no cart yet (clients treat as empty).
+         * @description Idempotent read via GetCartUseCase user scope (getByUserId). Does not create a cart. Create-on-add remains POST /v1/carts.
          */
         get: operations["CartsController_getCurrentCart_v1"];
         put?: never;
@@ -889,7 +889,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List inventory items */
+        /**
+         * List inventory items
+         * @description Operator inventory list (includes reservedQuantity / totalQuantity). Shoppers should use GET /v1/inventory/check/:productId.
+         */
         get: operations["InventoryController_findAll_v1"];
         put?: never;
         post?: never;
@@ -908,7 +911,7 @@ export interface paths {
         };
         /**
          * Get inventory details for a product
-         * @description Returns inventory for the product, or `null` (HTTP 200) when no inventory row exists yet.
+         * @description Operator inventory detail (includes reservedQuantity / totalQuantity), or `null` (HTTP 200) when no inventory row exists yet. Shoppers should use GET /v1/inventory/check/:productId.
          */
         get: operations["InventoryController_getInventory_v1"];
         put?: never;
@@ -1441,7 +1444,7 @@ export interface components {
         CheckoutDto: {
             /** @description Cart ID to checkout */
             cartId: number;
-            /** @description Shipping address for the order */
+            /** @description Shipping address for the order. When omitted, the user default address is used; if the user has no default address, checkout returns 400. */
             shippingAddress?: components["schemas"]["ShippingAddressDto"];
             /**
              * @description Payment method
@@ -1579,6 +1582,11 @@ export interface components {
              * @example 199.99
              */
             subtotal: number;
+            /**
+             * @description Product image URL captured when the order was placed
+             * @example https://api.example.com/media/demo/v1/elec-anc-001.webp
+             */
+            imageUrl: string | null;
         };
         OrderDetailResponseDto: {
             /**
@@ -3539,6 +3547,8 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
+                /** @description Present on HTTP 409 when the idempotency key is still in progress. Value is 2 seconds. */
+                "Retry-After"?: string;
                 /** @description Legacy alias for Idempotency-Key. */
                 "x-idempotency-key"?: string;
                 /** @description Preferred client idempotency key (also accepted as x-idempotency-key or body idempotencyKey). */
@@ -3562,7 +3572,7 @@ export interface operations {
                     "application/json": components["schemas"]["CheckoutResponseDto"];
                 };
             };
-            /** @description Invalid checkout data or cart is empty. */
+            /** @description Invalid checkout data, empty cart, or omitted shippingAddress with no default address on the user profile. */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3576,11 +3586,11 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Conflict - a request with this idempotency key is already in progress. */
+            /** @description Conflict - a request with this idempotency key is already in progress. Clients must honor the Retry-After response header (2 seconds) before retrying. */
             409: {
                 headers: {
-                    /** @description Seconds to wait before retrying the checkout poll or request. */
-                    "Retry-After"?: number | string;
+                    /** @description Seconds to wait before retrying (2). */
+                    "Retry-After"?: number;
                     [name: string]: unknown;
                 };
                 content?: never;
@@ -4274,6 +4284,20 @@ export interface operations {
                     "application/json": components["schemas"]["UserDetailResponseDto"];
                 };
             };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden - Requires view_own_profile permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     UsersController_getUser_v1: {
@@ -4724,7 +4748,14 @@ export interface operations {
                     "application/json": components["schemas"]["CartResponseDto"];
                 };
             };
-            /** @description No cart yet for this user. Clients should treat as empty (null). */
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No cart yet for this user. Clients should treat as empty (null), not an error banner. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -4876,6 +4907,13 @@ export interface operations {
                     "application/json": components["schemas"]["PaginatedInventoryResponseDto"];
                 };
             };
+            /** @description Forbidden - Requires view_all_inventory permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     InventoryController_getInventory_v1: {
@@ -4897,6 +4935,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["InventoryListItemResponseDto"] | null;
                 };
+            };
+            /** @description Forbidden - Requires view_all_inventory permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -4972,6 +5017,7 @@ export interface operations {
     InventoryController_checkStock_v1: {
         parameters: {
             query?: {
+                /** @description Quantity to check against available stock (defaults to 1) */
                 quantity?: number;
             };
             header?: never;
