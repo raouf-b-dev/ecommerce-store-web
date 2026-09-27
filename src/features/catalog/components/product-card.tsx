@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { formatMoney } from '@/lib/format';
-import { ProductImage } from '@/components/media/product-image';
+import { ProductImageFrame } from '@/components/media/product-image';
 import type { ProductListItem } from '@/features/catalog/types';
 
 type ProductCardProps = {
@@ -13,13 +13,15 @@ export function ProductCard({ product }: ProductCardProps) {
       href={`/products/${product.id}`}
       className="group relative flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-muted/20">
-        <ProductImage
+      <div className="relative">
+        <ProductImageFrame
           src={product.imageUrl}
           alt=""
-          fill
+          name={product.name}
+          categoryId={product.categoryId}
           sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 100vw"
-          className="group-hover:scale-105"
+          className="w-full rounded-none"
+          imageClassName="group-hover:scale-105"
         />
         {product.categoryName ? (
           <span className="absolute top-2.5 left-2.5 rounded-md bg-background/90 px-2 py-0.5 text-xs font-medium text-foreground backdrop-blur-xs shadow-xs">

@@ -48,6 +48,7 @@ export function createPageMetadata(
     openGraphType = 'website',
   } = options;
 
+  const socialTitle = title ?? seoConfig.siteName;
   const validImage = isValidAbsoluteHttpUrl(imageUrl) ? imageUrl.trim() : null;
 
   let ogImages: OgImageItem[] | undefined = undefined;
@@ -86,7 +87,7 @@ export function createPageMetadata(
       : {}),
     ...(robots ? { robots } : {}),
     openGraph: {
-      ...(title ? { title } : {}),
+      title: socialTitle,
       description,
       siteName: seoConfig.siteName,
       type: openGraphType,
@@ -95,7 +96,7 @@ export function createPageMetadata(
     },
     twitter: {
       card: 'summary_large_image',
-      ...(title ? { title } : {}),
+      title: socialTitle,
       description,
       ...(twitterImages ? { images: twitterImages } : {}),
     },

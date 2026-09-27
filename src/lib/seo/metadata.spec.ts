@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createPageMetadata } from '@/lib/seo/metadata';
-import { NO_INDEX_ROBOTS } from '@/lib/seo/config';
+import { NO_INDEX_ROBOTS, seoConfig } from '@/lib/seo/config';
 
 describe('createPageMetadata', () => {
   it('creates basic metadata without duplicating brand template and defaults to website type', () => {
@@ -14,6 +14,14 @@ describe('createPageMetadata', () => {
     expect(meta.openGraph?.type).toBe('website');
     expect(meta.openGraph?.title).toBe('Browse Products');
     expect(meta.twitter?.title).toBe('Browse Products');
+  });
+
+  it('leaves the document title to the root layout and titles social cards with the site name when no title is given', () => {
+    const meta = createPageMetadata({});
+
+    expect(meta.title).toBeUndefined();
+    expect(meta.openGraph?.title).toBe(seoConfig.siteName);
+    expect(meta.twitter?.title).toBe(seoConfig.siteName);
   });
 
   it('sets canonical alternate when canonicalUrl is provided', () => {
@@ -74,14 +82,14 @@ describe('createPageMetadata', () => {
 
   it('preserves complete fallback social-image dimensions and MIME type when no image is provided', () => {
     const meta = createPageMetadata({
-      title: 'Storefront',
+      title: 'Browse Products',
       origin: 'https://storefront.test',
     });
 
     expect(meta.openGraph?.images).toEqual([
       {
         url: 'https://storefront.test/opengraph-image',
-        alt: 'Storefront',
+        alt: 'Browse Products',
         width: 1200,
         height: 630,
         type: 'image/png',

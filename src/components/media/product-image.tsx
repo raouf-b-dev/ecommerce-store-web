@@ -5,9 +5,41 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { isAllowedImageOrigin } from '@/lib/images/allowed-origins';
 
-type ProductImageProps = {
+const CATEGORY_TINTS = [
+  'bg-tint-1 text-tint-1-foreground',
+  'bg-tint-2 text-tint-2-foreground',
+  'bg-tint-3 text-tint-3-foreground',
+  'bg-tint-4 text-tint-4-foreground',
+  'bg-tint-5 text-tint-5-foreground',
+] as const;
+
+const ACCENT_TINT = 'bg-primary/10 text-primary';
+
+export function placeholderTintClass(categoryId?: number | null): string {
+  if (categoryId == null || !Number.isFinite(categoryId)) {
+    return ACCENT_TINT;
+  }
+  const index =
+    ((Math.trunc(categoryId) % CATEGORY_TINTS.length) + CATEGORY_TINTS.length) %
+    CATEGORY_TINTS.length;
+  return CATEGORY_TINTS[index] ?? ACCENT_TINT;
+}
+
+function initialOf(name?: string): string {
+  const letter = name?.trim().match(/[\p{L}\p{N}]/u)?.[0];
+  return letter ? letter.toUpperCase() : '';
+}
+
+export type ProductImageProps = {
   src?: string | null;
   alt?: string;
+  /** Product name. Its first letter labels the placeholder. */
+  name?: string;
+  /**
+   * Category id when the payload carries one (catalog reads). Cart and order
+   * lines have no category, so they omit it and get the accent tint.
+   */
+  categoryId?: number | null;
   fill?: boolean;
   width?: number;
   height?: number;
@@ -19,6 +51,8 @@ type ProductImageProps = {
 export function ProductImage({
   src,
   alt = '',
+  name,
+  categoryId,
   fill = false,
   width,
   height,
@@ -41,26 +75,16 @@ export function ProductImage({
     return (
       <div
         className={cn(
-          'flex h-full w-full items-center justify-center bg-muted/40 text-muted-foreground/50 transition-colors',
+          '@container flex h-full w-full items-center justify-center select-none',
+          placeholderTintClass(categoryId),
           className,
         )}
         aria-hidden="true"
+        data-testid="product-image-placeholder"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-10 w-10 opacity-60"
-        >
-          <path d="m7.5 4.27 9 5.15" />
-          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-          <path d="m3.3 7 8.7 5 8.7-5" />
-          <path d="M12 22V12" />
-        </svg>
+        <span className="text-[38cqi] leading-none font-semibold tracking-tight opacity-80">
+          {initialOf(name ?? alt)}
+        </span>
       </div>
     );
   }
@@ -78,5 +102,29 @@ export function ProductImage({
       onError={() => setHasError(true)}
       className={cn('object-cover transition-all duration-300', className)}
     />
+  );
+}
+
+type ProductImageFrameProps = Omit<ProductImageProps, 'fill' | 'className'> & {
+  /** Sizing and radius overrides for the frame. The aspect ratio stays square. */
+  className?: string;
+  imageClassName?: string;
+};
+
+/** One square frame for every product image surface: card, detail, cart, checkout, orders. */
+export function ProductImageFrame({
+  className,
+  imageClassName,
+  ...imageProps
+}: ProductImageFrameProps) {
+  return (
+    <div
+      className={cn(
+        'relative aspect-square shrink-0 overflow-hidden rounded-lg bg-muted',
+        className,
+      )}
+    >
+      <ProductImage {...imageProps} fill className={imageClassName} />
+    </div>
   );
 }

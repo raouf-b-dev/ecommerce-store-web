@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { formatMoney } from '@/lib/format';
-import { ProductImage } from '@/components/media/product-image';
+import { ProductImageFrame } from '@/components/media/product-image';
 import type { ProductDetail } from '@/features/catalog/types';
 
 type ProductDetailShellProps = {
@@ -22,52 +22,52 @@ export function ProductDetailShell({
   actionSlot,
 }: ProductDetailShellProps) {
   return (
-    <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border bg-muted/20 shadow-xs">
-        <ProductImage
-          src={product.imageUrl}
-          alt={product.name}
-          fill
-          priority
-          sizes="(min-width: 1024px) 50vw, 100vw"
-          className="object-cover"
-        />
-      </div>
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-12">
+      <ProductImageFrame
+        src={product.imageUrl}
+        alt={product.name}
+        name={product.name}
+        categoryId={product.categoryId}
+        priority
+        sizes="(min-width: 768px) 58vw, 100vw"
+        className="w-full rounded-2xl border shadow-xs md:col-span-7"
+      />
 
-      <div className="flex flex-col justify-between space-y-6">
-        <div className="space-y-4">
+      <div className="space-y-6 md:sticky md:top-8 md:col-span-5 md:self-start">
+        <div className="space-y-3">
           {product.categoryName ? (
-            <span className="inline-flex rounded-md bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
+            <p className="text-sm font-medium text-primary">
               {product.categoryName}
-            </span>
+            </p>
           ) : null}
-
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {product.name}
           </h1>
-
-          <p className="text-xs text-muted-foreground">
-            SKU: <span className="font-mono">{product.sku}</span>
-          </p>
-
-          <div className="flex items-baseline gap-4 pt-2">
-            <span className="text-3xl font-extrabold text-foreground">
-              {formatMoney(product.price, product.currency)}
-            </span>
-            {availabilitySlot}
-          </div>
-
-          {product.description ? (
-            <div className="pt-4 text-sm leading-relaxed text-muted-foreground">
-              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-foreground">
-                Description
-              </h2>
-              <p className="whitespace-pre-line">{product.description}</p>
-            </div>
-          ) : null}
         </div>
 
-        <div className="border-t pt-6">{actionSlot}</div>
+        <div className="space-y-2">
+          <p className="text-3xl font-semibold text-foreground">
+            {formatMoney(product.price, product.currency)}
+          </p>
+          {availabilitySlot}
+        </div>
+
+        <div>{actionSlot}</div>
+
+        {product.description ? (
+          <div className="space-y-2 border-t pt-6">
+            <h2 className="text-sm font-semibold text-foreground">
+              About this item
+            </h2>
+            <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
+              {product.description}
+            </p>
+          </div>
+        ) : null}
+
+        <p className="text-xs text-muted-foreground">
+          SKU <span className="font-mono">{product.sku}</span>
+        </p>
       </div>
     </div>
   );
