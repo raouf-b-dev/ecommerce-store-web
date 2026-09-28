@@ -280,7 +280,7 @@ Pick the first unchecked phase. Phases 14 and 14c do not block the release gate.
 **Depends on the API (do not work around in the client):**
 
 - Live product images on a fresh seed need the API seed to populate `imageUrl` for demo products. Until it does, live mode shows the placeholder.
-- API-served images load through `next/image` only from allowed hosts. Local dev already allows `localhost:3000`; any other API origin must be added to `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS` (see `src/lib/images/allowed-origins.ts` and `.env.example`).
+- API-served images load through `next/image` only from allowed origins. The `NEXT_PUBLIC_API_BASE_URL` origin is always allowed; other origins such as a CDN go in `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS` (see `src/lib/images/allowed-origins.ts` and `.env.example`).
 - Product gallery, category images, and product routes by slug need new API operations or fields. Adopt each only after it appears in OpenAPI and the client is regenerated.
 
 **Scope - later (optional):**
@@ -305,7 +305,7 @@ Pick the first unchecked phase. Phases 14 and 14c do not block the release gate.
 - [ ] **Deploy:** one public preview from `master`; required env documented in `.env.example`
 - [ ] **Demo banner:** a visible "Demo data, resets on restart" banner in mock mode only
 - [ ] **README:** link the demo; update "Current limits" (hosted mock demo, mock payments, no live API)
-- [ ] **Later (live demo):** when the API offers a hosted demo environment, a live build that targets it: `NEXT_PUBLIC_*` API origin, the API host in `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS`, this origin registered in the API's CORS list, and hosting on a sibling subdomain of the API's domain so the refresh cookie reaches the API
+- [ ] **Later (live demo):** when the API offers a hosted demo environment, a live build that targets it: `NEXT_PUBLIC_*` API origin, any separate image CDN in `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS`, this origin registered in the API's CORS list, and hosting on a sibling subdomain of the API's domain so the refresh cookie reaches the API
 
 **Done when:** the README links a working hosted mock; browse → sign in → cart → checkout → confirmation works there; `npm run build` output has no MSW chunk.
 
