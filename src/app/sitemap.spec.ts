@@ -137,8 +137,13 @@ describe('sitemap and generateSitemaps', () => {
         changeFrequency: 'daily',
         priority: 1.0,
       });
+      expect(entries[1]).toEqual({
+        url: `${origin}/products`,
+        changeFrequency: 'daily',
+        priority: 0.9,
+      });
 
-      expect(entries.some((e) => e.url === `${origin}/?categoryId=1`)).toBe(
+      expect(entries.some((e) => e.url === `${origin}/products?categoryId=1`)).toBe(
         true,
       );
       expect(entries.some((e) => e.url.includes('categoryId=2'))).toBe(false);
@@ -178,7 +183,7 @@ describe('sitemap and generateSitemaps', () => {
         changeFrequency: 'daily',
         priority: 1.0,
       });
-      expect(entries.some((e) => e.url === `${origin}/?categoryId=1`)).toBe(
+      expect(entries.some((e) => e.url === `${origin}/products?categoryId=1`)).toBe(
         true,
       );
     });

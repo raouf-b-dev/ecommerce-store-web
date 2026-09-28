@@ -6,6 +6,7 @@ import {
   QueryStateAlert,
 } from '@/components/feedback/query-state';
 import { AccountNav } from '@/components/layout/account-nav';
+import { CATALOG_PATH } from '@/features/catalog/lib/catalog-params';
 import { OrderListItemRow } from '@/features/orders/components/order-list-item-row';
 import { OrdersListFilters } from '@/features/orders/components/orders-list-filters';
 import { useOrdersList } from '@/features/orders/hooks/use-orders-list';
@@ -77,7 +78,7 @@ export function OrdersListContent({ filters }: OrdersListContentProps) {
               description="When you place an order, it will show up here. Start shopping to make your first purchase."
             >
               <Button asChild size="sm">
-                <Link href="/">Shop the catalog</Link>
+                <Link href={CATALOG_PATH}>Shop the catalog</Link>
               </Button>
             </EmptyState>
           )

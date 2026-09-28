@@ -20,6 +20,7 @@ describe('CartSummary', () => {
     render(
       <CartSummary
         subtotal={250}
+        shippingCost={0}
         totalAmount={250}
         currency="USD"
         itemCount={3}
@@ -29,6 +30,28 @@ describe('CartSummary', () => {
     expect(screen.getByText('Order Summary')).toBeInTheDocument();
     expect(screen.getByText('Subtotal (3 units)')).toBeInTheDocument();
     expect(screen.getAllByText('$250.00')).toHaveLength(2); // subtotal & total
+    expect(screen.getByText('Free')).toBeInTheDocument();
+    expect(
+      screen.getByText('Shipping is free on this order.'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the shipping amount the API returned', () => {
+    render(
+      <CartSummary
+        subtotal={100}
+        shippingCost={7.5}
+        totalAmount={107.5}
+        currency="USD"
+        itemCount={1}
+      />,
+    );
+
+    expect(screen.getByText('$7.50')).toBeInTheDocument();
+    expect(
+      screen.getByText('Shipping on this order is $7.50.'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('$107.50')).toBeInTheDocument();
   });
 
   it('triggers clear cart mutation when clicked', async () => {
@@ -37,6 +60,7 @@ describe('CartSummary', () => {
     render(
       <CartSummary
         subtotal={100}
+        shippingCost={0}
         totalAmount={100}
         currency="USD"
         itemCount={1}
@@ -57,6 +81,7 @@ describe('CartSummary', () => {
     render(
       <CartSummary
         subtotal={100}
+        shippingCost={0}
         totalAmount={100}
         currency="USD"
         itemCount={1}

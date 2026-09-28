@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertDialog,
@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
+import { CountryCombobox } from '@/components/forms/country-combobox';
 import { Button } from '@/components/ui/button';
 import {
   Field,
@@ -218,7 +219,9 @@ export function AddressFormDialog({
               </Field>
 
               <Field data-invalid={Boolean(form.formState.errors.state)}>
-                <FieldLabel htmlFor="address-state">State / province</FieldLabel>
+                <FieldLabel htmlFor="address-state">
+                  State / province
+                </FieldLabel>
                 <Input
                   id="address-state"
                   autoComplete="address-level1"
@@ -232,7 +235,9 @@ export function AddressFormDialog({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Field data-invalid={Boolean(form.formState.errors.postalCode)}>
-                <FieldLabel htmlFor="address-postalCode">Postal code</FieldLabel>
+                <FieldLabel htmlFor="address-postalCode">
+                  Postal code
+                </FieldLabel>
                 <Input
                   id="address-postalCode"
                   autoComplete="postal-code"
@@ -247,15 +252,23 @@ export function AddressFormDialog({
 
               <Field data-invalid={Boolean(form.formState.errors.country)}>
                 <FieldLabel htmlFor="address-country">Country</FieldLabel>
-                <Input
-                  id="address-country"
-                  autoComplete="country"
-                  maxLength={2}
-                  disabled={isPending}
-                  aria-invalid={Boolean(form.formState.errors.country)}
-                  {...form.register('country')}
+                <Controller
+                  control={form.control}
+                  name="country"
+                  render={({ field, fieldState }) => (
+                    <CountryCombobox
+                      id="address-country"
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      disabled={isPending}
+                      invalid={Boolean(fieldState.error)}
+                    />
+                  )}
                 />
-                <FieldError>{form.formState.errors.country?.message}</FieldError>
+                <FieldError>
+                  {form.formState.errors.country?.message}
+                </FieldError>
               </Field>
             </div>
 
@@ -321,7 +334,9 @@ export function AddressFormDialog({
           <ActionErrorAlert
             message={formError ?? error}
             title={
-              mode === 'add' ? 'Could not add address' : 'Could not update address'
+              mode === 'add'
+                ? 'Could not add address'
+                : 'Could not update address'
             }
           />
 

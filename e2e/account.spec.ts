@@ -8,13 +8,17 @@ test.describe('Account address book', () => {
     await page.context().clearCookies();
     await page.goto('/account');
 
-    const sessionErrorAlert = page.getByText('Too many requests. Wait a moment and try again.');
+    const sessionErrorAlert = page.getByText(
+      'Too many requests. Wait a moment and try again.',
+    );
     if (await sessionErrorAlert.isVisible().catch(() => false)) {
       await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
       await page.goto('/account');
     }
 
-    await expect(page).toHaveURL(/\/login\?redirect=%2Faccount/, { timeout: 15_000 });
+    await expect(page).toHaveURL(/\/login\?redirect=%2Faccount/, {
+      timeout: 15_000,
+    });
   });
 
   test('authenticated customer can add then delete an address', async ({
@@ -23,18 +27,21 @@ test.describe('Account address book', () => {
     await registerFreshCustomer(page);
     await page.goto('/account');
 
-    await expect(page.getByRole('heading', { name: 'Account', level: 1 })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Account', level: 1 }),
+    ).toBeVisible();
 
     await page.getByRole('button', { name: 'Add address' }).first().click();
 
     const dialog = page.getByRole('alertdialog');
-    await expect(dialog.getByRole('heading', { name: 'Add address' })).toBeVisible();
+    await expect(
+      dialog.getByRole('heading', { name: 'Add address' }),
+    ).toBeVisible();
 
     await dialog.locator('#address-street').fill('500 Mission Street');
     await dialog.locator('#address-city').fill('San Francisco');
     await dialog.locator('#address-state').fill('CA');
     await dialog.locator('#address-postalCode').fill('94105');
-    await dialog.locator('#address-country').fill('US');
     await dialog.locator('#address-type').selectOption('HOME');
 
     await dialog.getByRole('button', { name: 'Add address' }).click();

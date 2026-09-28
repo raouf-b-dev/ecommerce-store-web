@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
-import { ProductImage } from '@/components/media/product-image';
+import { ProductImageFrame } from '@/components/media/product-image';
 import { formatMoney } from '@/lib/format';
 import { getErrorMessage } from '@/lib/api/parse-api-error';
 import {
@@ -101,15 +101,13 @@ export function CartItemRow({ item }: CartItemRowProps) {
       className="flex flex-col gap-4 border-b py-6 sm:flex-row sm:items-center sm:justify-between"
     >
       <div className="flex items-center gap-4">
-        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border bg-muted/20">
-          <ProductImage
-            src={item.imageUrl}
-            alt={item.productName}
-            fill
-            sizes="80px"
-            className="object-cover"
-          />
-        </div>
+        <ProductImageFrame
+          src={item.imageUrl}
+          alt={item.productName}
+          name={item.productName}
+          sizes="80px"
+          className="w-20 border"
+        />
         <div className="space-y-1">
           <Link
             href={`/products/${item.productId}`}

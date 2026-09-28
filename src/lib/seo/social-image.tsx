@@ -1,6 +1,9 @@
 import { seoConfig } from '@/lib/seo/config';
+import { shop } from '@/lib/shop';
 
 export function renderSocialCard() {
+  const colors = shop.socialColors;
+
   return (
     <div
       style={{
@@ -10,8 +13,8 @@ export function renderSocialCard() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#09090b',
-        color: '#fafafa',
+        backgroundColor: colors.background,
+        color: colors.text,
         fontFamily: 'sans-serif',
         padding: '48px',
       }}
@@ -21,19 +24,20 @@ export function renderSocialCard() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '72px',
-          height: '72px',
-          borderRadius: '16px',
-          backgroundColor: '#27272a',
-          marginBottom: '24px',
-          fontSize: '36px',
+          width: '88px',
+          height: '88px',
+          borderRadius: '20px',
+          backgroundColor: colors.accent,
+          marginBottom: '28px',
+          fontSize: '48px',
+          fontWeight: 800,
         }}
       >
-        🛍️
+        {seoConfig.siteName.charAt(0)}
       </div>
       <div
         style={{
-          fontSize: 60,
+          fontSize: 64,
           fontWeight: 800,
           letterSpacing: '-0.03em',
           marginBottom: 16,
@@ -43,9 +47,9 @@ export function renderSocialCard() {
       </div>
       <div
         style={{
-          fontSize: 24,
-          color: '#a1a1aa',
-          maxWidth: 800,
+          fontSize: 26,
+          color: colors.muted,
+          maxWidth: 820,
           textAlign: 'center',
           lineHeight: 1.4,
         }}

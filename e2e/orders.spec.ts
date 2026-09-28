@@ -43,15 +43,16 @@ test.describe('Orders', () => {
     await page.locator('#city').fill('San Francisco');
     await page.locator('#state').fill('CA');
     await page.locator('#postalCode').fill('94105');
-    await page.locator('#country').fill('US');
-
     await page.getByRole('button', { name: /place order/i }).click();
 
-    await expect(
-      page.getByText(/thank you for your order!/i),
-    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/thank you for your order!/i)).toBeVisible({
+      timeout: 20_000,
+    });
 
-    const orderText = await page.getByText(/ORD-\d+/).first().textContent();
+    const orderText = await page
+      .getByText(/ORD-\d+/)
+      .first()
+      .textContent();
     const orderNumberMatch = orderText?.match(/ORD-\d+/);
     expect(orderNumberMatch).toBeTruthy();
     const orderNumber = orderNumberMatch![0];
@@ -70,13 +71,17 @@ test.describe('Orders', () => {
       await page.goto('/orders');
     }
 
-    const sessionErrorAlert = page.getByText('Too many requests. Wait a moment and try again.');
+    const sessionErrorAlert = page.getByText(
+      'Too many requests. Wait a moment and try again.',
+    );
     if (await sessionErrorAlert.isVisible().catch(() => false)) {
       await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
       await page.goto('/orders');
     }
 
-    await expect(page.getByRole('heading', { name: /orders/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: /orders/i })).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(
       page.getByRole('link', { name: new RegExp(orderNumber) }),
     ).toBeVisible({ timeout: 10_000 });

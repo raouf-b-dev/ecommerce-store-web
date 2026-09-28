@@ -1,8 +1,5 @@
 import type { Route } from 'next';
-import {
-  parseNonNegativeNumber,
-  parsePositiveInt,
-} from '@/lib/list-filters';
+import { parseNonNegativeNumber, parsePositiveInt } from '@/lib/list-filters';
 import type {
   CatalogFilterParams,
   ProductSortBy,
@@ -16,19 +13,51 @@ export const MAX_LIMIT = 100;
 export const DEFAULT_SORT_BY: ProductSortBy = 'createdAt';
 export const DEFAULT_SORT_ORDER: SortOrder = 'desc';
 
-export const SORT_BY_OPTIONS: readonly { value: ProductSortBy; label: string }[] = [
-  { value: 'createdAt', label: 'Newest' },
-  { value: 'price', label: 'Price' },
-  { value: 'name', label: 'Name' },
-  { value: 'id', label: 'ID' },
-] as const;
+/** Shopper-facing sort choices. Each maps to one `sortBy` + `sortOrder` pair. */
+export const CATALOG_SORT_OPTIONS: readonly {
+  value: string;
+  label: string;
+  sortBy: ProductSortBy;
+  sortOrder: SortOrder;
+}[] = [
+  {
+    value: 'createdAt:desc',
+    label: 'Newest',
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
+  },
+  {
+    value: 'price:asc',
+    label: 'Price: low to high',
+    sortBy: 'price',
+    sortOrder: 'asc',
+  },
+  {
+    value: 'price:desc',
+    label: 'Price: high to low',
+    sortBy: 'price',
+    sortOrder: 'desc',
+  },
+  {
+    value: 'name:asc',
+    label: 'Name: A to Z',
+    sortBy: 'name',
+    sortOrder: 'asc',
+  },
+  {
+    value: 'name:desc',
+    label: 'Name: Z to A',
+    sortBy: 'name',
+    sortOrder: 'desc',
+  },
+];
 
-export const SORT_ORDER_OPTIONS: readonly { value: SortOrder; label: string }[] = [
-  { value: 'desc', label: 'Descending' },
-  { value: 'asc', label: 'Ascending' },
-] as const;
+/** Route of the full catalog. Product detail pages live under it at `/products/[id]`. */
+export const CATALOG_PATH = '/products' satisfies Route;
 
-function getSingleParam(value: string | string[] | undefined): string | undefined {
+function getSingleParam(
+  value: string | string[] | undefined,
+): string | undefined {
   if (Array.isArray(value)) {
     return value[0];
   }
@@ -51,11 +80,11 @@ function isValidSortOrder(value: string | undefined): value is SortOrder {
 export function hasActiveCatalogFilters(params: CatalogFilterParams): boolean {
   return Boolean(
     params.search ||
-      params.categoryId !== undefined ||
-      params.minPrice !== undefined ||
-      params.maxPrice !== undefined ||
-      params.sortBy !== DEFAULT_SORT_BY ||
-      params.sortOrder !== DEFAULT_SORT_ORDER,
+    params.categoryId !== undefined ||
+    params.minPrice !== undefined ||
+    params.maxPrice !== undefined ||
+    params.sortBy !== DEFAULT_SORT_BY ||
+    params.sortOrder !== DEFAULT_SORT_ORDER,
   );
 }
 
@@ -141,7 +170,7 @@ export function toCatalogCacheKey(params: CatalogFilterParams): string {
 
 export function buildCatalogQueryString(
   params: Partial<CatalogFilterParams>,
-): string {
+): '' | `?${string}` {
   const sp = new URLSearchParams();
 
   if (params.search) {
@@ -186,7 +215,10 @@ export function createCatalogFilterHref(
     page: targetPage,
   };
 
-  const qs = buildCatalogQueryString(merged);
-  return (qs ? `/${qs}` : '/') as Route;
+  return catalogHref(merged);
 }
 
+/** Catalog URL for the given filters, with default values omitted. */
+export function catalogHref(params: Partial<CatalogFilterParams>): Route {
+  return `${CATALOG_PATH}${buildCatalogQueryString(params)}`;
+}

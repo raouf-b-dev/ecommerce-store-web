@@ -61,6 +61,7 @@ export type MockOrder = {
     unitPrice: number;
     quantity: number;
     subtotal: number;
+    imageUrl: string | null;
   }>;
   subtotal: number;
   shippingCost: number;

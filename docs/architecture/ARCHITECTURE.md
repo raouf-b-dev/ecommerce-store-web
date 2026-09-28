@@ -28,7 +28,8 @@ src/app/layout.tsx
     Providers (Theme + QueryClient + Auth + ThemeAwareToaster)
   Suspense > FocusMainOnNavigate
     (shop)/layout.tsx   # skip + header/footer + main#main
-      (shop)/page.tsx   # home / catalog
+      (shop)/page.tsx   # landing: hero, category tiles, new arrivals
+      (shop)/products/page.tsx       # full catalog: filters, sort, pagination
       (shop)/products/[id]/page.tsx
       (shop)/cart/      # ProtectedRoute
       (shop)/checkout/  # ProtectedRoute + order polling
@@ -64,7 +65,7 @@ flowchart TD
 
 - Public catalog is RSC and does not require a session.
 - Cart, checkout, and account are client-gated because the access token is in memory.
-- Missing catalog resources use App Router `notFound()` before streaming ([ADR-0008](adr/ADR-0008-resource-404-via-app-router.md)).
+- Missing catalog resources call App Router `notFound()` and render as soft 404s (`200` + Next.js `noindex`) under Cache Components ([ADR-0009](adr/ADR-0009-resource-soft-404-with-noindex.md)).
 
 ## Auth and session
 

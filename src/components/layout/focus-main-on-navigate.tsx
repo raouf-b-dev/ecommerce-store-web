@@ -18,7 +18,8 @@ export function FocusMainOnNavigate({
       return;
     }
     previousPath.current = pathname;
-    document.getElementById(targetId)?.focus();
+    // The router owns scroll position; focusing a tall <main> would scroll the header away.
+    document.getElementById(targetId)?.focus({ preventScroll: true });
   }, [pathname, targetId]);
 
   return null;

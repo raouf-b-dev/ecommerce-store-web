@@ -122,18 +122,18 @@ export function LoginForm({ redirect }: LoginFormProps) {
       {isMockMode() ? (
         <Suspense fallback={null}>
           <DemoLoginActions
+            disabled={isSubmitting}
             onSelect={(credentials) => {
               setFormError(null);
               form.setValue('email', credentials.email, {
-                shouldValidate: true,
                 shouldDirty: true,
                 shouldTouch: true,
               });
               form.setValue('password', credentials.password, {
-                shouldValidate: true,
                 shouldDirty: true,
                 shouldTouch: true,
               });
+              void form.handleSubmit(onSubmit)();
             }}
           />
         </Suspense>

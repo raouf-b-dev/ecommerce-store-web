@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { parsePositiveInt } from '@/lib/list-filters';
 import { formatMoney } from '@/lib/format';
@@ -7,6 +6,7 @@ import { getStorefrontOrigin } from '@/lib/storefront-origin';
 import { getProduct } from '@/features/catalog/api/get-product';
 import { getProductInventory } from '@/features/catalog/api/get-product-inventory';
 import { ProductAvailability } from '@/features/catalog/components/product-availability';
+import { catalogHref } from '@/features/catalog/lib/catalog-params';
 import {
   ProductBreadcrumbs,
   ProductDetailShell,
@@ -27,8 +27,10 @@ type ProductPageProps = {
 };
 
 /**
- * Opt this route out of Cache Components instant shells so missing products can
- * emit a genuine HTTP 404 before the response streams.
+ * The product lookup blocks outside Suspense on purpose, so this segment opts out
+ * of instant-navigation validation. It does not change the HTTP status: the static
+ * shell streams as 200 first, and a missing product is a soft 404 that Next.js marks
+ * `noindex` (ADR-0009).
  */
 export const instant = false;
 
@@ -114,7 +116,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // Resolve existence before any Suspense boundary so notFound() can set HTTP 404.
+  // Resolve existence before any page-level Suspense boundary so the not-found UI
+  // replaces the whole page instead of streaming into a partial layout.
   const product = await getProduct(productId);
   if (!product) {
     notFound();
@@ -123,22 +126,22 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const origin = getStorefrontOrigin();
   const canonicalUrl = `${origin}/products/${product.id}`;
 
+  const categoryHref =
+    product.categoryName && product.categoryId
+      ? catalogHref({ categoryId: product.categoryId })
+      : undefined;
+
   const breadcrumbItems: BreadcrumbItem[] = [{ name: 'Home', url: `${origin}/` }];
-  if (product.categoryName && product.categoryId) {
+  if (product.categoryName && categoryHref) {
     breadcrumbItems.push({
       name: product.categoryName,
-      url: `${origin}/?categoryId=${product.categoryId}`,
+      url: `${origin}${categoryHref}`,
     });
   }
   breadcrumbItems.push({
     name: product.name,
     url: canonicalUrl,
   });
-
-  const categoryHref =
-    product.categoryName && product.categoryId
-      ? (`/?categoryId=${product.categoryId}` as Route)
-      : undefined;
 
   return (
     <article className="space-y-8">

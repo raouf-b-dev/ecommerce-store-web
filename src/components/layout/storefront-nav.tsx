@@ -1,6 +1,10 @@
 import Link from 'next/link';
+import { CATALOG_PATH } from '@/features/catalog/lib/catalog-params';
 
-export const STOREFRONT_NAV = [{ href: '/', label: 'Home' }] as const;
+export const STOREFRONT_NAV = [
+  { href: '/', label: 'Home' },
+  { href: CATALOG_PATH, label: 'All products' },
+] as const;
 
 type StorefrontNavProps = {
   onNavigate?: () => void;

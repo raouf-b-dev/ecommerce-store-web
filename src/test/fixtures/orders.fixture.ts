@@ -20,6 +20,7 @@ export function createMockOrderItemDetail(
     unitPrice: 200,
     quantity: 1,
     subtotal: 200,
+    imageUrl: null,
     ...overrides,
   };
 }

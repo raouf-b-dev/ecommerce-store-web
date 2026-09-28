@@ -1,14 +1,12 @@
 export function CatalogShellSkeleton() {
   return (
-    <div
-      className="space-y-6"
-      aria-busy="true"
-      aria-live="polite"
-    >
+    <div className="space-y-6" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading products...</span>
 
       {/* Decorative skeleton layout */}
-      <div aria-hidden="true" className="space-y-6">
+      <div aria-hidden="true" className="space-y-5">
+        <div className="h-9 w-48 animate-pulse rounded-md bg-muted/60" />
+
         {/* Category pills skeleton */}
         <div className="flex items-center gap-2 overflow-hidden pb-2">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -20,7 +18,7 @@ export function CatalogShellSkeleton() {
         </div>
 
         {/* Filter bar skeleton */}
-        <div className="h-28 w-full animate-pulse rounded-xl border bg-muted/30" />
+        <div className="h-9 w-full animate-pulse rounded-md border bg-muted/30" />
 
         {/* Product grid skeleton */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

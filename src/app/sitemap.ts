@@ -6,6 +6,10 @@ import { getCategories } from '@/features/catalog/api/get-categories';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
 import type { PaginatedProducts } from '@/features/catalog/types';
 import {
+  CATALOG_PATH,
+  catalogHref,
+} from '@/features/catalog/lib/catalog-params';
+import {
   getSitemapPartitions,
   PRODUCTS_PER_SITEMAP,
 } from '@/features/catalog/lib/sitemap-partitions';
@@ -124,20 +128,27 @@ export default async function sitemap(props: {
 
   const staticEntries: MetadataRoute.Sitemap = [];
 
-  // Partition 0 includes the storefront homepage and non-empty category URLs.
+  // Partition 0 includes the homepage, the full catalog, and non-empty category URLs.
   if (partitionId === 0) {
-    staticEntries.push({
-      url: origin,
-      changeFrequency: 'daily',
-      priority: 1.0,
-    });
+    staticEntries.push(
+      {
+        url: origin,
+        changeFrequency: 'daily',
+        priority: 1.0,
+      },
+      {
+        url: `${origin}${CATALOG_PATH}`,
+        changeFrequency: 'daily',
+        priority: 0.9,
+      },
+    );
 
     try {
       const categories = await getCategories();
       for (const category of categories) {
         if (category.isActive && category.productCount > 0) {
           staticEntries.push({
-            url: `${origin}/?categoryId=${category.id}`,
+            url: `${origin}${catalogHref({ categoryId: category.id })}`,
             changeFrequency: 'daily',
             priority: 0.7,
           });

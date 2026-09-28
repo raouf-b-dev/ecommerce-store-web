@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/feedback/empty-state';
+import { CATALOG_PATH } from '@/features/catalog/lib/catalog-params';
 
 export function CartEmptyState() {
   return (
@@ -13,7 +14,7 @@ export function CartEmptyState() {
       description="Looks like you haven&apos;t added any products to your cart yet. Explore our catalog to get started."
     >
       <Button asChild className="font-medium">
-        <Link href="/">Explore products</Link>
+        <Link href={CATALOG_PATH}>Explore products</Link>
       </Button>
     </EmptyState>
   );

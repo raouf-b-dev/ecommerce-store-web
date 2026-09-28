@@ -45,6 +45,7 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 | :--------------- | :--------------------------------------------------------------------- |
 | Application code | Port **3100**. Catalog, cart, checkout, orders, and account are live (mock payments). Further hardening is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). |
 | Payments         | Mock adapter behind a swappable hexagonal port (no live card UI / Stripe Elements). |
+| Guest cart       | None. Add to cart requires a signed-in account because the API has no guest cart. |
 | Hosted demo      | None.                                                                  |
 
 ---
@@ -62,7 +63,7 @@ Requires Node.js 24+ and npm 11+ (see `.nvmrc`).
 
 ### Without the API
 
-`npm run dev:mock` starts MSW handlers for shopper paths (catalog, cart, checkout). Playwright still needs a live API.
+`npm run dev:mock` starts MSW handlers for shopper paths (catalog, cart, checkout). On the sign-in page, "Sign in as demo shopper" signs in with the demo account in one click. Playwright still needs a live API.
 
 `npm run dev` and `npm run start` both bind **3100**. Stop one before starting the other.
 
@@ -97,6 +98,14 @@ Browser -> Next.js (RSC + client components) -> versioned HTTP API -> ecommerce-
 ## Screenshots
 
 Captured from `npm run dev:mock` (MSW). Mock payments; no hosted demo.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshot-home-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/screenshot-home-light.png">
+    <img alt="Shop homepage with hero, category tiles, and new arrivals" src="docs/assets/screenshot-home-dark.png" width="800" />
+  </picture>
+</p>
 
 <p align="center">
   <picture>
@@ -243,4 +252,4 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md). Please follow the [`CODE_OF_CONDUCT.md
 
 ---
 
-Built by [Abderaouf .B](https://github.com/raouf-b-dev) | [Issues](https://github.com/raouf-b-dev/ecommerce-store-web/issues) | [Repository](https://github.com/raouf-b-dev/ecommerce-store-web)
+Built by [Abderaouf Bouzerara](https://github.com/raouf-b-dev) | [Issues](https://github.com/raouf-b-dev/ecommerce-store-web/issues) | [Repository](https://github.com/raouf-b-dev/ecommerce-store-web)
