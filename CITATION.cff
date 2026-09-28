@@ -7,5 +7,5 @@ authors:
     family-names: Bouzerara
 repository-code: https://github.com/raouf-b-dev/ecommerce-store-web
 license: MIT
-version: '0.2.0'
-date-released: '2026-09-20'
+version: "0.3.0"
+date-released: "2026-09-28"
