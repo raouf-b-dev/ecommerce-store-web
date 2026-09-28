@@ -62,7 +62,7 @@ export default async function sitemap(props: {
   const maxPage = Math.ceil(endProductIndex / API_PAGE_LIMIT);
 
   // Fetch initial page with deterministic sorting
-  let allResults: PaginatedProducts[] = [];
+  let allResults: PaginatedProducts[];
   try {
     const firstResult = await getProducts({
       page: startPage,
