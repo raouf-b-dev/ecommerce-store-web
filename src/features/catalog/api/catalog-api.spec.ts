@@ -212,4 +212,19 @@ describe('catalog-api fetchers', () => {
       });
     });
   });
+
+  it.each([
+    ['getProducts', () => getProducts({ page: 1, limit: 12 })],
+    ['getProduct', () => getProduct(1)],
+    ['getCategories', () => getCategories()],
+    ['getProductInventory', () => getProductInventory(1)],
+  ])('%s keeps the underlying failure as the cause of its 503', async (_name, fetcher) => {
+    const failure = new TypeError('fetch failed');
+    mocks.get.mockRejectedValueOnce(failure);
+
+    const error = await fetcher().catch((caught: unknown) => caught);
+
+    expect(error).toMatchObject({ statusCode: 503, message: 'API unavailable' });
+    expect(error).toHaveProperty('cause', failure);
+  });
 });

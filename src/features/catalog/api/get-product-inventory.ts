@@ -42,10 +42,10 @@ export const getProductInventory = cache(
       if (error instanceof ApiRequestError) {
         throw error;
       }
-      throw new ApiRequestError({
-        statusCode: 503,
-        message: 'API unavailable',
-      });
+      throw new ApiRequestError(
+        { statusCode: 503, message: 'API unavailable' },
+        { cause: error },
+      );
     }
   },
 );

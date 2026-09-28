@@ -4,67 +4,84 @@ import {
   isAllowedImageOrigin,
 } from '@/lib/images/allowed-origins';
 
+vi.mock('@/lib/api/api-base-url', () => ({
+  API_BASE_URL: 'http://localhost:3000',
+}));
+
 describe('isAllowedImageOrigin', () => {
-  const originalEnv = process.env.NODE_ENV;
-  const originalHosts = process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS;
-
   afterEach(() => {
-    vi.stubEnv('NODE_ENV', originalEnv);
-    if (originalHosts === undefined) {
-      delete process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS;
-    } else {
-      process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS = originalHosts;
-    }
+    vi.unstubAllEnvs();
   });
 
-  it('allows localhost:3000 in non-production', () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    delete process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS;
-    expect(isAllowedImageOrigin('http://localhost:3000/pic.jpg')).toBe(true);
-    expect(isAllowedImageOrigin('http://127.0.0.1:3000/pic.jpg')).toBe(true);
+  it('allows any path and query on the API origin', () => {
+    expect(
+      isAllowedImageOrigin('http://localhost:3000/media/demo/v1/a.webp'),
+    ).toBe(true);
+    expect(
+      isAllowedImageOrigin('http://localhost:3000/uploads/a.webp?sig=abc'),
+    ).toBe(true);
   });
 
-  it('rejects localhost without an explicit port', () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    expect(isAllowedImageOrigin('http://localhost/pic.jpg')).toBe(false);
-    expect(isAllowedImageOrigin('http://127.0.0.1/pic.jpg')).toBe(false);
+  it('rejects other ports and schemes on the API host', () => {
+    expect(isAllowedImageOrigin('http://localhost/a.webp')).toBe(false);
+    expect(isAllowedImageOrigin('http://localhost:9999/a.webp')).toBe(false);
+    expect(isAllowedImageOrigin('https://localhost:3000/a.webp')).toBe(false);
+    expect(isAllowedImageOrigin('ftp://localhost:3000/a.webp')).toBe(false);
   });
 
-  it('rejects localhost on the wrong port', () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    expect(isAllowedImageOrigin('http://localhost:9999/pic.jpg')).toBe(false);
-  });
-
-  it('rejects unknown hosts', () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    delete process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS;
-    expect(isAllowedImageOrigin('https://evil.com/pic.jpg')).toBe(false);
-    expect(isAllowedImageOrigin('ftp://localhost:3000/pic.jpg')).toBe(false);
+  it('rejects unknown hosts and malformed URLs', () => {
+    expect(isAllowedImageOrigin('https://evil.com/a.webp')).toBe(false);
     expect(isAllowedImageOrigin('not-a-url')).toBe(false);
   });
 
-  it('allows root-relative public files and rejects protocol-relative URLs', () => {
-    vi.stubEnv('NODE_ENV', 'production');
-    delete process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS;
+  it('allows configured public folders and rejects protocol-relative URLs', () => {
     expect(isAllowedImageOrigin('/mock/products/elec-anc-001.webp')).toBe(true);
+    expect(isAllowedImageOrigin('/shop/hero.webp')).toBe(true);
+    expect(isAllowedImageOrigin('/shop/hero.webp?x=1')).toBe(false);
+    expect(isAllowedImageOrigin('/favicon.ico')).toBe(false);
     expect(isAllowedImageOrigin('//evil.com/pic.jpg')).toBe(false);
     expect(isAllowedImageOrigin('/\\evil.com/pic.jpg')).toBe(false);
     expect(isAllowedImageOrigin('/\t/evil.com/pic.jpg')).toBe(false);
   });
 
-  it('allows production hosts from NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS', () => {
-    vi.stubEnv('NODE_ENV', 'production');
-    process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS = 'cdn.example.com,http://img.local:8080';
-    expect(isAllowedImageOrigin('https://cdn.example.com/a.jpg')).toBe(true);
-    expect(isAllowedImageOrigin('http://img.local:8080/a.jpg')).toBe(true);
-    expect(isAllowedImageOrigin('http://localhost:3000/a.jpg')).toBe(false);
+  it('allows extra origins from NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS', () => {
+    vi.stubEnv(
+      'NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS',
+      'cdn.example.com, images.example.com:8443,http://img.local:8080',
+    );
+    expect(isAllowedImageOrigin('https://cdn.example.com/any/path.webp')).toBe(
+      true,
+    );
+    expect(isAllowedImageOrigin('https://cdn.example.com:8443/a.webp')).toBe(
+      false,
+    );
+    expect(isAllowedImageOrigin('https://images.example.com:8443/a.webp')).toBe(
+      true,
+    );
+    expect(isAllowedImageOrigin('http://img.local:8080/a.webp')).toBe(true);
   });
 
-  it('shares the same patterns next.config would use', () => {
-    vi.stubEnv('NODE_ENV', 'production');
-    process.env.NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS = 'cdn.example.com';
+  it.each([
+    'user:pw@a.example.com',
+    'b.example.com/?x=1',
+    'c.example.com/images',
+    'ftp://d.example.com',
+    'https://',
+  ])('throws on an entry that is not a bare origin: %s', (entry) => {
+    vi.stubEnv('NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS', entry);
+    expect(() => getConfiguredImageRemotePatterns()).toThrow(
+      /Invalid image origin/,
+    );
+  });
+
+  it('dedupes the API origin and shares the patterns next.config uses', () => {
+    vi.stubEnv(
+      'NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS',
+      'cdn.example.com,http://localhost:3000',
+    );
     expect(getConfiguredImageRemotePatterns()).toEqual([
-      { protocol: 'https', hostname: 'cdn.example.com' },
+      { protocol: 'http', hostname: 'localhost', port: '3000' },
+      { protocol: 'https', hostname: 'cdn.example.com', port: '' },
     ]);
   });
 });

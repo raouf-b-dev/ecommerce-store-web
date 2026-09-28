@@ -1,5 +1,8 @@
 import type { NextConfig } from 'next';
-import { getConfiguredImageRemotePatterns } from './src/lib/images/allowed-origins';
+import {
+  getConfiguredImageRemotePatterns,
+  IMAGE_LOCAL_PATTERNS,
+} from './src/lib/images/allowed-origins';
 
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -16,6 +19,12 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['msw'],
   images: {
     remotePatterns: getConfiguredImageRemotePatterns(),
+    localPatterns: IMAGE_LOCAL_PATTERNS,
+    // Redirect targets skip the remotePatterns check, so an open redirect on an
+    // allowed origin would turn the optimizer into an open proxy.
+    maximumRedirects: 0,
+    maximumResponseBody: 5_000_000,
+    dangerouslyAllowLocalIP: process.env.NODE_ENV !== 'production',
   },
   async headers() {
     return [
