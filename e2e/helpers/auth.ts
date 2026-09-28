@@ -97,6 +97,7 @@ export function resetAuthSeed(): void {
   } catch (error) {
     throw new Error(
       `Failed to run 'npm run db:seed:auth' in ${apiPath}: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 }
