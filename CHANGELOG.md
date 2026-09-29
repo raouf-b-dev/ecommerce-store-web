@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-29
+
 ### Changed
 
 - Image allow-list: `NEXT_PUBLIC_API_BASE_URL` is always permitted; extra hosts go in `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS`.
