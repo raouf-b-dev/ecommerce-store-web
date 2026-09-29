@@ -179,6 +179,7 @@ Regenerate: [`docs/assets/README.md`](docs/assets/README.md).
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                 | Fork workflow, setup, PR expectations                                                             |
 | [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)           | Community standards                                                                               |
 | [`SECURITY.md`](SECURITY.md)                         | Frontend security baseline                                                                        |
+| [`CHANGELOG.md`](CHANGELOG.md)                       | Released versions                                                                                 |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md)                 | Delivery plan, Next.js 16 conventions, ship gates                                                 |
 | [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md) | Client integration rules (OpenAPI is the contract)                                                |
 | [`docs/README.md`](docs/README.md)                   | Docs index                                                                                        |
