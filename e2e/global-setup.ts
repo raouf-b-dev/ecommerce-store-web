@@ -20,6 +20,7 @@ export default async function globalSetup(): Promise<void> {
   } catch (error) {
     throw new Error(
       `E2E tests require a running API at ${apiBaseUrl}. Ensure the API is running before executing tests: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 
@@ -39,6 +40,7 @@ export default async function globalSetup(): Promise<void> {
   } catch (error) {
     throw new Error(
       `Failed to verify active catalog data at ${apiBaseUrl}: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 
@@ -70,6 +72,7 @@ export default async function globalSetup(): Promise<void> {
   } catch (error) {
     throw new Error(
       `Failed to seed auth users via 'npm run db:seed:auth' in ${apiPath}: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 }

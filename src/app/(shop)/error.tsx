@@ -3,10 +3,10 @@
 import { RouteError } from '@/components/layout/route-error';
 
 export default function ShopError({
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
-  return <RouteError reset={reset} />;
+  return <RouteError retry={retry} />;
 }

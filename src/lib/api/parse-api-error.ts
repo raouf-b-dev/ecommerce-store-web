@@ -12,8 +12,8 @@ export class ApiRequestError extends Error {
   readonly errors?: string[];
   readonly retryAfterSeconds?: number;
 
-  constructor(parsed: ParsedApiError) {
-    super(parsed.message);
+  constructor(parsed: ParsedApiError, options?: ErrorOptions) {
+    super(parsed.message, options);
     this.name = 'ApiRequestError';
     this.statusCode = parsed.statusCode ?? 500;
     this.code = parsed.code;
