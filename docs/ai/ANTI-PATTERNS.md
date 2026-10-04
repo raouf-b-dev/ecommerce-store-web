@@ -1,101 +1,78 @@
-# Storefront Anti-Patterns & Review Checklist
+# Storefront Anti-Patterns and Review Checklist
 
-Document Type: Applied Guide & Review Checklist  
-Audience: Frontend Engineers & AI Code Reviewers  
-Status: Active
-
-Concrete **Good ✅ vs. Bad ❌** examples that enforce [`CONVENTIONS.md`](./CONVENTIONS.md).
-
----
+Bad and good examples that enforce [CONVENTIONS.md](CONVENTIONS.md). Used when writing and reviewing code.
 
 ## 1. Import direction
 
-### Rule: `src/lib/` must not import `src/features/`.
+Rule: CONVENTIONS section 2 (`lib/` never imports `features/`).
 
-#### ❌ BAD
+Bad:
 
 ```ts
 // src/lib/auth/auth-context.tsx
 import { clearStoredCartId } from '@/features/cart/lib/cart-storage';
 ```
 
-#### ✅ GOOD
+Good: accept a callback in `lib/` and compose it in the app shell.
 
-```ts
-// src/lib/auth/auth-context.tsx - accept a callback
+```tsx
+// src/lib/auth/auth-context.tsx
 type AuthProviderProps = {
   children: ReactNode;
   onClearLocalSideEffects?: () => void;
 };
 
-// src/app/providers.tsx - compose from the app shell
-<AuthProvider onClearLocalSideEffects={clearStoredCartId}>
-  {children}
-</AuthProvider>
+// src/app/providers.tsx
+<AuthProvider onClearLocalSideEffects={clearStoredCartId}>{children}</AuthProvider>
 ```
-
----
 
 ## 2. Thin routes as slot composition
 
-### Rule: Routes compose features. Features do not import each other's presentational chrome. Catalog must not import cart.
+Rule: CONVENTIONS section 2 (routes compose features; catalog must not import cart UI).
 
-#### ❌ BAD
+Bad:
 
 ```tsx
 // features/catalog/components/product-detail.tsx
 import { AddToCartCta } from '@/features/cart/components/add-to-cart-cta';
-
-export function ProductDetail({ product }: Props) {
-  return (
-    <>
-      <h1>{product.name}</h1>
-      <AddToCartCta productId={product.id} />
-    </>
-  );
-}
 ```
 
-#### ✅ GOOD
+Good: the route owns the slot.
 
 ```tsx
-// app/(shop)/products/[id]/page.tsx - route owns the slot
+// app/(shop)/products/[id]/page.tsx
 <ProductDetailShell product={product}>
   <AddToCartCta productId={product.id} />
 </ProductDetailShell>
 ```
 
----
+## 3. No English-message matching
 
-## 3. No English-message auth matching
+Rule: CONVENTIONS section 9 (structured API `code` values).
 
-### Rule: Prefer structured `code` from the API. Patch the API if the contract is wrong.
-
-#### ❌ BAD
+Bad:
 
 ```ts
 body.message?.includes('Password change required');
 ```
 
-#### ✅ GOOD
+Good:
 
 ```ts
 body.code === 'MUST_CHANGE_PASSWORD';
 ```
 
----
-
 ## 4. No invented contract fields
 
-### Rule: Render only fields the API returns. Do not invent Free shipping or receipt email.
+Rule: CONVENTIONS section 8 (render only what the API returns).
 
-#### ❌ BAD
+Bad:
 
 ```tsx
-<p>Free shipping · Confirmation email on the way</p>
+<p>Free shipping, confirmation email on the way</p>
 ```
 
-#### ✅ GOOD
+Good:
 
 ```tsx
 {order.shippingCost != null ? (
@@ -103,20 +80,17 @@ body.code === 'MUST_CHANGE_PASSWORD';
 ) : null}
 ```
 
----
+## 5. One client per side, no BFF
 
-## 5. No BFF / dual clients
+Rule: CONVENTIONS section 3 (one client per side, no BFF).
 
-### Rule: Prefer OpenAPI `browserClient` / `serverClient`. No Route Handlers that proxy the ecommerce API. No `typeof window` hybrid clients.
-
-#### ❌ BAD
+Bad:
 
 ```ts
-export const client =
-  typeof window === 'undefined' ? serverFetch : browserFetch;
+export const client = typeof window === 'undefined' ? serverFetch : browserFetch;
 ```
 
-#### ✅ GOOD
+Good:
 
 ```ts
 // Server Component
@@ -126,75 +100,82 @@ import { serverClient } from '@/lib/api/server-client';
 import { browserClient } from '@/lib/api/browser-client';
 ```
 
----
+## 6. Catalog is not client state
 
-## 6. Empty cart is not an error
+Rule: CONVENTIONS section 4 (catalog is RSC).
 
-### Rule: `GET /v1/carts/current` **404** means no cart yet → treat as empty (`null`), not `QueryStateAlert`.
+Bad:
 
-#### ❌ BAD
+```tsx
+'use client';
+const searchParams = useSearchParams();
+const { data } = useQuery({ queryKey: ['products', searchParams.toString()], queryFn: ... });
+```
+
+Good:
+
+```tsx
+// app/(shop)/products/page.tsx (Server Component)
+const query = parseCatalogSearchParams(await searchParams);
+const products = await getProducts(query);
+```
+
+## 7. Empty cart is not an error
+
+Rule: CONVENTIONS section 9 (cart `404` is an empty cart).
+
+Bad:
 
 ```ts
 if (response.status === 404) throw toApiRequestError(response, 'Cart missing');
 ```
 
-#### ✅ GOOD
+Good:
 
 ```ts
-if (response.status === 404) return null; // empty cart for useCart
+if (response.status === 404) return null;
 ```
 
----
+## 8. Casts and `any`
 
-## 7. Testing anti-patterns
+Rule: AGENTS.md rule 1. Replacements for the common casts (JSON bodies, `readonly string[]` guards, `request` and `target` narrowing, hoisted mock state) are in the `write-tests` skill; the same patterns apply to source code. Next's documented `as Route` is the one exception (CONVENTIONS section 6).
 
-### Rule: Component specs that mock hooks do not need `QueryClientProvider`. Hook/API specs do.
+## 9. Testing anti-patterns
 
-#### ❌ BAD
+Rule: `write-tests` skill (hook-mocked specs render without `QueryClientProvider`; no conditional `expect`).
+
+Bad:
 
 ```tsx
-// checkout-form.spec.tsx already mocks useCart / useCheckoutMutation
 render(
   <QueryClientProvider client={client}>
     <CheckoutForm />
   </QueryClientProvider>,
 );
+
+if (result.success) {
+  expect(result.data.email).toBe('ada@example.com');
+}
 ```
 
-#### ✅ GOOD
+Good:
 
 ```tsx
-vi.spyOn(cartHooks, 'useCart').mockReturnValue(emptyCartResult);
+vi.mocked(useCart).mockReturnValue(createMockUseCartResult());
 render(<CheckoutForm />);
-```
 
----
+expect(schema.safeParse(input)).toMatchObject({ success: true, data: { email: 'ada@example.com' } });
+```
 
 ## Review checklist
 
-- [ ] No `lib/` → `features/` imports (ESLint `no-restricted-imports`)
+- [ ] No `lib/` to `features/` imports (ESLint `no-restricted-imports`)
 - [ ] Routes compose feature slots; catalog does not import cart UI
-- [ ] Auth redirects use `MUST_CHANGE_PASSWORD` code, not English substrings
-- [ ] UI does not invent shipping / email / totals the API does not return
-- [ ] OpenAPI client only; no BFF
-- [ ] Cart 404 → empty, not error banner
-- [ ] Typed factories in tests; no QueryClient around hook-mocked components
+- [ ] Catalog stays RSC; no catalog data in TanStack Query
+- [ ] One client per side; no BFF; no ad-hoc `fetch` for domain calls
+- [ ] Auth branches use API `code` values, not English substrings
+- [ ] UI does not invent shipping, email, or totals the API does not return
+- [ ] Cart `404` is empty, not an error banner
+- [ ] After cart or checkout mutations: Query invalidation and `router.refresh()`
+- [ ] Typed factories in tests; no conditional `expect`; no new `as`/`any`
 - [ ] Docs and comments use ASCII punctuation (no em dashes or curly quotes)
-
-## 8. ASCII prose
-
-### Rule: Docs and comments look typed, not generated. No smart punctuation.
-
-#### BAD
-
-Em dash (U+2014) between clauses. Curly quotes around `"Free shipping"`. Ellipsis character (U+2026) in comments.
-
-#### GOOD
-
-```md
-Phase 10: Standalone MSW mock preview
-400-499 client errors
-Loading...
-```
-
-Enforced by ESLint `ascii-prose/no-smart-punctuation` on comments and `node scripts/lint-ascii-prose.cjs` on Markdown.

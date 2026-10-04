@@ -1,0 +1,67 @@
+{
+  "src/components/theme/theme-script.spec.tsx": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 2
+    }
+  },
+  "src/components/ui/input-group.tsx": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 1
+    }
+  },
+  "src/features/cart/api/cart-api.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 1
+    }
+  },
+  "src/features/catalog/api/get-products.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 1
+    }
+  },
+  "src/features/orders/lib/order-list-filters.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 5
+    }
+  },
+  "src/lib/api/browser-client.spec.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 1
+    }
+  },
+  "src/lib/api/browser-client.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 1
+    }
+  },
+  "src/lib/auth/access-token.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 1
+    }
+  },
+  "src/lib/auth/auth-routes.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 1
+    }
+  },
+  "src/lib/auth/parse-auth-tokens.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 1
+    }
+  },
+  "src/lib/auth/route-guards.spec.tsx": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 2
+    }
+  },
+  "src/lib/mock/handlers/handlers.spec.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 17
+    }
+  },
+  "src/lib/mock/sync-node-handlers.ts": {
+    "@typescript-eslint/consistent-type-assertions": {
+      "count": 2
+    }
+  }
+}
