@@ -236,7 +236,7 @@ Pick the first unchecked phase. Phases 14 and 14c do not block the release gate.
 - [x] Stranger onboarding: README → `env:init` → `dev` on **3100** against a live API started from the API repo's docs (including CORS origin)
 - [x] Seeded purchase path: forced password change → browse → cart → checkout → order
 - [x] `next build` + `next start` (or platform preview) on **3100** against the same API
-- [x] README + PROJECT-CONTEXT + API-INTEGRATION match the repo
+- [x] README + docs/ai/CODE-MAP.md + API-INTEGRATION match the repo
 - [x] Confirm no secrets in `NEXT_PUBLIC_*`
 
 **Done when:** A stranger can follow the README and complete a seeded purchase without tribal knowledge.

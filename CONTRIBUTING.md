@@ -42,15 +42,13 @@ Details: [README](README.md). Client rules: [`docs/API-INTEGRATION.md`](docs/API
 - Use the **live OpenAPI / generated client**. Do not invent endpoints, filters, DTOs, or guest-cart behavior the API does not expose.
 - No BFF: do not add Next Route Handlers or Server Actions that proxy API auth.
 - Keep business logic (pricing, stock, RBAC, checkout orchestration) out of the UI.
-- Follow conventions in [`AGENT.md`](AGENT.md) and [`docs/ai/`](docs/ai/) when touching app structure.
+- Follow conventions in [`AGENTS.md`](AGENTS.md) and [`docs/ai/`](docs/ai/) when touching app structure.
 
 ## Before you open a PR
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
-npm run build
+npm run verify   # lint, typecheck, unit tests
+NEXT_PUBLIC_STOREFRONT_ORIGIN=https://storefront.test npm run build
 ```
 
 Playwright needs a live API; see [`e2e/README.md`](e2e/README.md). Prefer unit/component coverage for client islands in the same PR as the feature.
