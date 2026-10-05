@@ -148,9 +148,9 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
       className="space-y-8"
       noValidate
     >
-      <div className="grid gap-8 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Left column: Address, Payment & Notes */}
-        <div className="space-y-6 lg:col-span-7">
+        <div className="min-w-0 space-y-6 lg:col-span-7">
           {/* Shipping Address Section */}
           <Card className="border shadow-xs">
             <CardHeader className="border-b pb-4">
@@ -184,9 +184,9 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                   />
                   <label
                     htmlFor="address-option-saved"
-                    className={
+                    className={`min-w-0 flex-1 wrap-break-word ${
                       defaultAddress ? 'cursor-pointer' : 'cursor-not-allowed'
-                    }
+                    }`}
                   >
                     <span className="block text-sm font-medium text-foreground">
                       Use saved address on file
@@ -232,7 +232,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                   />
                   <label
                     htmlFor="address-option-custom"
-                    className="cursor-pointer"
+                    className="min-w-0 flex-1 cursor-pointer wrap-break-word"
                   >
                     <span className="block text-sm font-medium text-foreground">
                       Ship to a custom address
@@ -433,11 +433,11 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
               <div className="flex items-start gap-4 rounded-xl border-2 border-primary/40 bg-primary/5 p-4">
-                <div className="rounded-lg bg-primary p-2 text-primary-foreground">
+                <div className="shrink-0 rounded-lg bg-primary p-2 text-primary-foreground">
                   <CreditCard className="size-6" />
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                     <span className="font-semibold text-foreground">
                       Card payment
                     </span>
@@ -481,7 +481,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
         </div>
 
         {/* Right column: Summary & CTA */}
-        <div className="space-y-6 lg:col-span-5">
+        <div className="min-w-0 space-y-6 lg:col-span-5">
           <Card className="border shadow-xs sticky top-8">
             <CardHeader className="border-b pb-4">
               <CardTitle className="text-lg font-semibold">
@@ -515,7 +515,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                           {formatMoney(item.price, currency)}
                         </p>
                       </div>
-                      <span className="font-medium text-foreground">
+                      <span className="shrink-0 font-medium text-foreground">
                         {formatMoney(item.subtotal, currency)}
                       </span>
                     </div>
@@ -524,23 +524,23 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
               )}
 
               <div className="space-y-2 border-t pt-4 text-sm">
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">
                     Subtotal ({itemCount} {itemCount === 1 ? 'unit' : 'units'})
                   </span>
-                  <span className="font-medium text-foreground">
+                  <span className="shrink-0 font-medium text-foreground">
                     {formatMoney(subtotal, currency)}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-medium text-foreground">
+                  <span className="shrink-0 font-medium text-foreground">
                     {formatShipping(shippingCost, currency)}
                   </span>
                 </div>
-                <div className="flex justify-between border-t pt-3 text-base font-bold">
+                <div className="flex justify-between gap-2 border-t pt-3 text-base font-bold">
                   <span className="text-foreground">Total Due</span>
-                  <span className="text-foreground">
+                  <span className="shrink-0 text-foreground">
                     {formatMoney(totalAmount, currency)}
                   </span>
                 </div>
