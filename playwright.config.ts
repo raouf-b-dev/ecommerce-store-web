@@ -21,6 +21,14 @@ if (fs.existsSync(secretsPath)) {
 
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH;
 
+const guestTestMatch = /.*(smoke|catalog|shell|a11y-guest)\.spec\.ts/;
+
+const pixelDevice = devices['Pixel 5'];
+const pixelViewport = pixelDevice.viewport;
+if (!pixelViewport) {
+  throw new Error('expected Pixel 5 to define a viewport');
+}
+
 export default defineConfig({
   testDir: './e2e',
   globalSetup: './e2e/global-setup.ts',
@@ -34,10 +42,27 @@ export default defineConfig({
   projects: [
     {
       name: 'guest',
-      testMatch: /.*(smoke|catalog|shell|a11y-guest)\.spec\.ts/,
+      testMatch: guestTestMatch,
       fullyParallel: true,
       use: {
         ...devices['Desktop Chrome'],
+      },
+    },
+    {
+      name: 'pixel',
+      testMatch: guestTestMatch,
+      fullyParallel: true,
+      use: {
+        ...pixelDevice,
+        viewport: { width: 375, height: pixelViewport.height },
+      },
+    },
+    {
+      name: 'iphone',
+      testMatch: guestTestMatch,
+      fullyParallel: true,
+      use: {
+        ...devices['iPhone 14'],
       },
     },
     {

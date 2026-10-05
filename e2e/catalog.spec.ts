@@ -1,4 +1,42 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+const MD_BREAKPOINT = 768;
+
+function viewportWidth(page: Page): number {
+  const viewport = page.viewportSize();
+  if (!viewport) {
+    throw new Error('expected a viewport');
+  }
+  return viewport.width;
+}
+
+async function expectSortControl(page: Page) {
+  if (viewportWidth(page) < MD_BREAKPOINT) {
+    await page.getByRole('button', { name: 'Filters' }).click();
+    await expect(
+      page.getByRole('dialog', { name: 'Filter and sort' }).getByRole('combobox', {
+        name: 'Sort by',
+      }),
+    ).toBeVisible();
+    return;
+  }
+
+  await expect(page.getByRole('combobox', { name: 'Sort products' })).toBeVisible();
+}
+
+async function chooseLowToHighPrice(page: Page) {
+  if (viewportWidth(page) < MD_BREAKPOINT) {
+    await page.getByRole('button', { name: 'Filters' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Filter and sort' });
+    await sheet.getByRole('combobox', { name: 'Sort by' }).click();
+    await page.getByRole('option', { name: 'Price: low to high' }).click();
+    await sheet.getByRole('button', { name: 'Show results' }).click();
+    return;
+  }
+
+  await page.getByRole('combobox', { name: 'Sort products' }).click();
+  await page.getByRole('option', { name: 'Price: low to high' }).click();
+}
 
 test.describe('Catalog storefront', () => {
   test('homepage leads with the hero, category tiles, and new arrivals', async ({
@@ -51,21 +89,18 @@ test.describe('Catalog storefront', () => {
     await expect(
       page.getByRole('searchbox', { name: 'Search products' }),
     ).toBeVisible();
-    await expect(
-      page.getByRole('combobox', { name: 'Sort products' }),
-    ).toBeVisible();
 
     const cards = page.locator('main a[href^="/products/"]');
     await expect(cards.first()).toBeVisible();
+    await expectSortControl(page);
   });
 
-  test('choosing a sort option applies it without a submit button', async ({
+  test('applies price ascending from the inline sort or the filters sheet', async ({
     page,
   }) => {
     await page.goto('/products');
 
-    await page.getByRole('combobox', { name: 'Sort products' }).click();
-    await page.getByRole('option', { name: 'Price: low to high' }).click();
+    await chooseLowToHighPrice(page);
 
     await expect(page).toHaveURL(/sortBy=price&sortOrder=asc/);
   });
