@@ -151,6 +151,9 @@ test.describe('Checkout Flow', () => {
 
     await page.goto('/checkout');
     await expect(page.locator('form').getByText('Order Summary')).toBeVisible();
+    await expect(
+      page.locator('form').getByText(longName, { exact: true }),
+    ).toBeVisible();
 
     // Verify "Use saved address on file" is selected and renders the long address lines
     const savedOption = page.locator('#address-option-saved');
