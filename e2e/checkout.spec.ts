@@ -87,15 +87,13 @@ test.describe('Checkout Flow', () => {
     await placeOrderBtn.click();
 
     // 5. Verify transition to confirmation and polling to confirmed status
-    // Order number badge and confirmation header should become visible
+    await expect(page.getByRole('status')).toHaveText(/confirmed/i);
     await expect(
-      page.getByText(/thank you for your order!|your order is confirmed/i),
-    ).toBeVisible({
-      timeout: 20_000,
-    });
-
-    await expect(page.getByText(/ORD-\d+/).first()).toBeVisible();
-    await expect(page.getByText('Confirmed').first()).toBeVisible();
+      page.getByRole('heading', { name: /your order is confirmed/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Order ORD-\d+/i }),
+    ).toBeVisible();
     await expect(
       page.getByRole('link', { name: /view order details/i }),
     ).toBeVisible();

@@ -184,7 +184,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                   />
                   <label
                     htmlFor="address-option-saved"
-                    className={`min-w-0 flex-1 break-words ${
+                    className={`min-w-0 flex-1 wrap-break-word ${
                       defaultAddress ? 'cursor-pointer' : 'cursor-not-allowed'
                     }`}
                   >
@@ -232,7 +232,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                   />
                   <label
                     htmlFor="address-option-custom"
-                    className="min-w-0 flex-1 cursor-pointer break-words"
+                    className="min-w-0 flex-1 cursor-pointer wrap-break-word"
                   >
                     <span className="block text-sm font-medium text-foreground">
                       Ship to a custom address
