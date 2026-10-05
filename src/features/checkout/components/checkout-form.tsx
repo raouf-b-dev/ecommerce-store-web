@@ -384,10 +384,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                           value={field.value ?? ''}
                           onChange={field.onChange}
                           onBlur={field.onBlur}
-                          invalid={Boolean(
-                            fieldState.error ||
-                              errors.shippingAddress?.country,
-                          )}
+                          invalid={Boolean(fieldState.error)}
                         />
                       )}
                     />

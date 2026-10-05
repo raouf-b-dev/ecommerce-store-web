@@ -224,9 +224,8 @@ describe('CheckoutForm', () => {
     });
   });
 
-  it('shows validation errors and blocks submit when custom address is invalid, but submits when valid', async () => {
+  it('shows validation errors and blocks submit when custom address is invalid', async () => {
     const user = userEvent.setup();
-    mockSubmitCheckout.mockResolvedValue({ orderId: 99, jobId: 'job-99' });
     mockCartWithItems();
 
     render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
@@ -248,6 +247,17 @@ describe('CheckoutForm', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Postal code is required')).toBeInTheDocument();
     expect(mockSubmitCheckout).not.toHaveBeenCalled();
+  });
+
+  it('submits checkout when custom address is valid', async () => {
+    const user = userEvent.setup();
+    mockSubmitCheckout.mockResolvedValue({ orderId: 99, jobId: 'job-99' });
+    mockCartWithItems();
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    const customRadio = screen.getByLabelText(/ship to a custom address/i);
+    await user.click(customRadio);
 
     await user.type(screen.getByLabelText(/first name/i), 'Bob');
     await user.type(screen.getByLabelText(/last name/i), 'Jones');
@@ -256,6 +266,7 @@ describe('CheckoutForm', () => {
     await user.type(screen.getByLabelText(/state \/ province/i), 'MA');
     await user.type(screen.getByLabelText(/postal code/i), '02108');
 
+    const submitBtn = screen.getByRole('button', { name: /place order/i });
     await user.click(submitBtn);
 
     await waitFor(() => {
