@@ -42,6 +42,7 @@ function PasswordChangeWatcher() {
  * Suspense boundary so useSearchParams() does not block static prerendering of children.
  */
 export function RequirePasswordChanged({ children }: RouteProps) {
+  'use no memo';
   return (
     <>
       <Suspense fallback={null}>
