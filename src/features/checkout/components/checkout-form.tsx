@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useFormState, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { CreditCard, Lock, Truck, CheckCircle2 } from 'lucide-react';
@@ -87,6 +87,10 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
   const useDefaultAddress = useWatch({
     control: form.control,
     name: 'useDefaultAddress',
+  });
+
+  const { errors } = useFormState({
+    control: form.control,
   });
 
   useEffect(() => {
@@ -245,102 +249,131 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
               {!useDefaultAddress && (
                 <div className="pt-4 border-t space-y-4 animate-in fade-in-50 duration-200">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(
+                        errors.shippingAddress?.firstName,
+                      )}
+                    >
                       <FieldLabel htmlFor="firstName">First Name</FieldLabel>
                       <Input
                         id="firstName"
                         placeholder="Jane"
+                        aria-invalid={Boolean(
+                          errors.shippingAddress?.firstName,
+                        )}
                         {...form.register('shippingAddress.firstName')}
                       />
                       <FieldError>
-                        {
-                          form.formState.errors.shippingAddress?.firstName
-                            ?.message
-                        }
+                        {errors.shippingAddress?.firstName?.message}
                       </FieldError>
                     </Field>
 
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(
+                        errors.shippingAddress?.lastName,
+                      )}
+                    >
                       <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
                       <Input
                         id="lastName"
                         placeholder="Doe"
+                        aria-invalid={Boolean(
+                          errors.shippingAddress?.lastName,
+                        )}
                         {...form.register('shippingAddress.lastName')}
                       />
                       <FieldError>
-                        {
-                          form.formState.errors.shippingAddress?.lastName
-                            ?.message
-                        }
+                        {errors.shippingAddress?.lastName?.message}
                       </FieldError>
                     </Field>
                   </div>
 
-                  <Field>
+                  <Field
+                    data-invalid={Boolean(errors.shippingAddress?.street)}
+                  >
                     <FieldLabel htmlFor="street">Street Address</FieldLabel>
                     <Input
                       id="street"
                       placeholder="123 Market Street"
+                      aria-invalid={Boolean(errors.shippingAddress?.street)}
                       {...form.register('shippingAddress.street')}
                     />
                     <FieldError>
-                      {form.formState.errors.shippingAddress?.street?.message}
+                      {errors.shippingAddress?.street?.message}
                     </FieldError>
                   </Field>
 
-                  <Field>
+                  <Field
+                    data-invalid={Boolean(errors.shippingAddress?.street2)}
+                  >
                     <FieldLabel htmlFor="street2">
                       Apartment, suite, unit (optional)
                     </FieldLabel>
                     <Input
                       id="street2"
                       placeholder="Apt 4B"
+                      aria-invalid={Boolean(errors.shippingAddress?.street2)}
                       {...form.register('shippingAddress.street2')}
                     />
+                    <FieldError>
+                      {errors.shippingAddress?.street2?.message}
+                    </FieldError>
                   </Field>
 
                   <div className="grid gap-4 sm:grid-cols-3">
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(errors.shippingAddress?.city)}
+                    >
                       <FieldLabel htmlFor="city">City</FieldLabel>
                       <Input
                         id="city"
                         placeholder="New York"
+                        aria-invalid={Boolean(errors.shippingAddress?.city)}
                         {...form.register('shippingAddress.city')}
                       />
                       <FieldError>
-                        {form.formState.errors.shippingAddress?.city?.message}
+                        {errors.shippingAddress?.city?.message}
                       </FieldError>
                     </Field>
 
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(errors.shippingAddress?.state)}
+                    >
                       <FieldLabel htmlFor="state">State / Province</FieldLabel>
                       <Input
                         id="state"
                         placeholder="NY"
+                        aria-invalid={Boolean(errors.shippingAddress?.state)}
                         {...form.register('shippingAddress.state')}
                       />
                       <FieldError>
-                        {form.formState.errors.shippingAddress?.state?.message}
+                        {errors.shippingAddress?.state?.message}
                       </FieldError>
                     </Field>
 
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(
+                        errors.shippingAddress?.postalCode,
+                      )}
+                    >
                       <FieldLabel htmlFor="postalCode">Postal Code</FieldLabel>
                       <Input
                         id="postalCode"
                         placeholder="10001"
+                        aria-invalid={Boolean(
+                          errors.shippingAddress?.postalCode,
+                        )}
                         {...form.register('shippingAddress.postalCode')}
                       />
                       <FieldError>
-                        {
-                          form.formState.errors.shippingAddress?.postalCode
-                            ?.message
-                        }
+                        {errors.shippingAddress?.postalCode?.message}
                       </FieldError>
                     </Field>
                   </div>
 
-                  <Field>
+                  <Field
+                    data-invalid={Boolean(errors.shippingAddress?.country)}
+                  >
                     <FieldLabel htmlFor="country">Country</FieldLabel>
                     <Controller
                       control={form.control}
@@ -351,24 +384,37 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                           value={field.value ?? ''}
                           onChange={field.onChange}
                           onBlur={field.onBlur}
-                          invalid={Boolean(fieldState.error)}
+                          invalid={Boolean(
+                            fieldState.error ||
+                              errors.shippingAddress?.country,
+                          )}
                         />
                       )}
                     />
                     <FieldError>
-                      {form.formState.errors.shippingAddress?.country?.message}
+                      {errors.shippingAddress?.country?.message}
                     </FieldError>
                   </Field>
 
-                  <Field>
+                  <Field
+                    data-invalid={Boolean(
+                      errors.shippingAddress?.deliveryInstructions,
+                    )}
+                  >
                     <FieldLabel htmlFor="deliveryInstructions">
                       Delivery Instructions (optional)
                     </FieldLabel>
                     <Input
                       id="deliveryInstructions"
                       placeholder="Ring bell or leave at front desk"
+                      aria-invalid={Boolean(
+                        errors.shippingAddress?.deliveryInstructions,
+                      )}
                       {...form.register('shippingAddress.deliveryInstructions')}
                     />
+                    <FieldError>
+                      {errors.shippingAddress?.deliveryInstructions?.message}
+                    </FieldError>
                   </Field>
                 </div>
               )}
@@ -422,14 +468,15 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Field>
+              <Field data-invalid={Boolean(errors.customerNotes)}>
                 <Input
                   id="customerNotes"
                   placeholder="e.g. Please handle with extra care"
+                  aria-invalid={Boolean(errors.customerNotes)}
                   {...form.register('customerNotes')}
                 />
                 <FieldError>
-                  {form.formState.errors.customerNotes?.message}
+                  {errors.customerNotes?.message}
                 </FieldError>
               </Field>
             </CardContent>
