@@ -534,13 +534,13 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                 </div>
                 <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-medium text-foreground">
+                  <span className="shrink-0 font-medium text-foreground">
                     {formatShipping(shippingCost, currency)}
                   </span>
                 </div>
-                <div className="flex justify-between border-t pt-3 text-base font-bold">
+                <div className="flex justify-between gap-2 border-t pt-3 text-base font-bold">
                   <span className="text-foreground">Total Due</span>
-                  <span className="text-foreground">
+                  <span className="shrink-0 text-foreground">
                     {formatMoney(totalAmount, currency)}
                   </span>
                 </div>

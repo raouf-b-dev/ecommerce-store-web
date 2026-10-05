@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { AUTH_THROTTLE_WAIT_MS, registerFreshCustomer } from './helpers/auth';
+import {
+  AUTH_THROTTLE_WAIT_MS,
+  addFirstProductToCart,
+  registerFreshCustomer,
+} from './helpers/auth';
 
 test.describe('Cart and Checkout Entrypoint', () => {
   test('redirects unauthenticated guest accessing /cart to login with redirect param', async ({
@@ -53,25 +57,11 @@ test.describe('Cart and Checkout Entrypoint', () => {
   }) => {
     await registerFreshCustomer(page);
 
-    await page.goto('/');
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible();
-
-    await firstProduct.click();
-
-    await expect(page).toHaveURL(/\/products\/\d+/);
-
-    // Wait for availability check and add to cart button
-    const addToCartButton = page.getByRole('button', { name: /add to cart/i });
-    await expect(addToCartButton).toBeVisible();
-    await addToCartButton.click();
-
-    // Verify toast notification
-    await expect(page.getByText(/added .* to cart/i)).toBeVisible();
+    await addFirstProductToCart(page);
 
     // Check header badge count
     const headerCartBadge = page.getByRole('link', {
-      name: /shopping cart, \d+ items/i,
+      name: /shopping cart, \d+ item/i,
     });
     await expect(headerCartBadge).toBeVisible();
 

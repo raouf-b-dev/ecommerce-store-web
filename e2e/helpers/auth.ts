@@ -70,6 +70,23 @@ export async function registerFreshCustomer(
 }
 
 /**
+ * Navigates to the home page, opens the first product, clicks "Add to cart",
+ * and waits for the toast notification to confirm addition.
+ */
+export async function addFirstProductToCart(page: Page): Promise<void> {
+  await page.goto('/');
+  const firstProduct = page.locator('main a[href^="/products/"]').first();
+  await expect(firstProduct).toBeVisible();
+  await firstProduct.click();
+
+  await expect(page).toHaveURL(/\/products\/\d+/);
+  const addToCartBtn = page.getByRole('button', { name: /add to cart/i });
+  await expect(addToCartBtn).toBeVisible();
+  await addToCartBtn.click();
+  await expect(page.getByText(/added .* to cart/i)).toBeVisible();
+}
+
+/**
  * Resets seeded customer credentials via `npm run db:seed:auth` in the API repository.
  */
 export function resetAuthSeed(): void {

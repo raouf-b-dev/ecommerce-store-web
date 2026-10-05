@@ -227,13 +227,9 @@ export function CheckoutConfirmation({
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="size-8" />
           </div>
-          <CardTitle
-            role="heading"
-            aria-level={2}
-            className="text-2xl font-bold text-foreground"
-          >
+          <h2 className="text-2xl font-bold text-foreground">
             {confirmationHeading(order.status)}
-          </CardTitle>
+          </h2>
           <div className="flex justify-center pt-1">
             <StatusBadge status={order.status} />
           </div>
@@ -253,13 +249,9 @@ export function CheckoutConfirmation({
         <CardHeader className="border-b pb-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <CardTitle
-                role="heading"
-                aria-level={2}
-                className="text-lg font-semibold"
-              >
+              <h2 className="text-lg font-semibold">
                 Order {order.orderNumber}
-              </CardTitle>
+              </h2>
               <CardDescription>
                 Placed on {formatDateTime(order.createdAt)}
               </CardDescription>

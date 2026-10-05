@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { AUTH_THROTTLE_WAIT_MS, registerFreshCustomer } from './helpers/auth';
+import {
+  AUTH_THROTTLE_WAIT_MS,
+  addFirstProductToCart,
+  registerFreshCustomer,
+} from './helpers/auth';
+import { createMockAddress } from '@/test/fixtures/account.fixture';
 
 test.describe('Checkout Flow', () => {
   test('redirects unauthenticated guest accessing /checkout to login with redirect param', async ({
@@ -41,16 +46,7 @@ test.describe('Checkout Flow', () => {
     await registerFreshCustomer(page);
 
     // 1. Add an in-stock product to cart
-    await page.goto('/');
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible();
-    await firstProduct.click();
-
-    await expect(page).toHaveURL(/\/products\/\d+/);
-    const addToCartBtn = page.getByRole('button', { name: /add to cart/i });
-    await expect(addToCartBtn).toBeVisible();
-    await addToCartBtn.click();
-    await expect(page.getByText(/added .* to cart/i)).toBeVisible();
+    await addFirstProductToCart(page);
 
     // 2. Go to /cart and proceed to checkout
     await page.goto('/cart');
@@ -125,29 +121,41 @@ test.describe('Checkout Flow', () => {
       });
     });
 
+    // Rewrite the user profile read so a long saved address reaches the checkout options.
+    await page.route(/\/v1\/users\/me(\?.*)?$/, async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      const response = await route.fetch();
+      const json = await response.json();
+      json.addresses = [
+        createMockAddress({
+          street: `${longWord} ${longWord} Street`,
+          street2: `Suite ${longWord}`,
+          city: longWord,
+          deliveryInstructions: longWord,
+        }),
+      ];
+      json.addressCount = json.addresses.length;
+      await route.fulfill({
+        response,
+        json,
+      });
+    });
+
     await registerFreshCustomer(page);
     await page.setViewportSize({ width: 360, height: 800 });
 
-    await page.goto('/');
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible();
-    await firstProduct.click();
-    await expect(page).toHaveURL(/\/products\/\d+/);
-    await page.getByRole('button', { name: /add to cart/i }).click();
-    await expect(page.getByText(/added .* to cart/i)).toBeVisible();
+    await addFirstProductToCart(page);
 
     await page.goto('/checkout');
     await expect(page.locator('form').getByText('Order Summary')).toBeVisible();
 
-    await page.locator('#address-option-custom').click();
-    await page.locator('#firstName').fill(longWord);
-    await page.locator('#lastName').fill(longWord);
-    await page.locator('#street').fill(`${longWord} ${longWord}`);
-    await page.locator('#street2').fill(longWord);
-    await page.locator('#city').fill(longWord);
-    await page.locator('#state').fill(longWord);
-    await page.locator('#postalCode').fill('9'.repeat(20));
-    await page.locator('#deliveryInstructions').fill(longWord.repeat(2));
+    // Verify "Use saved address on file" is selected and renders the long address lines
+    const savedOption = page.locator('#address-option-saved');
+    await expect(savedOption).toBeChecked();
+    await expect(page.getByText(longWord).first()).toBeVisible();
 
     const placeOrderBtn = page.getByRole('button', { name: /place order/i });
     for (const width of [360, 390, 768]) {
