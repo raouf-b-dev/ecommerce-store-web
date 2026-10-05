@@ -11,10 +11,14 @@ npm run test:e2e
 
 ## Projects
 
-Playwright runs two distinct test projects defined in `playwright.config.ts`:
+Playwright runs four test projects defined in `playwright.config.ts`:
 
-1. **`guest`**: Runs in parallel for unauthenticated flows (smoke tests, catalog browsing, guest session, and public accessibility audits in `a11y-guest.spec.ts`).
-2. **`customer`**: Serialized with a single worker (`workers: 1`) for authenticated flows (auth, cart, checkout, orders, account, unified `journey.spec.ts`, and protected accessibility audits in `a11y-customer.spec.ts`). This prevents refresh-cookie rotation collisions and adheres to the API's ~61s rate limits.
+1. **`guest`**: Desktop Chrome, in parallel, for unauthenticated flows (smoke tests, catalog browsing, guest session, and public accessibility audits in `a11y-guest.spec.ts`).
+2. **`pixel`**: Pixel 5 (Chromium, touch) with the viewport width set to 375px. Same guest specs as `guest`, in parallel.
+3. **`iphone`**: iPhone 14 (WebKit, touch) at its 390px viewport. Same guest specs as `guest`, in parallel.
+4. **`customer`**: Desktop Chrome, serialized with a single worker (`workers: 1`) for authenticated flows (auth, cart, checkout, orders, account, unified `journey.spec.ts`, and protected accessibility audits in `a11y-customer.spec.ts`). This prevents refresh-cookie rotation collisions and adheres to the API's ~61s rate limits. Authenticated specs stay on this project only.
+
+`shell.spec.ts` pins a 390px viewport so the desktop guest project still opens the mobile menu. Catalog sort below 768px uses the filters sheet.
 
 ## Production status check
 

@@ -108,7 +108,7 @@ jobs:
         uses: ./.github/actions/setup-node-ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Verify required E2E secrets
         run: |

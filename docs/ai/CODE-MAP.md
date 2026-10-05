@@ -23,7 +23,7 @@ Customer storefront for `ecommerce-store-api`. It consumes the versioned HTTP co
 - `src/lib/seo/`: Metadata factory, canonical URLs, JSON-LD serialization.
 - `src/lib/`: `format.ts` (money and dates, `en-US`), `list-filters.ts` (shared URL parsers), `utils.ts` (`cn()`), `images/allowed-origins.ts`, `mock/` (MSW, CONVENTIONS section 12).
 - `src/test/`: Vitest setup, `create-test-jwt.ts`, typed `fixtures/`.
-- `e2e/`: Playwright projects (guest, customer): smoke, catalog, auth, cart, checkout, orders, account, journey, a11y. Details: `e2e/README.md`.
+- `e2e/`: Playwright projects (guest, pixel at 375px, iphone at 390px, customer): smoke, catalog, auth, cart, checkout, orders, account, journey, a11y. Details: `e2e/README.md`.
 - `scripts/`: `generate-api-client.js`, `generate-env.js`, `dev-mock.js`, `ascii-prose.cjs`, `lint-ascii-prose.cjs`, asset capture.
 
 ## Local environment
