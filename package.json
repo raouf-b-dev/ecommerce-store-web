@@ -69,8 +69,10 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@babel/core": "^7.29.7",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "1.63.0",
+    "@rolldown/plugin-babel": "^0.2.4",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.9.1",
