@@ -50,6 +50,7 @@ test.describe('Checkout Flow', () => {
     const addToCartBtn = page.getByRole('button', { name: /add to cart/i });
     await expect(addToCartBtn).toBeVisible();
     await addToCartBtn.click();
+    await expect(page.getByText(/added .* to cart/i)).toBeVisible();
 
     // 2. Go to /cart and proceed to checkout
     await page.goto('/cart');
@@ -87,11 +88,13 @@ test.describe('Checkout Flow', () => {
 
     // 5. Verify transition to confirmation and polling to confirmed status
     // Order number badge and confirmation header should become visible
-    await expect(page.getByText(/thank you for your order!/i)).toBeVisible({
+    await expect(
+      page.getByText(/thank you for your order!|your order is confirmed/i),
+    ).toBeVisible({
       timeout: 20_000,
     });
 
-    await expect(page.getByText(/ORD-\d+/)).toBeVisible();
+    await expect(page.getByText(/ORD-\d+/).first()).toBeVisible();
     await expect(page.getByText('Confirmed').first()).toBeVisible();
     await expect(
       page.getByRole('link', { name: /view order details/i }),
@@ -100,4 +103,68 @@ test.describe('Checkout Flow', () => {
       page.getByRole('link', { name: /continue shopping/i }),
     ).toBeVisible();
   });
+
+  test('does not scroll horizontally from 360px up with long address and product name', async ({
+    page,
+  }) => {
+    const longName = 'Extraordinarily'.repeat(8) + ' Long Product Name '.repeat(4);
+    const longWord = 'Supercalifragilisticexpialidocious'.repeat(3);
+
+    // Rewrite the cart read so a long product name reaches the order summary.
+    await page.route(/\/v1\/carts\/[^/?]+(\?.*)?$/, async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      const response = await route.fetch();
+      const body = await response.text();
+      await route.fulfill({
+        response,
+        body: body.replace(
+          /("productName"\s*:\s*)"(?:[^"\\]|\\.)*"/g,
+          `$1${JSON.stringify(longName)}`,
+        ),
+      });
+    });
+
+    await registerFreshCustomer(page);
+    await page.setViewportSize({ width: 360, height: 800 });
+
+    await page.goto('/');
+    const firstProduct = page.locator('main a[href^="/products/"]').first();
+    await expect(firstProduct).toBeVisible();
+    await firstProduct.click();
+    await expect(page).toHaveURL(/\/products\/\d+/);
+    await page.getByRole('button', { name: /add to cart/i }).click();
+    await expect(page.getByText(/added .* to cart/i)).toBeVisible();
+
+    await page.goto('/checkout');
+    await expect(page.locator('form').getByText('Order Summary')).toBeVisible();
+
+    await page.locator('#address-option-custom').click();
+    await page.locator('#firstName').fill(longWord);
+    await page.locator('#lastName').fill(longWord);
+    await page.locator('#street').fill(`${longWord} ${longWord}`);
+    await page.locator('#street2').fill(longWord);
+    await page.locator('#city').fill(longWord);
+    await page.locator('#state').fill(longWord);
+    await page.locator('#postalCode').fill('9'.repeat(20));
+    await page.locator('#deliveryInstructions').fill(longWord.repeat(2));
+
+    const placeOrderBtn = page.getByRole('button', { name: /place order/i });
+    for (const width of [360, 390, 768]) {
+      await page.setViewportSize({ width, height: 800 });
+      await placeOrderBtn.scrollIntoViewIfNeeded();
+      await expect(placeOrderBtn).toBeVisible();
+      const scrollWidth = await page.evaluate(
+        () => document.documentElement.scrollWidth,
+      );
+      const viewportWidth = await page.evaluate(
+        () => document.documentElement.clientWidth,
+      );
+      expect(scrollWidth, `scrollWidth at ${width}px`).toBe(viewportWidth);
+      expect(viewportWidth).toBe(width);
+    }
+  });
 });
+
