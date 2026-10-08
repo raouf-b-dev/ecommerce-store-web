@@ -53,18 +53,7 @@ export function useAddToCart() {
         queryClient.setQueryData(cartKeys.current(userId), created);
       }
 
-      try {
-        await addItemToCartRequest(cartId, { productId, quantity });
-      } catch (error) {
-        if (hasHttpStatus(error, 422, 404)) {
-          const freshCart = await createCartRequest();
-          cartId = freshCart.id;
-          queryClient.setQueryData(cartKeys.current(userId), freshCart);
-          await addItemToCartRequest(cartId, { productId, quantity });
-        } else {
-          throw error;
-        }
-      }
+      await addItemToCartRequest(cartId, { productId, quantity });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: cartKeys.all });
