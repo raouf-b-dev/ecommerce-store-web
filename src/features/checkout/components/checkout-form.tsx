@@ -54,7 +54,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     totalAmount,
     isLoading: isCartLoading,
   } = useCart();
-  const currency = cart?.currency ?? 'USD';
+  const currency = cart?.currency ?? undefined;
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   const { mutateAsync: submitCheckout, isPending } = useCheckoutMutation({
@@ -512,11 +512,11 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Qty: {item.quantity} ×{' '}
-                          {formatMoney(item.price, currency)}
+                          {formatMoney(item.price, item.currency ?? currency)}
                         </p>
                       </div>
                       <span className="shrink-0 font-medium text-foreground">
-                        {formatMoney(item.subtotal, currency)}
+                        {formatMoney(item.subtotal, item.currency ?? currency)}
                       </span>
                     </div>
                   ))}

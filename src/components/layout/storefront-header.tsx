@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { ShopMark } from '@/components/layout/shop-mark';
 import { StorefrontNav } from '@/components/layout/storefront-nav';
-import { StorefrontSessionLinks } from '@/components/layout/storefront-session-links';
+import { StorefrontUserMenu } from '@/components/layout/storefront-user-menu';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { CartHeaderBadge } from '@/features/cart/components/cart-header-badge';
 import { shop } from '@/lib/shop';
@@ -32,12 +32,11 @@ export function StorefrontHeader({ variant = 'shop' }: StorefrontHeaderProps) {
           {showNav ? (
             <>
               <CartHeaderBadge />
-              <div className="hidden lg:block">
-                <StorefrontSessionLinks />
-              </div>
+              <StorefrontUserMenu />
             </>
-          ) : null}
-          <ThemeToggle />
+          ) : (
+            <ThemeToggle />
+          )}
         </div>
       </div>
     </header>
