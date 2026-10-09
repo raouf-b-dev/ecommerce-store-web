@@ -20,10 +20,15 @@ export async function checkoutRequest(
   const { data, error, response } = await browserClient.POST(
     '/v1/orders/checkout',
     {
-      headers: {
-        'Idempotency-Key': idempotencyKey,
+      params: {
+        header: {
+          'Idempotency-Key': idempotencyKey,
+        },
       },
-      body: dto,
+      body: {
+        ...dto,
+        idempotencyKey,
+      },
     },
   );
 

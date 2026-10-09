@@ -58,6 +58,7 @@ export function useCheckoutMutation(
         paymentMethod: 'STRIPE',
         customerNotes: values.customerNotes?.trim() || undefined,
         shippingAddress,
+        idempotencyKey,
       };
 
       return checkoutRequest(dto, idempotencyKey);
