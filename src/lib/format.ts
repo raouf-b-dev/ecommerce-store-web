@@ -1,3 +1,5 @@
+import type { components } from '@/lib/api/generated/schema';
+
 const SHOPPER_LOCALE = 'en-US';
 
 /**
@@ -66,4 +68,27 @@ export function formatDateTime(value: string | null | undefined): string {
 
 export function formatStatusLabel(status: string): string {
   return status.replaceAll('_', ' ');
+}
+
+export type PaymentMethod =
+  components['schemas']['CheckoutDto']['paymentMethod'];
+
+const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  CARD: 'Card',
+};
+
+function isPaymentMethod(value: unknown): value is PaymentMethod {
+  return typeof value === 'string' && value in PAYMENT_METHOD_LABELS;
+}
+
+export function formatPaymentMethodLabel(
+  method: PaymentMethod | string | null | undefined,
+): string {
+  if (!method) {
+    return '-';
+  }
+  if (isPaymentMethod(method)) {
+    return PAYMENT_METHOD_LABELS[method];
+  }
+  return formatStatusLabel(method);
 }

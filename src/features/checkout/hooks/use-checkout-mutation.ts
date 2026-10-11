@@ -55,7 +55,7 @@ export function useCheckoutMutation(
 
       const dto: CheckoutDto = {
         cartId: cart.id,
-        paymentMethod: 'STRIPE',
+        paymentMethod: 'CARD',
         customerNotes: values.customerNotes?.trim() || undefined,
         shippingAddress,
       };

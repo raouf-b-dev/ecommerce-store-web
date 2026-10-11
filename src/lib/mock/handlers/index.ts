@@ -537,7 +537,7 @@ export const handlers = [
       amount: order.totalAmount,
       currency: order.currency,
       status: 'completed',
-      paymentMethod: 'stripe',
+      paymentMethod: 'CARD',
       transactionId: `mock-txn-${orderId}`,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,

@@ -96,8 +96,8 @@ Checkout is an **async SAGA** on the API. Before coding:
 2. Send `Idempotency-Key` (legacy `x-idempotency-key` / body field only if still documented). Reuse the same key when retrying the **same** attempt.
 3. Handle in-progress **409** (`Retry-After`) and fail-closed **503**.
 4. HTTP 201 returns `orderId` and `jobId`. There is **no** public job-status route. Poll **GET order by id** until a documented order status (success: `confirmed` or later fulfillment; failure: `payment_failed` / `cancelled`). Do not invent `PENDING → PROCESSING → COMPLETED` as client states.
-5. `paymentMethod` is the OpenAPI enum (currently `STRIPE`). The API mock adapter is enough for v1. Do not add card UI until the API wires a real provider.
-6. Local/dev confirmation depends on the API env flag `PAYMENT_MOCK_AUTO_COMPLETE=true` (default off in test/production). When enabled, the mock Stripe gateway schedules a delayed simulated webhook so orders leave `pending_payment` without a real Stripe callback. Keep it `false` for API e2e suites that post webhooks manually.
+5. `paymentMethod` is the OpenAPI enum (currently `CARD`). The API fake payment provider adapter is enough for v1. Do not add card UI until the API wires a real provider.
+6. Local/dev confirmation depends on the API env flag `PAYMENT_MOCK_AUTO_COMPLETE=true` (default off in test/production). When enabled, the fake payment provider gateway schedules a delayed simulated webhook so orders leave `pending_payment` without a real provider callback. Keep it `false` for API e2e suites that post webhooks manually.
 
 ## Account
 

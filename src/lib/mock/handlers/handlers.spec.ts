@@ -149,7 +149,7 @@ describe('storefront mock handlers', () => {
       const checkout = await fetch(`${API}/v1/orders/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cartId: 42, paymentMethod: 'STRIPE' }),
+        body: JSON.stringify({ cartId: 42, paymentMethod: 'CARD' }),
       });
       expect(checkout.status).toBe(201);
 
@@ -200,7 +200,7 @@ describe('storefront mock handlers', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cartId: 42,
-          paymentMethod: 'STRIPE',
+          paymentMethod: 'CARD',
           shippingAddress: {
             firstName: 'Ada',
             lastName: 'Lovelace',

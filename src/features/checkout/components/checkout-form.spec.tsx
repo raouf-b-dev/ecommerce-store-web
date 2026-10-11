@@ -169,7 +169,7 @@ describe('CheckoutForm', () => {
       expect(mockSubmitCheckout).toHaveBeenCalledWith(
         expect.objectContaining({
           useDefaultAddress: true,
-          paymentMethod: 'STRIPE',
+          paymentMethod: 'CARD',
         }),
       );
     });

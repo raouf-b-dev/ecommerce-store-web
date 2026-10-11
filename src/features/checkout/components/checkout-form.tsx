@@ -67,7 +67,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
       useDefaultAddress: true,
-      paymentMethod: 'STRIPE',
+      paymentMethod: 'CARD',
       customerNotes: '',
       shippingAddress: {
         firstName: '',
@@ -428,7 +428,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                 </CardTitle>
               </div>
               <CardDescription>
-                Card payments are processed securely by Stripe.
+                Card payments are processed securely.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
