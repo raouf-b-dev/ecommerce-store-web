@@ -25,7 +25,7 @@ describe('checkoutRequest', () => {
     });
 
     const result = await checkoutRequest(
-      { cartId: 1, paymentMethod: 'STRIPE', idempotencyKey: 'idem-1' },
+      { cartId: 1, paymentMethod: 'CARD' },
       'idem-1',
     );
 
@@ -33,7 +33,7 @@ describe('checkoutRequest', () => {
       params: {
         header: { 'Idempotency-Key': 'idem-1' },
       },
-      body: { cartId: 1, paymentMethod: 'STRIPE', idempotencyKey: 'idem-1' },
+      body: { cartId: 1, paymentMethod: 'CARD' },
     });
     expect(result).toEqual({ orderId: 42, jobId: 'job-42' });
   });
@@ -49,10 +49,7 @@ describe('checkoutRequest', () => {
     });
 
     await expect(
-      checkoutRequest(
-        { cartId: 1, paymentMethod: 'STRIPE', idempotencyKey: 'idem-2' },
-        'idem-2',
-      ),
+      checkoutRequest({ cartId: 1, paymentMethod: 'CARD' }, 'idem-2'),
     ).rejects.toMatchObject({
       statusCode: 409,
       retryAfterSeconds: 5,
@@ -67,10 +64,7 @@ describe('checkoutRequest', () => {
     });
 
     await expect(
-      checkoutRequest(
-        { cartId: 1, paymentMethod: 'STRIPE', idempotencyKey: 'idem-3' },
-        'idem-3',
-      ),
+      checkoutRequest({ cartId: 1, paymentMethod: 'CARD' }, 'idem-3'),
     ).rejects.toMatchObject({
       statusCode: 409,
       retryAfterSeconds: 2,

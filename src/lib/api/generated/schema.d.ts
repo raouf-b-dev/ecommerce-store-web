@@ -19,26 +19,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/platform/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get public platform configuration
-         * @description Returns public platform configuration including the active default currency, exponent, and supported currencies.
-         */
-        get: operations["PlatformController_getConfig_v1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/products": {
         parameters: {
             query?: never;
@@ -1244,25 +1224,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        PlatformConfigResponseDto: {
-            /**
-             * @description Default platform currency (ISO 4217 code)
-             * @example USD
-             */
-            defaultCurrency: string;
-            /**
-             * @description Minor-unit decimal exponent for the default currency (e.g. 2 for USD, 0 for JPY, 3 for KWD)
-             * @example 2
-             */
-            defaultCurrencyExponent: number;
-            /**
-             * @description Supported platform currencies (ISO 4217 codes)
-             * @example [
-             *       "USD"
-             *     ]
-             */
-            supportedCurrencies: string[];
-        };
         CreateProductDto: {
             /**
              * @description Product name
@@ -1514,14 +1475,9 @@ export interface components {
              * @description Payment method
              * @enum {string}
              */
-            paymentMethod: "STRIPE";
+            paymentMethod: "CARD";
             /** @description Customer notes for the order */
             customerNotes?: string;
-            /**
-             * @description Idempotency key for preventing duplicate checkouts. Also accepted as the Idempotency-Key header.
-             * @example checkout-abc123-xyz789
-             */
-            idempotencyKey: string;
         };
         CheckoutResponseDto: {
             /**
@@ -1685,6 +1641,12 @@ export interface components {
              */
             status: "pending_payment" | "payment_failed" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled" | "refunded";
             /**
+             * @description Payment method
+             * @example CARD
+             * @enum {string}
+             */
+            paymentMethod: "CARD";
+            /**
              * @description Formatted shipping address
              * @example Jane Doe, 123 Tech Boulevard, San Francisco, CA 94105, US
              */
@@ -1739,10 +1701,10 @@ export interface components {
         CreateOrderPaymentDto: {
             /**
              * @description Payment method
-             * @example STRIPE
+             * @example CARD
              * @enum {string}
              */
-            paymentMethod: "STRIPE";
+            paymentMethod: "CARD";
             paymentMethodDetails?: components["schemas"]["OrderPaymentMethodDetailsDto"];
         };
         OrderPaymentResponseDto: {
@@ -1758,10 +1720,10 @@ export interface components {
             /** @example USD */
             currency: string;
             /**
-             * @example STRIPE
+             * @example CARD
              * @enum {string}
              */
-            paymentMethod: "STRIPE";
+            paymentMethod: "CARD";
             /** @example AUTHORIZED */
             status: string;
             /** @example txn_1234567890 */
@@ -1847,8 +1809,11 @@ export interface components {
             currency: string;
             /** @example completed */
             status: string;
-            /** @example stripe */
-            paymentMethod: string;
+            /**
+             * @example CARD
+             * @enum {string}
+             */
+            paymentMethod: "CARD";
             /** @example txn_123 */
             transactionId: string;
             /**
@@ -1911,9 +1876,10 @@ export interface components {
             status: string;
             /**
              * @description Payment method
-             * @example stripe
+             * @example CARD
+             * @enum {string}
              */
-            paymentMethod: string;
+            paymentMethod: "CARD";
             /**
              * @description Transaction ID
              * @example txn_123
@@ -1967,10 +1933,10 @@ export interface components {
             currency: string;
             /**
              * @description Payment method
-             * @example STRIPE
+             * @example CARD
              * @enum {string}
              */
-            paymentMethod: "STRIPE";
+            paymentMethod: "CARD";
             /**
              * @description Payment status
              * @example COMPLETED
@@ -2988,26 +2954,6 @@ export interface operations {
             };
         };
     };
-    PlatformController_getConfig_v1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Platform configuration retrieved successfully. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlatformConfigResponseDto"];
-                };
-            };
-        };
-    };
     ProductsController_findAll_v1: {
         parameters: {
             query?: {
@@ -3651,11 +3597,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description Present on HTTP 409 when the idempotency key is still in progress. Value is 2 seconds. */
-                "Retry-After"?: string;
-                /** @description Legacy alias for Idempotency-Key. */
-                "x-idempotency-key"?: string;
-                /** @description Client idempotency key (also accepted as x-idempotency-key or body idempotencyKey). Required. */
+                /** @description Client idempotency key. Required. */
                 "Idempotency-Key": string;
             };
             path?: never;
@@ -3804,11 +3746,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description Present on HTTP 409 when the idempotency key is still in progress. Value is 2 seconds. */
-                "Retry-After"?: string;
-                /** @description Legacy alias for Idempotency-Key. */
-                "x-idempotency-key"?: string;
-                /** @description Client idempotency key (also accepted as x-idempotency-key or body idempotencyKey). Required. */
+                /** @description Client idempotency key. Required. */
                 "Idempotency-Key": string;
             };
             path: {

@@ -25,10 +25,7 @@ export async function checkoutRequest(
           'Idempotency-Key': idempotencyKey,
         },
       },
-      body: {
-        ...dto,
-        idempotencyKey,
-      },
+      body: dto,
     },
   );
 
