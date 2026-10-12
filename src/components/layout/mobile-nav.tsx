@@ -3,7 +3,6 @@
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
 import { StorefrontNav } from '@/components/layout/storefront-nav';
-import { StorefrontSessionLinks } from '@/components/layout/storefront-session-links';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -36,7 +35,6 @@ export function MobileNav() {
         </SheetDescription>
         <div className="space-y-6 p-4">
           <StorefrontNav onNavigate={() => setOpen(false)} />
-          <StorefrontSessionLinks onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>
     </Sheet>

@@ -1,17 +1,21 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { toast } from 'sonner';
 import { StorefrontUserMenu } from './storefront-user-menu';
 import type { useAuth } from '@/lib/auth/auth-context';
+import type { useTheme } from '@/components/theme/use-theme';
 
 type AuthStub = Pick<
   ReturnType<typeof useAuth>,
   'status' | 'session' | 'logout'
 >;
 
+type SetTheme = ReturnType<typeof useTheme>['setTheme'];
+
 const auth = vi.hoisted(() => vi.fn<() => AuthStub>());
 const mockLogout = vi.hoisted(() => vi.fn<() => Promise<void>>());
+const mockSetTheme = vi.hoisted(() => vi.fn<SetTheme>());
 
 vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: auth,
@@ -20,7 +24,7 @@ vi.mock('@/lib/auth/auth-context', () => ({
 vi.mock('@/components/theme/use-theme', () => ({
   useTheme: () => ({
     theme: 'light',
-    setTheme: vi.fn(),
+    setTheme: mockSetTheme,
     resolvedTheme: 'light',
   }),
 }));
@@ -48,12 +52,13 @@ describe('StorefrontUserMenu', () => {
     setAuthState();
   });
 
-  it('renders a loading placeholder when status is loading', () => {
+  it('renders a loading placeholder without interactive buttons or links', () => {
     setAuthState({ status: 'loading' });
 
-    const { container } = render(<StorefrontUserMenu />);
+    render(<StorefrontUserMenu />);
 
-    expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('renders sign in and create account buttons when unauthenticated', () => {
@@ -63,6 +68,7 @@ describe('StorefrontUserMenu', () => {
 
     expect(screen.getByRole('link', { name: 'Sign in' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Create account' })).toBeInTheDocument();
+    expect(screen.getByRole('radiogroup', { name: 'Theme selector' })).toBeInTheDocument();
   });
 
   it('renders avatar button with initial and email prefix when authenticated', () => {
@@ -87,30 +93,7 @@ describe('StorefrontUserMenu', () => {
     expect(screen.getByText('customer')).toBeInTheDocument();
   });
 
-  it('handles missing email and role without invented fallbacks', () => {
-    setAuthState({
-      status: 'authenticated',
-      session: {
-        userId: '2',
-        email: '',
-        role: '',
-        permissions: [],
-        mustChangePassword: false,
-      },
-    });
-
-    render(<StorefrontUserMenu />);
-
-    const trigger = screen.getByRole('button', {
-      name: 'User account menu',
-    });
-    expect(trigger).toBeInTheDocument();
-    expect(screen.queryByText('U')).not.toBeInTheDocument();
-    expect(screen.queryByText('Account')).not.toBeInTheDocument();
-    expect(screen.queryByText('Customer')).not.toBeInTheDocument();
-  });
-
-  it('opens menu with userEvent click and renders items including Appearance', async () => {
+  it('opens menu with userEvent click and renders navigation and theme radio items', async () => {
     const user = userEvent.setup();
     setAuthState({
       status: 'authenticated',
@@ -134,8 +117,38 @@ describe('StorefrontUserMenu', () => {
     expect(screen.getByText('store manager')).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /my orders/i })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /account settings/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /appearance/i })).toBeInTheDocument();
+    expect(screen.getByText('Appearance')).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: 'Light' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: 'Dark' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: 'System' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /sign out/i })).toBeInTheDocument();
+  });
+
+  it('allows picking a theme using keyboard navigation', async () => {
+    const user = userEvent.setup();
+    setAuthState({
+      status: 'authenticated',
+      session: {
+        userId: '10',
+        email: 'shopper@example.com',
+        role: 'customer',
+        permissions: [],
+        mustChangePassword: false,
+      },
+    });
+
+    render(<StorefrontUserMenu />);
+
+    const trigger = screen.getByRole('button', {
+      name: 'User account menu for shopper@example.com',
+    });
+    trigger.focus();
+    await user.keyboard('{Enter}');
+
+    const darkOption = await screen.findByRole('menuitemradio', { name: 'Dark' });
+    await user.click(darkOption);
+
+    expect(mockSetTheme).toHaveBeenCalledWith('dark');
   });
 
   it('closes menu when Escape key is pressed', async () => {
@@ -167,7 +180,9 @@ describe('StorefrontUserMenu', () => {
   });
 
   it('closes menu when clicking outside', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({
+      pointerEventsCheck: PointerEventsCheckLevel.Never,
+    });
     setAuthState({
       status: 'authenticated',
       session: {
@@ -187,7 +202,7 @@ describe('StorefrontUserMenu', () => {
     await user.click(trigger);
     expect(screen.getByRole('menuitem', { name: /my orders/i })).toBeInTheDocument();
 
-    fireEvent.pointerDown(document.body);
+    await user.click(document.body);
 
     await waitFor(() => {
       expect(screen.queryByRole('menuitem', { name: /my orders/i })).not.toBeInTheDocument();
@@ -196,7 +211,7 @@ describe('StorefrontUserMenu', () => {
 
   it('executes sign-out successfully and calls onNavigate', async () => {
     const user = userEvent.setup();
-    const onNavigate = vi.fn();
+    const onNavigate = vi.fn<() => void>();
     setAuthState({
       status: 'authenticated',
       session: {

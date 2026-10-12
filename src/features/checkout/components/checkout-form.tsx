@@ -537,11 +537,11 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Qty: {item.quantity} ×{' '}
-                          {formatMoney(item.price, currency)}
+                          {formatMoney(item.price, item.currency)}
                         </p>
                       </div>
                       <span className="shrink-0 font-medium text-foreground">
-                        {formatMoney(item.subtotal, currency)}
+                        {formatMoney(item.subtotal, item.currency)}
                       </span>
                     </div>
                   ))}
