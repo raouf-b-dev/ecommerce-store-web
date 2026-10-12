@@ -1,12 +1,11 @@
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 for (const envFile of ['.env.local', '.env']) {
   const envPath = path.resolve(process.cwd(), envFile);
-  try {
+  if (existsSync(envPath)) {
     process.loadEnvFile(envPath);
-  } catch {
-    // File not found or unreadable; continue.
   }
 }
 
@@ -18,10 +17,13 @@ function resolveSpecUrl() {
     }
     return `${rawUrl.replace(/\/+$/, '')}-json`;
   }
-  const apiBase = (
-    process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || 'http://localhost:3000'
-  ).replace(/\/+$/, '');
-  return `${apiBase}/api/docs-json`;
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  if (!apiBase) {
+    throw new Error(
+      'Missing API URL. Set API_OPENAPI_URL or NEXT_PUBLIC_API_BASE_URL in your environment or .env file.',
+    );
+  }
+  return `${apiBase.replace(/\/+$/, '')}/api/docs-json`;
 }
 
 const specUrl = resolveSpecUrl();

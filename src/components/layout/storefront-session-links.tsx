@@ -5,6 +5,48 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api/parse-api-error';
 import { useAuth } from '@/lib/auth/auth-context';
+import { cn } from 'cn';
+
+export async function executeSignOut(
+  logout: () => Promise<void>,
+  onNavigate?: () => void,
+): Promise<void> {
+  try {
+    await logout();
+    onNavigate?.();
+  } catch (error) {
+    toast.error(getErrorMessage(error, 'Could not sign out. Try again.'));
+  }
+}
+
+export function StorefrontAuthLinks({
+  onNavigate,
+  showRegisterOnMobile = false,
+  className,
+}: {
+  onNavigate?: () => void;
+  showRegisterOnMobile?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={cn('flex items-center gap-1.5 sm:gap-2', className)}>
+      <Button variant="ghost" size="sm" asChild>
+        <Link href="/login" onClick={onNavigate}>
+          Sign in
+        </Link>
+      </Button>
+      <Button
+        size="sm"
+        asChild
+        className={showRegisterOnMobile ? undefined : 'hidden sm:inline-flex'}
+      >
+        <Link href="/register" onClick={onNavigate}>
+          Create account
+        </Link>
+      </Button>
+    </div>
+  );
+}
 
 type StorefrontSessionLinksProps = {
   onNavigate?: () => void;
@@ -25,15 +67,6 @@ export function StorefrontSessionLinks({
   }
 
   if (status === 'authenticated' && session) {
-    async function handleLogout() {
-      try {
-        await logout();
-        onNavigate?.();
-      } catch (error) {
-        toast.error(getErrorMessage(error, 'Could not sign out. Try again.'));
-      }
-    }
-
     return (
       <div className="flex min-w-36 flex-col items-stretch gap-2 lg:flex-row lg:items-center lg:justify-end">
         <span
@@ -57,7 +90,7 @@ export function StorefrontSessionLinks({
           size="sm"
           type="button"
           onClick={() => {
-            void handleLogout();
+            void executeSignOut(logout, onNavigate);
           }}
         >
           Log out
@@ -67,17 +100,10 @@ export function StorefrontSessionLinks({
   }
 
   return (
-    <div className="flex min-w-36 items-center justify-end gap-2">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/login" onClick={onNavigate}>
-          Sign in
-        </Link>
-      </Button>
-      <Button size="sm" asChild>
-        <Link href="/register" onClick={onNavigate}>
-          Create account
-        </Link>
-      </Button>
-    </div>
+    <StorefrontAuthLinks
+      onNavigate={onNavigate}
+      showRegisterOnMobile
+      className="min-w-36 justify-end"
+    />
   );
 }
