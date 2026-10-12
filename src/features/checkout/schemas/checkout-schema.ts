@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import type { CheckoutPaymentMethod } from '@/features/checkout/types';
+
+const paymentMethod: CheckoutPaymentMethod = 'CARD';
 
 export const shippingAddressSchema = z.object({
   firstName: z.string().trim().min(1, 'First name is required'),
@@ -33,14 +36,14 @@ const optionalShippingAddressSchema = z.object({
 export const defaultAddressFormSchema = z.object({
   useDefaultAddress: z.literal(true),
   shippingAddress: optionalShippingAddressSchema.optional(),
-  paymentMethod: z.literal('STRIPE'),
+  paymentMethod: z.literal(paymentMethod),
   customerNotes: z.string().trim().optional(),
 });
 
 export const customAddressFormSchema = z.object({
   useDefaultAddress: z.literal(false),
   shippingAddress: shippingAddressSchema,
-  paymentMethod: z.literal('STRIPE'),
+  paymentMethod: z.literal(paymentMethod),
   customerNotes: z.string().trim().optional(),
 });
 

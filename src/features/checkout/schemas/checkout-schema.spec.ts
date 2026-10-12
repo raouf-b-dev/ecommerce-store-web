@@ -5,40 +5,43 @@ describe('checkoutFormSchema', () => {
   it('validates successfully with default address and no custom address', () => {
     const result = checkoutFormSchema.safeParse({
       useDefaultAddress: true,
-      paymentMethod: 'STRIPE',
+      paymentMethod: 'CARD',
     });
 
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.useDefaultAddress).toBe(true);
-      expect(result.data.paymentMethod).toBe('STRIPE');
-    }
+    expect(result).toMatchObject({
+      success: true,
+      data: {
+        useDefaultAddress: true,
+        paymentMethod: 'CARD',
+      },
+    });
   });
 
   it('fails validation when useDefaultAddress is false and address fields are missing', () => {
     const result = checkoutFormSchema.safeParse({
       useDefaultAddress: false,
-      paymentMethod: 'STRIPE',
+      paymentMethod: 'CARD',
       shippingAddress: {},
     });
 
     expect(result.success).toBe(false);
-    if (!result.success) {
-      const paths = result.error.issues.map((i) => i.path.join('.'));
-      expect(paths).toContain('shippingAddress.firstName');
-      expect(paths).toContain('shippingAddress.lastName');
-      expect(paths).toContain('shippingAddress.street');
-      expect(paths).toContain('shippingAddress.city');
-      expect(paths).toContain('shippingAddress.state');
-      expect(paths).toContain('shippingAddress.postalCode');
-      expect(paths).toContain('shippingAddress.country');
-    }
+    expect(result.error?.issues.map((i) => i.path.join('.'))).toEqual(
+      expect.arrayContaining([
+        'shippingAddress.firstName',
+        'shippingAddress.lastName',
+        'shippingAddress.street',
+        'shippingAddress.city',
+        'shippingAddress.state',
+        'shippingAddress.postalCode',
+        'shippingAddress.country',
+      ]),
+    );
   });
 
   it('validates successfully when useDefaultAddress is false and all required address fields are provided', () => {
     const result = checkoutFormSchema.safeParse({
       useDefaultAddress: false,
-      paymentMethod: 'STRIPE',
+      paymentMethod: 'CARD',
       shippingAddress: {
         firstName: 'John',
         lastName: 'Doe',
@@ -50,6 +53,33 @@ describe('checkoutFormSchema', () => {
       },
     });
 
-    expect(result.success).toBe(true);
+    expect(result).toMatchObject({
+      success: true,
+      data: {
+        useDefaultAddress: false,
+        paymentMethod: 'CARD',
+        shippingAddress: {
+          firstName: 'John',
+          lastName: 'Doe',
+          street: '123 Main St',
+          city: 'New York',
+          state: 'NY',
+          postalCode: '10001',
+          country: 'US',
+        },
+      },
+    });
+  });
+
+  it('rejects legacy payment method', () => {
+    const result = checkoutFormSchema.safeParse({
+      useDefaultAddress: true,
+      paymentMethod: 'STRIPE',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.map((i) => i.path.join('.'))).toEqual(
+      expect.arrayContaining(['paymentMethod']),
+    );
   });
 });

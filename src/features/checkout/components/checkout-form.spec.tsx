@@ -85,6 +85,24 @@ describe('CheckoutForm', () => {
     );
   });
 
+  it('renders loading state while cart is loading', () => {
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: null,
+        cartId: null,
+        itemCount: 0,
+        totalAmount: 0,
+        subtotal: 0,
+        items: [],
+        isLoading: true,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(screen.getByText('Loading checkout...')).toBeInTheDocument();
+  });
+
   it('renders empty cart state when cart item count is 0', () => {
     vi.mocked(cartHooks.useCart).mockReturnValue(
       createMockUseCartResult({
@@ -102,6 +120,115 @@ describe('CheckoutForm', () => {
     expect(screen.getByText('Your cart is empty')).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: /explore products/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders error alert with retry button when cart fails to load', async () => {
+    const user = userEvent.setup();
+    const mockRefetch = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: null,
+        cartId: null,
+        itemCount: 0,
+        totalAmount: 0,
+        subtotal: 0,
+        items: [],
+        isError: true,
+        error: new Error('Failed to load cart'),
+        refetch: mockRefetch,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(
+      screen.getByText('Could not load shopping cart'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/cart is empty/i)).not.toBeInTheDocument();
+
+    const retryBtn = screen.getByRole('button', { name: /retry/i });
+    await user.click(retryBtn);
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText('Could not load shopping cart'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/cart is empty/i)).not.toBeInTheDocument();
+  });
+
+  it('renders no place order button when cart has null currency', () => {
+    const mockCart = createMockCart({
+      id: 3,
+      currency: null,
+      totalAmount: 150,
+      itemCount: 1,
+      items: [
+        createMockCartItem({
+          id: 12,
+          productId: 102,
+          productName: 'Mechanical Keyboard',
+          price: 150,
+          currency: 'USD',
+          quantity: 1,
+          subtotal: 150,
+        }),
+      ],
+    });
+
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: mockCart,
+        cartId: 3,
+        itemCount: 1,
+        totalAmount: 150,
+        subtotal: 150,
+        items: mockCart.items,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(
+      screen.queryByRole('button', { name: /place order/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('formats amounts in the cart currency when non-USD', () => {
+    const mockCart = createMockCart({
+      id: 2,
+      currency: 'EUR',
+      totalAmount: 150,
+      itemCount: 1,
+      items: [
+        createMockCartItem({
+          id: 11,
+          productId: 101,
+          productName: 'Mechanical Keyboard',
+          price: 150,
+          currency: 'EUR',
+          quantity: 1,
+          subtotal: 150,
+        }),
+      ],
+    });
+
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: mockCart,
+        cartId: 2,
+        itemCount: 1,
+        totalAmount: 150,
+        subtotal: 150,
+        items: mockCart.items,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(screen.getAllByText('€150.00').length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('button', { name: /place order • €150\.00/i }),
     ).toBeInTheDocument();
   });
 
@@ -169,7 +296,7 @@ describe('CheckoutForm', () => {
       expect(mockSubmitCheckout).toHaveBeenCalledWith(
         expect.objectContaining({
           useDefaultAddress: true,
-          paymentMethod: 'STRIPE',
+          paymentMethod: 'CARD',
         }),
       );
     });

@@ -148,8 +148,11 @@ describe('storefront mock handlers', () => {
 
       const checkout = await fetch(`${API}/v1/orders/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cartId: 42, paymentMethod: 'STRIPE' }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': 'key-orders-list',
+        },
+        body: JSON.stringify({ cartId: 42, paymentMethod: 'CARD' }),
       });
       expect(checkout.status).toBe(201);
 
@@ -197,10 +200,13 @@ describe('storefront mock handlers', () => {
 
       const checkout = await fetch(`${API}/v1/orders/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': 'key-shipping-address',
+        },
         body: JSON.stringify({
           cartId: 42,
-          paymentMethod: 'STRIPE',
+          paymentMethod: 'CARD',
           shippingAddress: {
             firstName: 'Ada',
             lastName: 'Lovelace',
@@ -219,6 +225,20 @@ describe('storefront mock handlers', () => {
         await fetch(`${API}/v1/orders/${orderId}`)
       ).json()) as { shippingAddress: string };
       expect(order.shippingAddress).toBe('1 Unter den Linden, Berlin, BE 10117, DE');
+    });
+
+    it('returns 400 when checkout is missing Idempotency-Key header', async () => {
+      const checkout = await fetch(`${API}/v1/orders/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cartId: 42, paymentMethod: 'CARD' }),
+      });
+      expect(checkout.status).toBe(400);
+      const error: unknown = await checkout.json();
+      expect(error).toMatchObject({
+        statusCode: 400,
+        message: 'Idempotency-Key is required',
+      });
     });
 
     it('rejects cart quantity updates above available stock with Nest-shaped 422', async () => {
