@@ -21,14 +21,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { useTheme } from '@/components/theme/use-theme';
-import type { Theme } from '@/components/theme/theme-constants';
+import { isTheme } from '@/components/theme/theme-store';
 import { useAuth } from '@/lib/auth/auth-context';
 import { getErrorMessage } from '@/lib/api/parse-api-error';
 import { formatStatusLabel } from '@/lib/format';
-
-function isTheme(value: string): value is Theme {
-  return value === 'light' || value === 'dark' || value === 'system';
-}
 
 type StorefrontUserMenuProps = {
   onNavigate?: () => void;
@@ -171,7 +167,7 @@ export function StorefrontUserMenu({ onNavigate }: StorefrontUserMenuProps) {
           Sign in
         </Link>
       </Button>
-      <Button size="sm" className="hidden sm:inline-flex" asChild>
+      <Button size="sm" asChild>
         <Link href="/register" onClick={onNavigate}>
           Create account
         </Link>

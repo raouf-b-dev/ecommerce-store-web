@@ -15,6 +15,7 @@ describe('MobileNav', () => {
     await user.click(trigger);
     expect(screen.getByRole('link', { name: 'Home' })).toBeVisible();
     expect(screen.getByText('Storefront sections')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument();
 
     await user.keyboard('{Escape}');
     expect(trigger).toHaveFocus();

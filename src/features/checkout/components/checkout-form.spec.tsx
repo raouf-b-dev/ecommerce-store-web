@@ -6,6 +6,7 @@ import * as cartHooks from '@/features/cart/hooks/use-cart';
 import * as checkoutMutationHook from '@/features/checkout/hooks/use-checkout-mutation';
 import * as userProfileHook from '@/features/account/hooks/use-user-profile';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
+import { formatMoney } from '@/lib/format';
 import {
   createMockCart,
   createMockCartItem,
@@ -446,6 +447,6 @@ describe('CheckoutForm', () => {
 
     render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
-    expect(screen.getByText(/Qty: 1 × €120\.00/)).toBeInTheDocument();
+    expect(screen.getByText(/Qty: 1/)).toHaveTextContent(formatMoney(120, 'EUR'));
   });
 });
