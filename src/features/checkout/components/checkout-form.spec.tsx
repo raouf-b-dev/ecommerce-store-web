@@ -6,6 +6,7 @@ import * as cartHooks from '@/features/cart/hooks/use-cart';
 import * as checkoutMutationHook from '@/features/checkout/hooks/use-checkout-mutation';
 import * as userProfileHook from '@/features/account/hooks/use-user-profile';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
+import { formatMoney } from '@/lib/format';
 import {
   createMockCart,
   createMockCartItem,
@@ -412,5 +413,40 @@ describe('CheckoutForm', () => {
         }),
       );
     });
+  });
+
+  it('renders line item price and subtotal in the item currency for a EUR cart', () => {
+    const eurCart = createMockCart({
+      id: 2,
+      currency: 'EUR',
+      totalAmount: 120,
+      itemCount: 1,
+      items: [
+        createMockCartItem({
+          id: 20,
+          productId: 200,
+          productName: 'Mechanical Keyboard ISO',
+          price: 120,
+          currency: 'EUR',
+          quantity: 1,
+          subtotal: 120,
+        }),
+      ],
+    });
+
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: eurCart,
+        cartId: 2,
+        itemCount: 1,
+        totalAmount: 120,
+        subtotal: 120,
+        items: eurCart.items,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(screen.getByText(/Qty: 1/)).toHaveTextContent(formatMoney(120, 'EUR'));
   });
 });

@@ -1,11 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { MobileNav } from '@/components/layout/mobile-nav';
-
-vi.mock('@/components/layout/storefront-session-links', () => ({
-  StorefrontSessionLinks: () => null,
-}));
 
 describe('MobileNav', () => {
   it('opens from the menu button and closes on Escape', async () => {
@@ -19,6 +15,7 @@ describe('MobileNav', () => {
     await user.click(trigger);
     expect(screen.getByRole('link', { name: 'Home' })).toBeVisible();
     expect(screen.getByText('Storefront sections')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument();
 
     await user.keyboard('{Escape}');
     expect(trigger).toHaveFocus();

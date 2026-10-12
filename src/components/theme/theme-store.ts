@@ -6,7 +6,7 @@ import {
 
 const themeListeners = new Set<() => void>();
 
-function isTheme(value: string | null): value is Theme {
+export function isTheme(value: string | null): value is Theme {
   return value === 'dark' || value === 'light' || value === 'system';
 }
 

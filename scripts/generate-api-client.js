@@ -1,7 +1,32 @@
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 
-const specUrl = `${process.env.API_OPENAPI_URL ?? 'http://localhost:3000/api/docs'}-json`;
+for (const envFile of ['.env.local', '.env']) {
+  const envPath = path.resolve(process.cwd(), envFile);
+  if (existsSync(envPath)) {
+    process.loadEnvFile(envPath);
+  }
+}
+
+function resolveSpecUrl() {
+  const rawUrl = process.env.API_OPENAPI_URL?.trim();
+  if (rawUrl) {
+    if (rawUrl.endsWith('-json') || rawUrl.endsWith('.json')) {
+      return rawUrl;
+    }
+    return `${rawUrl.replace(/\/+$/, '')}-json`;
+  }
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  if (!apiBase) {
+    throw new Error(
+      'Missing API URL. Set API_OPENAPI_URL or NEXT_PUBLIC_API_BASE_URL in your environment or .env file.',
+    );
+  }
+  return `${apiBase.replace(/\/+$/, '')}/api/docs-json`;
+}
+
+const specUrl = resolveSpecUrl();
 const outputFile = path.resolve(
   process.cwd(),
   'src/lib/api/generated/schema.d.ts',
