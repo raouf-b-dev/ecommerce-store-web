@@ -1,8 +1,5 @@
 import { z } from 'zod';
-import type { components } from '@/lib/api/generated/schema';
-
-type CheckoutPaymentMethod =
-  components['schemas']['CheckoutDto']['paymentMethod'];
+import type { CheckoutPaymentMethod } from '@/features/checkout/types';
 
 const paymentMethod: CheckoutPaymentMethod = 'CARD';
 
@@ -35,7 +32,6 @@ const optionalShippingAddressSchema = z.object({
   phone: z.string().optional(),
   deliveryInstructions: z.string().optional(),
 });
-
 
 export const defaultAddressFormSchema = z.object({
   useDefaultAddress: z.literal(true),

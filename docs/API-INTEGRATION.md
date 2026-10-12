@@ -93,7 +93,7 @@ Storefront authentication and session rules:
 Checkout is an **async SAGA** on the API. Before coding:
 
 1. Read the checkout operation in Swagger (headers, body, responses).
-2. Send `Idempotency-Key` (legacy `x-idempotency-key` / body field only if still documented). Reuse the same key when retrying the **same** attempt.
+2. The `Idempotency-Key` header is required and the API returns 400 `IDEMPOTENCY_KEY_REQUIRED` without it. Reuse the same key when retrying the **same** attempt.
 3. Handle in-progress **409** (`Retry-After`) and fail-closed **503**.
 4. HTTP 201 returns `orderId` and `jobId`. There is **no** public job-status route. Poll **GET order by id** until a documented order status (success: `confirmed` or later fulfillment; failure: `payment_failed` / `cancelled`). Do not invent `PENDING → PROCESSING → COMPLETED` as client states.
 5. `paymentMethod` is the OpenAPI enum (currently `CARD`). The API fake payment provider adapter is enough for v1. Do not add card UI until the API wires a real provider.

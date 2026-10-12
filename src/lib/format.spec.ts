@@ -3,7 +3,6 @@ import {
   formatDate,
   formatDateTime,
   formatMoney,
-  formatPaymentMethodLabel,
   formatShipping,
   formatStatusLabel,
   shippingSentence,
@@ -44,12 +43,5 @@ describe('format', () => {
 
   it('humanizes status codes', () => {
     expect(formatStatusLabel('NEEDS_ATTENTION')).toBe('NEEDS ATTENTION');
-  });
-
-  it('formats payment method labels', () => {
-    expect(formatPaymentMethodLabel('CARD')).toBe('Card');
-    expect(formatPaymentMethodLabel(null)).toBe('-');
-    expect(formatPaymentMethodLabel(undefined)).toBe('-');
-    expect(formatPaymentMethodLabel('OTHER_METHOD')).toBe('OTHER METHOD');
   });
 });

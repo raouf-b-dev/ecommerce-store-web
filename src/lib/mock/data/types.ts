@@ -14,6 +14,8 @@ export type LoginDto = components['schemas']['LoginDto'];
 export type AddAddressDto = components['schemas']['AddAddressDto'];
 export type UpdateAddressDto = components['schemas']['UpdateAddressDto'];
 export type CheckoutDto = components['schemas']['CheckoutDto'];
+export type OrderDetailResponseDto =
+  components['schemas']['OrderDetailResponseDto'];
 
 export type SeedInventoryRow = {
   productId: number;

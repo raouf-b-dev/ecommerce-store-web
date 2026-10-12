@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/card';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { QueryLoading } from '@/components/feedback/query-state';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
 import { CountryCombobox } from '@/components/forms/country-combobox';
 import { ProductImageFrame } from '@/components/media/product-image';
@@ -54,7 +55,6 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     totalAmount,
     isLoading: isCartLoading,
   } = useCart();
-  const currency = cart?.currency ?? 'USD';
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   const { mutateAsync: submitCheckout, isPending } = useCheckoutMutation({
@@ -134,13 +134,19 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     }
   };
 
-  if (!isCartLoading && itemCount === 0) {
+  if (isCartLoading) {
+    return <QueryLoading>Loading checkout...</QueryLoading>;
+  }
+
+  if (!cart || itemCount === 0 || !cart.currency) {
     return (
       <div className="mx-auto max-w-xl">
         <CartEmptyState />
       </div>
     );
   }
+
+  const currency = cart.currency;
 
   return (
     <form
@@ -428,7 +434,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                 </CardTitle>
               </div>
               <CardDescription>
-                Card payments are processed securely.
+                Pay by card.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">

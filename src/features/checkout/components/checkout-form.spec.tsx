@@ -85,6 +85,24 @@ describe('CheckoutForm', () => {
     );
   });
 
+  it('renders loading state while cart is loading', () => {
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: null,
+        cartId: null,
+        itemCount: 0,
+        totalAmount: 0,
+        subtotal: 0,
+        items: [],
+        isLoading: true,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(screen.getByText('Loading checkout...')).toBeInTheDocument();
+  });
+
   it('renders empty cart state when cart item count is 0', () => {
     vi.mocked(cartHooks.useCart).mockReturnValue(
       createMockUseCartResult({
@@ -102,6 +120,44 @@ describe('CheckoutForm', () => {
     expect(screen.getByText('Your cart is empty')).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: /explore products/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('formats amounts in the cart currency when non-USD', () => {
+    const mockCart = createMockCart({
+      id: 2,
+      currency: 'EUR',
+      totalAmount: 150,
+      itemCount: 1,
+      items: [
+        createMockCartItem({
+          id: 11,
+          productId: 101,
+          productName: 'Mechanical Keyboard',
+          price: 150,
+          currency: 'EUR',
+          quantity: 1,
+          subtotal: 150,
+        }),
+      ],
+    });
+
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: mockCart,
+        cartId: 2,
+        itemCount: 1,
+        totalAmount: 150,
+        subtotal: 150,
+        items: mockCart.items,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(screen.getAllByText('€150.00').length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('button', { name: /place order • €150\.00/i }),
     ).toBeInTheDocument();
   });
 

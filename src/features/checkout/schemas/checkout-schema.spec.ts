@@ -8,13 +8,13 @@ describe('checkoutFormSchema', () => {
       paymentMethod: 'CARD',
     });
 
-    expect(result.success).toBe(true);
-    if (!result.success) {
-      throw new Error(`Expected success: ${result.error.message}`);
-    }
-
-    expect(result.data.useDefaultAddress).toBe(true);
-    expect(result.data.paymentMethod).toBe('CARD');
+    expect(result).toMatchObject({
+      success: true,
+      data: {
+        useDefaultAddress: true,
+        paymentMethod: 'CARD',
+      },
+    });
   });
 
   it('fails validation when useDefaultAddress is false and address fields are missing', () => {
@@ -25,18 +25,20 @@ describe('checkoutFormSchema', () => {
     });
 
     expect(result.success).toBe(false);
-    if (result.success) {
-      throw new Error('Expected validation to fail');
-    }
-
-    const paths = result.error.issues.map((i) => i.path.join('.'));
-    expect(paths).toContain('shippingAddress.firstName');
-    expect(paths).toContain('shippingAddress.lastName');
-    expect(paths).toContain('shippingAddress.street');
-    expect(paths).toContain('shippingAddress.city');
-    expect(paths).toContain('shippingAddress.state');
-    expect(paths).toContain('shippingAddress.postalCode');
-    expect(paths).toContain('shippingAddress.country');
+    const paths = !result.success
+      ? result.error.issues.map((i) => i.path.join('.'))
+      : [];
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        'shippingAddress.firstName',
+        'shippingAddress.lastName',
+        'shippingAddress.street',
+        'shippingAddress.city',
+        'shippingAddress.state',
+        'shippingAddress.postalCode',
+        'shippingAddress.country',
+      ]),
+    );
   });
 
   it('validates successfully when useDefaultAddress is false and all required address fields are provided', () => {
@@ -54,22 +56,34 @@ describe('checkoutFormSchema', () => {
       },
     });
 
-    expect(result.success).toBe(true);
+    expect(result).toMatchObject({
+      success: true,
+      data: {
+        useDefaultAddress: false,
+        paymentMethod: 'CARD',
+        shippingAddress: {
+          firstName: 'John',
+          lastName: 'Doe',
+          street: '123 Main St',
+          city: 'New York',
+          state: 'NY',
+          postalCode: '10001',
+          country: 'US',
+        },
+      },
+    });
   });
 
   it('rejects legacy payment method', () => {
-    const legacyMethod = ['S', 'T', 'R', 'I', 'P', 'E'].join('');
     const result = checkoutFormSchema.safeParse({
       useDefaultAddress: true,
-      paymentMethod: legacyMethod,
+      paymentMethod: 'STRIPE',
     });
 
     expect(result.success).toBe(false);
-    if (result.success) {
-      throw new Error('Expected legacy payment method to be rejected');
-    }
-
-    const paths = result.error.issues.map((i) => i.path.join('.'));
-    expect(paths).toContain('paymentMethod');
+    const paths = !result.success
+      ? result.error.issues.map((i) => i.path.join('.'))
+      : [];
+    expect(paths).toEqual(expect.arrayContaining(['paymentMethod']));
   });
 });
