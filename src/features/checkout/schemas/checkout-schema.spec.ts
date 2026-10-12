@@ -25,10 +25,7 @@ describe('checkoutFormSchema', () => {
     });
 
     expect(result.success).toBe(false);
-    const paths = !result.success
-      ? result.error.issues.map((i) => i.path.join('.'))
-      : [];
-    expect(paths).toEqual(
+    expect(result.error?.issues.map((i) => i.path.join('.'))).toEqual(
       expect.arrayContaining([
         'shippingAddress.firstName',
         'shippingAddress.lastName',
@@ -81,9 +78,8 @@ describe('checkoutFormSchema', () => {
     });
 
     expect(result.success).toBe(false);
-    const paths = !result.success
-      ? result.error.issues.map((i) => i.path.join('.'))
-      : [];
-    expect(paths).toEqual(expect.arrayContaining(['paymentMethod']));
+    expect(result.error?.issues.map((i) => i.path.join('.'))).toEqual(
+      expect.arrayContaining(['paymentMethod']),
+    );
   });
 });

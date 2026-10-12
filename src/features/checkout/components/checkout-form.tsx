@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/card';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { QueryLoading } from '@/components/feedback/query-state';
+import { QueryLoading, QueryStateAlert } from '@/components/feedback/query-state';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
 import { CountryCombobox } from '@/components/forms/country-combobox';
 import { ProductImageFrame } from '@/components/media/product-image';
@@ -54,6 +54,9 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     shippingCost,
     totalAmount,
     isLoading: isCartLoading,
+    isError,
+    error: cartError,
+    refetch: refetchCart,
   } = useCart();
   const [generalError, setGeneralError] = useState<string | null>(null);
 
@@ -136,6 +139,22 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
 
   if (isCartLoading) {
     return <QueryLoading>Loading checkout...</QueryLoading>;
+  }
+
+  if (isError && !cart) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <QueryStateAlert
+          isError
+          hasData={false}
+          error={cartError}
+          onRetry={() => {
+            void refetchCart();
+          }}
+          resource="shopping cart"
+        />
+      </div>
+    );
   }
 
   if (!cart || itemCount === 0 || !cart.currency) {
