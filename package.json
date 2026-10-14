@@ -18,6 +18,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "verify": "npm run lint && npm run typecheck && npm test",
+    "check:agent": "node scripts/agent-check.mjs",
     "test:e2e": "playwright test",
     "test:e2e:prod": "playwright test -c playwright.prod.config.ts",
     "api:generate": "node ./scripts/generate-api-client.js",

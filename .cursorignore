@@ -1,0 +1,25 @@
+# Cursor already skips .gitignore paths and a default list (node_modules,
+# .next, lockfiles, images). Listed again so a window that misses .gitignore
+# still cannot open them. .next/dev/cache on this machine is about 230 MB.
+# The generated client stays readable; it is indexing-ignored.
+# See the workspace doc docs/agent-workflow.md.
+
+node_modules/
+.next/
+dist/
+coverage/
+playwright-report/
+test-results/
+.turbo/
+*.tsbuildinfo
+package-lock.json
+
+# Secrets
+.secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Tracked screenshots. Do not open the whole gallery.
+docs/assets/
