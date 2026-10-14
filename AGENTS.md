@@ -2,11 +2,15 @@
 
 Customer storefront for `ecommerce-store-api`. Next.js 16 App Router (Cache Components, React Compiler, typed routes), React 19, TypeScript (strict), TanStack Query, React Hook Form + Zod, Tailwind v4 + shadcn/ui, `openapi-fetch`. Vitest + Testing Library, Playwright. Node 24+.
 
-## Verify
+## Checks
 
-`npm run verify` runs lint (ESLint + ASCII prose), typecheck, and unit tests. Run it before reporting a task done. After touching routes, layouts, metadata, caching, or `next.config.ts`, also run `NEXT_PUBLIC_STOREFRONT_ORIGIN=https://storefront.test npm run build` (a production build rejects a missing or localhost origin; CI uses this value). One spec: `npx vitest run <path>`. Playwright (`npm run test:e2e`) needs a seeded live API: run it only for RSC routes or the shopper journey.
+`npm run verify` is the pre-PR command in your terminal (lint, typecheck, unit tests). Do not run it in this chat. Do not run a production build or `test:e2e` here either. The log stays in the transcript and every later step re-reads it. After routes, layouts, metadata, caching, or `next.config.ts`, the user runs `NEXT_PUBLIC_STOREFRONT_ORIGIN=https://storefront.test npm run build` (a production build rejects a missing or localhost origin; CI uses this value).
 
-In your final message give: what changed, the commands you ran with results, and open risks or assumptions.
+In this chat a passing command is one line. A failing command is the error block only. While iterating: `node scripts/agent-run.mjs -- npx vitest run <path> --reporter=minimal`. Once before you stop: `npm run check:agent`. It covers uncommitted files and commits on this branch since `develop`. A docs-only diff skips the suite. Playwright (`npm run test:e2e`) needs a seeded live API: run it only when the user asks, and only for RSC routes or the shopper journey.
+
+`agent-check: ok` means those commands ran and passed. `agent-check: skipped` means nothing was proven (clean tree, or a wide diff). Do not run `npm test`, `npm run verify`, `test:e2e`, or a build directly.
+
+In your final message give: what changed, the `agent-check:` line, and open risks or assumptions. Name `npm run verify` (and the build, when routes, layouts, metadata, caching, or `next.config.ts` changed) as the command the user runs. Do not paste a green log.
 
 ## Next.js docs
 

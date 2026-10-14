@@ -51,6 +51,6 @@ Specs sit beside each file. No `index.ts` barrels. Import other features by conc
 
 ## Checks
 
-- `npm run verify` passes; run `npm run build` too when you changed routes, layouts, metadata, or caching.
+- `npm run check:agent` once. The user runs `npm run verify` in a terminal before the PR, and `NEXT_PUBLIC_STOREFRONT_ORIGIN=https://storefront.test npm run build` when routes, layouts, metadata, or caching changed.
 - No `@/lib/mock/*` import in the feature (CONVENTIONS section 12).
 - Hidden or disabled UI is paired with an API-enforced rule, never a client-only one.
