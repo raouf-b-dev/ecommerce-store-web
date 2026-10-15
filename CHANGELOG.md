@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-15
+
+Works with ecommerce-store-api v0.10.0 or later.
+
+### Changed
+
+- **Breaking:** checkout sends payment method `CARD` and an `Idempotency-Key` header, so API v0.10.0 is required (#76, #77).
+- User profile menu overhaul: the header session links are now a dropdown user menu (#76).
+- Tests use the production compiler, plus mobile Playwright projects (#74).
+- Generated API client synced with API v0.10.0.
+- `shadcn` moved to devDependencies with vulnerable subdependencies updated; Dependabot target and CI triggers cleaned up.
+- Agent check workflow for in-chat verification (#80) and slimmer agent guidance (#70).
+
+### Fixed
+
+- Add-to-cart errors are shown instead of silently creating a new cart (#75).
+- No horizontal overflow on small checkout screens (#72).
+- Custom address validation errors are shown (#71).
+
+[Compare v0.3.1...v0.4.0](https://github.com/raouf-b-dev/ecommerce-store-web/compare/v0.3.1...v0.4.0)
+
 ## [0.3.1] - 2026-09-29
 
 ### Changed
