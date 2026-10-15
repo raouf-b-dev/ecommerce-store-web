@@ -164,6 +164,8 @@ jobs:
           set -euo pipefail
           jwt_key="$(openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 2>/dev/null | awk '{printf "%s\\n", $0}')"
           grep -E '^(POSTGRES_IMAGE|POSTGRES_CONTAINER_NAME|REDIS_IMAGE|REDIS_CONTAINER_NAME|CORS_ALLOWED_ORIGINS|STORE_DEFAULT_CURRENCY)=' .env.example > .env.development
+          # The Next server and every browser share one client IP, so the default
+          # global throttle (100 req/min) returns 429 mid-suite. Auth limits still apply.
           cat >> .env.development <<EOF
           NODE_ENV=development
           PORT=3000
@@ -183,6 +185,7 @@ jobs:
           LOG_TRANSPORT=console
           LOG_LEVEL=info
           METRICS_API_KEY=ci-metrics
+          THROTTLE_GLOBAL_LIMIT=100000
           OTEL_TRACING_ENABLED=false
           PAYMENT_MOCK_AUTO_COMPLETE=true
           EOF
