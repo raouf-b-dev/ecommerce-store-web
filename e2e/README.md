@@ -28,6 +28,15 @@ Playwright runs four test projects defined in `playwright.config.ts`:
 npm run test:e2e:prod
 ```
 
+## CI
+
+`.github/workflows/ci.yml` runs two Playwright jobs:
+
+- **Production Status E2E** runs `npm run test:e2e:prod` on every pull request and push.
+- **Playwright E2E** runs the full suite on pull requests into `master`, pushes to `master`, and manual runs (`api_ref` input, default `master`). It clones `ecommerce-store-api` next to the checkout, starts Postgres and Redis from its `docker-compose.yaml`, migrates, runs `npm run db:seed`, and starts the API in development mode with mock payment auto-complete. `CI Status Check` fails if this job does not pass on those runs. On failure, the traces and API log are uploaded as the `playwright-e2e-*` artifact.
+
+The full suite needs the `E2E_CUSTOMER_EMAIL` and `E2E_CUSTOMER_PASSWORD` repository secrets (values from the API seeding guide). Dependabot pull requests target `master`, so the same two values must also be set as Dependabot secrets.
+
 ## Database Seeding & Global Setup
 
 `e2e/global-setup.ts` automatically runs before test execution:

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- CI runs the full Playwright suite against a seeded API on pull requests into `master` and pushes to `master`, and `CI Status Check` requires it there. The production status spec runs on every pull request.
+
 ## [0.4.0] - 2026-10-15
 
 Works with ecommerce-store-api v0.10.0 or later.

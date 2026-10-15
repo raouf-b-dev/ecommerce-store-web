@@ -7,6 +7,11 @@ on:
       - develop
   pull_request:
   workflow_dispatch:
+    inputs:
+      api_ref:
+        description: ecommerce-store-api branch or tag that Playwright E2E runs against
+        required: false
+        default: master
 
 permissions:
   contents: read
@@ -93,10 +98,10 @@ jobs:
       - name: Dependency audit (high/critical)
         run: npm audit --omit=dev --audit-level=high
 
-  e2e:
-    name: Playwright E2E
+  e2e-prod:
+    name: Production Status E2E
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
+    timeout-minutes: 15
     needs: [build]
     steps:
       - name: Checkout
@@ -108,50 +113,181 @@ jobs:
         uses: ./.github/actions/setup-node-ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium webkit
+        run: npx playwright install --with-deps chromium
+
+      - name: Run production status check
+        run: npm run test:e2e:prod
+
+  # Full shopper suite against a real API, required on release paths into master.
+  # Dependabot PRs target master too, so the customer secrets must also exist as
+  # Dependabot secrets.
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.base_ref == 'master') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    needs: [build]
+    env:
+      API_REF: ${{ inputs.api_ref || 'master' }}
+      API_LOG: ${{ github.workspace }}/e2e-artifacts/api.log
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node and install
+        uses: ./.github/actions/setup-node-ci
 
       - name: Verify required E2E secrets
+        env:
+          E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
+          E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
         run: |
-          if [ -z "${{ secrets.E2E_CUSTOMER_EMAIL }}" ] || [ -z "${{ secrets.E2E_CUSTOMER_PASSWORD }}" ]; then
+          if [ -z "$E2E_CUSTOMER_EMAIL" ] || [ -z "$E2E_CUSTOMER_PASSWORD" ]; then
             echo "::error::E2E secrets (E2E_CUSTOMER_EMAIL, E2E_CUSTOMER_PASSWORD) are required for Playwright E2E execution."
             exit 1
           fi
 
+      # global-setup resets the seeded customer from ../ecommerce-store-api, same layout as local.
+      - name: Clone ecommerce-store-api
+        run: |
+          git clone --depth 1 --branch "$API_REF" https://github.com/raouf-b-dev/ecommerce-store-api.git ../ecommerce-store-api
+          git -C ../ecommerce-store-api log -1 --format='API %h %s'
+
+      - name: Configure API environment
+        working-directory: ../ecommerce-store-api
+        run: |
+          set -euo pipefail
+          jwt_key="$(openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 2>/dev/null | awk '{printf "%s\\n", $0}')"
+          grep -E '^(POSTGRES_IMAGE|POSTGRES_CONTAINER_NAME|REDIS_IMAGE|REDIS_CONTAINER_NAME|CORS_ALLOWED_ORIGINS|STORE_DEFAULT_CURRENCY)=' .env.example > .env.development
+          cat >> .env.development <<EOF
+          NODE_ENV=development
+          PORT=3000
+          PUBLIC_BASE_URL=http://localhost:3000
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_USERNAME=postgres
+          DB_PASSWORD=postgres
+          DB_DATABASE=ecommerce_e2e
+          REDIS_HOST=localhost
+          REDIS_PORT=6379
+          REDIS_INSIGHT_PORT=8001
+          REDIS_PASSWORD=ci-redis
+          REDIS_KEYPREFIX=ecom:e2e:
+          REDIS_DB=0
+          JWT_PRIVATE_KEY="${jwt_key}"
+          LOG_TRANSPORT=console
+          LOG_LEVEL=info
+          METRICS_API_KEY=ci-metrics
+          OTEL_TRACING_ENABLED=false
+          PAYMENT_MOCK_AUTO_COMPLETE=true
+          EOF
+
+      - name: Start Postgres and Redis
+        working-directory: ../ecommerce-store-api
+        env:
+          METRICS_API_KEY: ci-metrics
+        run: docker compose --env-file .env.development up -d --wait postgres redis
+
+      - name: Install API dependencies
+        working-directory: ../ecommerce-store-api
+        run: npm ci --no-audit --no-fund
+
+      - name: Migrate and seed API database
+        working-directory: ../ecommerce-store-api
+        run: |
+          npm run migration:run:dev
+          npm run db:seed
+
+      - name: Build and start API
+        working-directory: ../ecommerce-store-api
+        run: |
+          set -euo pipefail
+          npm run build
+          mkdir -p "$(dirname "$API_LOG")"
+          NODE_ENV=development nohup node dist/main.js > "$API_LOG" 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000/health/readiness > /dev/null 2>&1; then
+              echo "API ready at http://localhost:3000"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::API did not become ready within 120s"
+          tail -n 100 "$API_LOG"
+          exit 1
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium webkit
+
       - name: Run Playwright tests
         run: npm run test:e2e
         env:
-          E2E_SKIP_DB_SEED: '1'
+          E2E_API_REPO_PATH: ${{ github.workspace }}/../ecommerce-store-api
           NEXT_PUBLIC_STOREFRONT_ORIGIN: http://localhost:3100
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.E2E_API_BASE_URL || 'http://localhost:3000' }}
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:3000
           E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
           E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
           E2E_CUSTOMER_NEW_PASSWORD: ${{ secrets.E2E_CUSTOMER_NEW_PASSWORD }}
 
+      - name: Upload Playwright traces and API log
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-e2e-${{ github.run_attempt }}
+          path: |
+            test-results/
+            e2e-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
   ci:
     name: CI Status Check
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, unit-tests, build, audit]
+    needs: [lint, typecheck, unit-tests, build, audit, e2e-prod, e2e]
     if: always()
     steps:
       - name: Check all jobs status
         run: |
-          lint_status="${{ needs.lint.result }}"
-          typecheck_status="${{ needs.typecheck.result }}"
-          unit_status="${{ needs.unit-tests.result }}"
-          build_status="${{ needs.build.result }}"
-          audit_status="${{ needs.audit.result }}"
+          # Playwright E2E must actually pass on PRs into master and pushes to master;
+          # elsewhere it is skipped and only a failure counts.
+          e2e_required=false
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] && [ "$GITHUB_BASE_REF" = "master" ]; then
+            e2e_required=true
+          fi
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            e2e_required=true
+          fi
+          echo "event: $GITHUB_EVENT_NAME ($GITHUB_REF), e2e required: $e2e_required"
 
-          echo "lint: $lint_status"
-          echo "typecheck: $typecheck_status"
-          echo "unit-tests: $unit_status"
-          echo "build: $build_status"
-          echo "audit: $audit_status"
-
-          for status in "$lint_status" "$typecheck_status" "$unit_status" "$build_status" "$audit_status"; do
+          failed=false
+          check() {
+            local name="$1" status="$2" require_success="$3"
+            echo "$name: $status"
             if [ "$status" = "failure" ] || [ "$status" = "cancelled" ]; then
-              echo "One of the required parallel jobs failed or was cancelled."
-              exit 1
+              echo "::error::$name $status"
+              failed=true
+            elif [ "$require_success" = true ] && [ "$status" != "success" ]; then
+              echo "::error::$name was $status but must succeed on this run"
+              failed=true
             fi
-          done
+          }
+
+          check lint "${{ needs.lint.result }}" false
+          check typecheck "${{ needs.typecheck.result }}" false
+          check unit-tests "${{ needs.unit-tests.result }}" false
+          check build "${{ needs.build.result }}" false
+          check audit "${{ needs.audit.result }}" false
+          check e2e-prod "${{ needs.e2e-prod.result }}" false
+          check e2e "${{ needs.e2e.result }}" "$e2e_required"
+
+          if [ "$failed" = true ]; then
+            echo "One or more required jobs did not pass."
+            exit 1
+          fi
 
           echo "All checks passed successfully!"
