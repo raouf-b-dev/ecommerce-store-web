@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- CI runs the full Playwright suite against a seeded API on pull requests into `master` and pushes to `master`, and `CI Status Check` requires it there. The production status spec runs on every pull request.
-
 ## [0.4.0] - 2026-10-15
 
 Works with ecommerce-store-api v0.10.0 or later.
@@ -23,12 +19,15 @@ Works with ecommerce-store-api v0.10.0 or later.
 - Generated API client synced with API v0.10.0.
 - `shadcn` moved to devDependencies with vulnerable subdependencies updated; Dependabot target and CI triggers cleaned up.
 - Agent check workflow for in-chat verification (#80) and slimmer agent guidance (#70).
+- CI runs the full Playwright suite against a seeded API on pull requests into `master` and pushes to `master`, and `CI Status Check` requires it there. The production status spec runs on every pull request (#83).
+- README showcase screenshots and walkthrough regenerated for the user menu and contrast updates.
 
 ### Fixed
 
 - Add-to-cart errors are shown instead of silently creating a new cart (#75).
 - No horizontal overflow on small checkout screens (#72).
 - Custom address validation errors are shown (#71).
+- Guest mobile nav shows on auth error; muted foreground and selected country combobox meet WCAG AA; checkout custom-address fade-in removed (#83).
 
 [Compare v0.3.1...v0.4.0](https://github.com/raouf-b-dev/ecommerce-store-web/compare/v0.3.1...v0.4.0)
 

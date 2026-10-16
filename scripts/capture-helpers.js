@@ -1,7 +1,22 @@
+import fs from 'node:fs';
+import { chromium } from '@playwright/test';
+
 export const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3100';
 export const THEME_STORAGE_KEY = 'store-ui-theme';
 /** Header link text; keep in sync with `name` in src/lib/shop.ts. */
 export const shopName = 'Everyday Goods';
+
+/**
+ * Prefer bundled Chromium; fall back to installed Google Chrome when the
+ * Playwright CDN binary is missing (same idea as e2e/browser.ts).
+ */
+export async function launchCaptureBrowser() {
+  const bundled = chromium.executablePath();
+  if (fs.existsSync(bundled)) {
+    return chromium.launch({ headless: true });
+  }
+  return chromium.launch({ headless: true, channel: 'chrome' });
+}
 
 /** Force a theme for portfolio stills (`light` or `dark`). */
 export async function applyTheme(page, theme) {
@@ -88,18 +103,29 @@ export async function mockLogin(page, baseUrl = BASE_URL) {
 
 export async function waitForCatalogReady(page) {
   await page.waitForSelector('a[href^="/products/"]', { timeout: 20_000 });
+  // Category tiles can still be skeletons after the first product link appears.
+  await page
+    .getByRole('link', { name: /Electronics/i })
+    .first()
+    .waitFor({ state: 'visible', timeout: 20_000 })
+    .catch(() => undefined);
 }
 
 /** Open the full catalog through the header nav so the mock session carries over. */
+async function waitForPath(page, predicateOrRegex, timeout = 15_000) {
+  await page.waitForURL(predicateOrRegex, {
+    timeout,
+    waitUntil: 'commit',
+  });
+}
+
 export async function openCatalogViaNav(page) {
   await page
     .getByRole('navigation', { name: 'Storefront' })
     .getByRole('link', { name: 'All products' })
     .first()
     .click();
-  await page.waitForURL((url) => url.pathname === '/products', {
-    timeout: 15_000,
-  });
+  await waitForPath(page, (url) => url.pathname === '/products');
   await page.waitForSelector('h1:has-text("All products")', {
     timeout: 15_000,
   });
@@ -109,8 +135,9 @@ export async function openCatalogViaNav(page) {
 export async function openFirstProduct(page) {
   await waitForCatalogReady(page);
   const productLink = page.locator('a[href^="/products/"]').first();
-  await productLink.click();
-  await page.waitForURL(/\/products\/\d+/, { timeout: 15_000 });
+  // Product card images animate on hover; force avoids actionability stalls.
+  await productLink.click({ force: true });
+  await waitForPath(page, /\/products\/\d+/);
   await page.waitForSelector('button:has-text("Add to cart")', {
     timeout: 15_000,
   });
@@ -128,13 +155,13 @@ export async function addCurrentProductToCart(page) {
 
 export async function openCartViaHeader(page) {
   await page.click('a[aria-label^="Shopping cart"]');
-  await page.waitForURL(/\/cart/, { timeout: 15_000 });
+  await waitForPath(page, /\/cart/);
   await page.waitForSelector('text=Proceed to Checkout', { timeout: 15_000 });
 }
 
 export async function openCheckoutViaCart(page) {
   await page.click('a:has-text("Proceed to Checkout")');
-  await page.waitForURL(/\/checkout/, { timeout: 15_000 });
+  await waitForPath(page, /\/checkout/);
   await page.waitForSelector('button[type="submit"]:has-text("Place Order")', {
     timeout: 20_000,
   });
