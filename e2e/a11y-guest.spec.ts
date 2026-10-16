@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { checkA11y } from './helpers/axe';
+import { openInStockProduct } from './helpers/catalog';
 
 test.describe('Guest Accessibility & Keyboard Navigation', () => {
   test('home page passes automated accessibility audit', async ({ page }) => {
@@ -32,12 +33,7 @@ test.describe('Guest Accessibility & Keyboard Navigation', () => {
   test('product detail page passes automated accessibility audit', async ({
     page,
   }) => {
-    await page.goto('/');
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible({ timeout: 15_000 });
-    await firstProduct.click();
-
-    await expect(page).toHaveURL(/\/products\/\d+/, { timeout: 15_000 });
+    await openInStockProduct(page);
     await expect(page.getByRole('button', { name: /add to cart/i })).toBeVisible({
       timeout: 10_000,
     });

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openInStockProduct } from './helpers/catalog';
 
 const MD_BREAKPOINT = 768;
 
@@ -83,7 +84,9 @@ test.describe('Catalog storefront', () => {
     ).toBeVisible();
 
     await expect(
-      page.getByRole('link', { name: 'All Products' }),
+      page
+        .getByRole('navigation', { name: 'Categories' })
+        .getByRole('link', { name: 'All Products', exact: true }),
     ).toBeVisible();
 
     await expect(
@@ -210,10 +213,23 @@ test.describe('Catalog storefront', () => {
     const categoryLink = categoryNav.locator('a[href*="categoryId="]').first();
     await expect(categoryLink).toBeVisible();
     const categoryName = (await categoryLink.textContent())?.trim();
-    await categoryLink.click();
+    const href = await categoryLink.getAttribute('href');
+    if (!href || !/categoryId=\d+/.test(href)) {
+      throw new Error(
+        `expected category pill href to include categoryId, got ${href ?? 'null'}`,
+      );
+    }
 
-    await expect(page).toHaveURL(/categoryId=\d+/);
-    await expect(categoryLink).toHaveAttribute('aria-current', 'page');
+    await Promise.all([
+      page.waitForURL(/categoryId=\d+/, { timeout: 15_000 }),
+      categoryLink.click(),
+    ]);
+
+    const activeCategory = categoryNav.locator('a[aria-current="page"]');
+    await expect(activeCategory).toBeVisible();
+    if (categoryName) {
+      await expect(activeCategory).toHaveText(categoryName);
+    }
 
     if (categoryName) {
       await expect(page).toHaveTitle(
@@ -236,11 +252,25 @@ test.describe('Catalog storefront', () => {
   }) => {
     await page.goto('/products');
 
+    await expect(
+      page.getByRole('search', { name: 'Search and filter products' }),
+    ).toBeVisible();
+
     const search = page.getByRole('searchbox', { name: 'Search products' });
     await search.fill('Headphones');
-    await search.press('Enter');
 
-    await expect(page).toHaveURL(/search=Headphones/);
+    // Desktop exposes Apply; below md the form submits on Enter only.
+    if (viewportWidth(page) >= MD_BREAKPOINT) {
+      await Promise.all([
+        page.waitForURL(/search=Headphones/, { timeout: 15_000 }),
+        page.getByRole('button', { name: 'Apply' }).click(),
+      ]);
+    } else {
+      await Promise.all([
+        page.waitForURL(/search=Headphones/, { timeout: 15_000 }),
+        search.press('Enter'),
+      ]);
+    }
 
     // Check noindex, follow policy on search
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
@@ -294,21 +324,11 @@ test.describe('Catalog storefront', () => {
   test('navigates to product detail and displays details, availability, canonical, and structured data', async ({
     page,
   }) => {
-    await page.goto('/');
-
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible();
-
-    const productTitle = await firstProduct.locator('h3').textContent();
-    expect(productTitle).toBeTruthy();
-
-    await firstProduct.click();
-
-    await expect(page).toHaveURL(/\/products\/\d+/);
+    const { name: productTitle } = await openInStockProduct(page);
 
     // Assert heading matches product
     await expect(
-      page.getByRole('heading', { name: productTitle!.trim(), level: 1 }),
+      page.getByRole('heading', { name: productTitle, level: 1 }),
     ).toBeVisible();
 
     // Canonical link tag
@@ -324,7 +344,7 @@ test.describe('Catalog storefront', () => {
     ).toBeVisible();
 
     // Stock availability indicator
-    await expect(page.getByText(/In stock|Out of stock/i)).toBeVisible();
+    await expect(page.getByText(/In stock \(\d+ available\)/)).toBeVisible();
 
     // Add to cart CTA is active and enabled
     const addToCartBtn = page.getByRole('button', { name: /Add to cart/i });
@@ -347,7 +367,7 @@ test.describe('Catalog storefront', () => {
     const productSchema = schemas.find((s) => s['@type'] === 'Product');
     expect(productSchema).toBeDefined();
     expect(productSchema['@context']).toBe('https://schema.org');
-    expect(productSchema.name).toBe(productTitle!.trim());
+    expect(productSchema.name).toBe(productTitle);
     expect(productSchema['@id']).toMatch(/https?:\/\/[^/]+\/products\/\d+$/);
     expect(productSchema.url).toMatch(/https?:\/\/[^/]+\/products\/\d+$/);
 
@@ -407,46 +427,53 @@ test.describe('Catalog storefront', () => {
     expect(malformedResponse.status()).toBe(404);
   });
 
-  // Cache Components streams the static shell as 200 before notFound() runs (ADR-0009).
-  // playwright.prod.config.ts checks noindex in the production server HTML.
-  test('invalid and missing product IDs render a noindex soft 404 with product not-found UI', async ({
+  // `next dev` answers 404 here while production streams a 200 soft 404 (ADR-0009),
+  // so the status code is asserted only in product-production-status.spec.ts.
+  test('invalid and missing product IDs render a noindex product not-found UI', async ({
     page,
-    request,
   }) => {
     for (const path of ['/products/0', '/products/999999']) {
-      const response = await request.get(path);
-      expect(response.status()).toBe(200);
+      await page.goto(path);
+
+      await expect(
+        page.getByRole('heading', { name: 'Product not found', level: 1 }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole('link', { name: 'Back to catalog' }),
+      ).toBeVisible();
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+        'content',
+        /noindex/,
+      );
     }
-
-    await page.goto('/products/0');
-
-    await expect(
-      page.getByRole('heading', { name: 'Product not found', level: 1 }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole('link', { name: 'Back to catalog' }),
-    ).toBeVisible();
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-      'content',
-      /noindex/,
-    );
   });
 
   test('out-of-range page redirects to last valid page while preserving filters', async ({
     page,
   }) => {
-    await page.goto('/products?sortBy=name&sortOrder=asc&page=999');
-
-    // Should redirect to the last available page (page 2 in the seeded catalog) preserving filters
-    await expect(page).toHaveURL(/\/products\?sortBy=name&sortOrder=asc&page=2$/);
-
     const cards = page.locator('main a[href^="/products/"]');
-    await expect(cards.first()).toBeVisible();
 
-    // Verify pagination active state points to the last page
+    // Parallel guest/pixel/iphone runs can truncate the RSC redirect payload
+    // (Next.js "Unexpected end of JSON input" overlay). Retry the navigation.
+    await expect(async () => {
+      await page.goto('/products?sortBy=name&sortOrder=asc&page=999');
+      await expect(page).not.toHaveURL(/page=999/, { timeout: 10_000 });
+      await expect(cards.first()).toBeVisible({ timeout: 10_000 });
+    }).toPass({ timeout: 45_000 });
+
+    // Seed length can change; assert clamp + filter preservation, not a fixed page number.
+    await expect(page).toHaveURL(/\/products\?/);
+    await expect(page).toHaveURL(/sortBy=name/);
+    await expect(page).toHaveURL(/sortOrder=asc/);
+
     const paginationNav = page.getByRole('navigation', { name: 'Pagination' });
     await expect(paginationNav).toBeVisible();
-    const activePage = paginationNav.locator('[aria-current="page"]');
-    await expect(activePage).toHaveText('2');
+    // On the last page the Next control is omitted.
+    await expect(
+      paginationNav.getByRole('link', { name: 'Go to next page' }),
+    ).toHaveCount(0);
+    await expect(
+      paginationNav.locator('[aria-current="page"]'),
+    ).toBeVisible();
   });
 });

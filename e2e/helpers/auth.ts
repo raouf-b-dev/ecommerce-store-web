@@ -1,9 +1,56 @@
-import { expect, type Page } from '@playwright/test';
-import { execSync } from 'node:child_process';
-import path from 'node:path';
-import fs from 'node:fs';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { openInStockProduct } from './catalog';
 
 export const AUTH_THROTTLE_WAIT_MS = 61_000;
+
+/** Log once, then wait out the API auth throttle window (~61s). */
+export async function waitOutAuthThrottle(
+  page: Page,
+  reason = 'Auth throttled',
+): Promise<void> {
+  console.log(
+    `[e2e] ${reason}; waiting ${AUTH_THROTTLE_WAIT_MS / 1000}s before retry...`,
+  );
+  await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+}
+
+export const SESSION_THROTTLE_TEXT =
+  'Too many requests. Wait a moment and try again.';
+
+/**
+ * When session bootstrap hit the auth rate limit, the shell shows a retryable
+ * alert and guest chrome. Wait out the window and click Retry (or reload).
+ * Returns true when a throttle alert was handled.
+ */
+export async function recoverFromSessionThrottle(page: Page): Promise<boolean> {
+  const alert = page.getByText(SESSION_THROTTLE_TEXT);
+  if (!(await alert.isVisible().catch(() => false))) {
+    return false;
+  }
+  await waitOutAuthThrottle(page, 'Session bootstrap throttled');
+  const retry = page.getByRole('button', { name: 'Retry' });
+  if (await retry.isVisible().catch(() => false)) {
+    await retry.click();
+  } else {
+    await page.reload();
+  }
+  return true;
+}
+
+/** The header shows the full email only in the account menu's accessible name. */
+export function accountMenuButton(page: Page, email: string): Locator {
+  return page.getByRole('button', { name: `User account menu for ${email}` });
+}
+
+export async function signOut(page: Page, email: string): Promise<void> {
+  await accountMenuButton(page, email).click();
+  await page.getByRole('menuitem', { name: 'Sign out' }).click();
+}
+
+/** CI passes unset secrets as empty strings, so `??` would keep them. */
+export function rotatedCustomerPassword(seedPassword: string): string {
+  return process.env.E2E_CUSTOMER_NEW_PASSWORD || `${seedPassword}Rotated1!`;
+}
 
 export type FreshCustomer = {
   email: string;
@@ -32,15 +79,14 @@ export async function registerFreshCustomer(
   await page.goto('/register');
 
   const firstName = page.getByLabel('First name');
-  const sessionErrorAlert = page.getByText('Too many requests. Wait a moment and try again.');
+  const sessionErrorAlert = page.getByText(SESSION_THROTTLE_TEXT);
 
   await Promise.race([
     firstName.waitFor({ state: 'visible', timeout: 15_000 }),
     sessionErrorAlert.waitFor({ state: 'visible', timeout: 15_000 }),
   ]).catch(() => undefined);
 
-  if (await sessionErrorAlert.isVisible()) {
-    await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+  if (await recoverFromSessionThrottle(page)) {
     await page.goto('/register');
     await expect(firstName).toBeVisible({ timeout: 15_000 });
   }
@@ -50,73 +96,69 @@ export async function registerFreshCustomer(
   await page.getByLabel('Password').fill(customer.password);
   await page.getByRole('button', { name: 'Create account' }).click();
 
-  const emailLocator = page.getByText(customer.email);
+  const accountMenu = accountMenuButton(page, customer.email);
   const throttleLocator = page
     .getByText('Too many sign-in attempts')
     .or(page.getByText('Too many requests'));
 
   await Promise.race([
-    emailLocator.waitFor({ state: 'visible', timeout: 15_000 }),
+    accountMenu.waitFor({ state: 'visible', timeout: 15_000 }),
     throttleLocator.waitFor({ state: 'visible', timeout: 15_000 }),
   ]).catch(() => undefined);
 
   if (await throttleLocator.isVisible()) {
-    await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+    await waitOutAuthThrottle(page, 'Create account throttled');
     await page.getByRole('button', { name: 'Create account' }).click();
   }
 
-  await expect(emailLocator).toBeVisible({ timeout: 25_000 });
+  await expect(accountMenu).toBeVisible({ timeout: 25_000 });
   return customer;
 }
 
 /**
- * Navigates to the home page, opens the first product, clicks "Add to cart",
+ * Opens an in-stock product from the home page, clicks "Add to cart",
  * and waits for the toast notification to confirm addition.
+ * Recovers once from a session bootstrap 429 (guest chrome + no toast).
  */
-export async function addFirstProductToCart(page: Page): Promise<void> {
-  await page.goto('/');
-  const firstProduct = page.locator('main a[href^="/products/"]').first();
-  await expect(firstProduct).toBeVisible();
-  await firstProduct.click();
+export async function addInStockProductToCart(page: Page): Promise<void> {
+  const toast = page.getByText(/added .* to cart/i);
+  const signInHeading = page.getByRole('heading', { name: 'Sign in', level: 1 });
 
-  await expect(page).toHaveURL(/\/products\/\d+/);
-  const addToCartBtn = page.getByRole('button', { name: /add to cart/i });
-  await expect(addToCartBtn).toBeVisible();
-  await addToCartBtn.click();
-  await expect(page.getByText(/added .* to cart/i)).toBeVisible();
-}
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await openInStockProduct(page);
+    if (await recoverFromSessionThrottle(page)) {
+      continue;
+    }
 
-/**
- * Resets seeded customer credentials via `npm run db:seed:auth` in the API repository.
- */
-export function resetAuthSeed(): void {
-  if (process.env.E2E_SKIP_DB_SEED === '1') {
-    return;
+    const addToCartBtn = page.getByRole('button', { name: /add to cart/i });
+    await expect(addToCartBtn).toBeVisible({ timeout: 15_000 });
+    await addToCartBtn.click();
+
+    await Promise.race([
+      toast.waitFor({ state: 'visible', timeout: 15_000 }),
+      signInHeading.waitFor({ state: 'visible', timeout: 15_000 }),
+      page.getByText(SESSION_THROTTLE_TEXT).waitFor({
+        state: 'visible',
+        timeout: 15_000,
+      }),
+    ]).catch(() => undefined);
+
+    if (await toast.isVisible().catch(() => false)) {
+      return;
+    }
+
+    if (await recoverFromSessionThrottle(page)) {
+      continue;
+    }
+
+    // Unauthenticated CTA redirects to login when session status is error.
+    if (await signInHeading.isVisible().catch(() => false)) {
+      await waitOutAuthThrottle(page, 'Add to cart lost session');
+      continue;
+    }
   }
 
-  const apiPath =
-    process.env.E2E_API_REPO_PATH ||
-    path.resolve(process.cwd(), '../ecommerce-store-api');
-
-  if (!fs.existsSync(apiPath)) {
-    throw new Error(
-      `Cannot reset auth seed: API repository not found at "${apiPath}". Set E2E_API_REPO_PATH or E2E_SKIP_DB_SEED=1.`,
-    );
-  }
-
-  try {
-    execSync('npm run db:seed:auth', {
-      cwd: apiPath,
-      stdio: 'pipe',
-      timeout: 120_000,
-      env: { ...process.env },
-    });
-  } catch (error) {
-    throw new Error(
-      `Failed to run 'npm run db:seed:auth' in ${apiPath}: ${error instanceof Error ? error.message : String(error)}`,
-      { cause: error },
-    );
-  }
+  await expect(toast).toBeVisible({ timeout: 15_000 });
 }
 
 export interface LoginSeededCustomerOptions {
@@ -133,15 +175,13 @@ export async function loginSeededCustomer(
 ): Promise<{ email: string }> {
   const email = process.env.E2E_CUSTOMER_EMAIL;
   const seedPassword = process.env.E2E_CUSTOMER_PASSWORD;
-  const rotatedPassword =
-    process.env.E2E_CUSTOMER_NEW_PASSWORD ?? `${seedPassword}Rotated1!`;
-
   if (!email || !seedPassword) {
     throw new Error(
       'Missing E2E_CUSTOMER_EMAIL or E2E_CUSTOMER_PASSWORD in environment (see e2e/README.md).',
     );
   }
 
+  const rotatedPassword = rotatedCustomerPassword(seedPassword);
   const destination = options?.destination ?? '/account';
   const candidates = uniquePasswords(seedPassword, rotatedPassword);
 
@@ -149,14 +189,12 @@ export async function loginSeededCustomer(
     await page.goto(destination);
 
     // If already authenticated and landed on destination, return immediately
-    const emailOnPage = await page.getByText(email).first().isVisible().catch(() => false);
+    const emailOnPage = await accountMenuButton(page, email).isVisible().catch(() => false);
     if (emailOnPage) {
       return { email };
     }
 
-    const sessionErrorAlert = page.getByText('Too many requests. Wait a moment and try again.');
-    if (await sessionErrorAlert.isVisible().catch(() => false)) {
-      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+    if (await recoverFromSessionThrottle(page)) {
       await page.goto(destination);
     }
 
@@ -176,7 +214,10 @@ export async function loginSeededCustomer(
     await page.getByLabel('Password').fill(candidate);
     await page.getByRole('button', { name: 'Sign in' }).click();
 
-    const accountHeading = page.getByRole('heading', { name: 'Account' });
+    const accountHeading = page.getByRole('heading', {
+      name: 'Account',
+      level: 1,
+    });
     const changeHeading = page.getByRole('heading', { name: 'Change your password' });
     const invalidError = page.getByText('Invalid email or password.');
     const throttleError = page.getByText('Too many sign-in attempts');
@@ -189,7 +230,7 @@ export async function loginSeededCustomer(
     ]).catch(() => undefined);
 
     if (await throttleError.isVisible()) {
-      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+      await waitOutAuthThrottle(page, 'Sign-in throttled');
       continue;
     }
 
@@ -212,7 +253,7 @@ export async function loginSeededCustomer(
       ]).catch(() => undefined);
 
       if (await changeThrottleError.isVisible()) {
-        await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+        await waitOutAuthThrottle(page, 'Password change throttled');
         await page.getByRole('button', { name: 'Update password' }).click();
       }
 
@@ -226,6 +267,6 @@ export async function loginSeededCustomer(
   }
 
   throw new Error(
-    `Failed to authenticate seeded customer ${email} with both seed and rotated passwords. Run 'npm run db:seed:auth' in the API.`,
+    `Failed to authenticate seeded customer ${email} with both the seed and rotated passwords. Align E2E_CUSTOMER_PASSWORD with the running API (see e2e/README.md).`,
   );
 }

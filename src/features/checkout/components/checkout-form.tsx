@@ -272,7 +272,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
 
               {/* Custom Address Fields */}
               {!useDefaultAddress && (
-                <div className="pt-4 border-t space-y-4 animate-in fade-in-50 duration-200">
+                <div className="space-y-4 border-t pt-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field
                       data-invalid={Boolean(
@@ -519,7 +519,11 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
             <CardContent className="space-y-4 pt-4">
               {/* Item preview */}
               {cart?.items && cart.items.length > 0 && (
-                <div className="max-h-56 space-y-3 overflow-y-auto pr-1">
+                <div
+                  className="max-h-56 space-y-3 overflow-y-auto pr-1"
+                  role="region"
+                  aria-label="Order items"
+                >
                   {cart.items.map((item) => (
                     <div
                       key={item.id}
@@ -532,9 +536,12 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                         className="w-12 rounded-md border"
                       />
                       <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-medium truncate">
+                        <Link
+                          href={`/products/${item.productId}`}
+                          className="font-medium truncate block hover:underline underline-offset-2"
+                        >
                           {item.productName}
-                        </p>
+                        </Link>
                         <p className="text-xs text-muted-foreground">
                           Qty: {item.quantity} ×{' '}
                           {formatMoney(item.price, item.currency)}

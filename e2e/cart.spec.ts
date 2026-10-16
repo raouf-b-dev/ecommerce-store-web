@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
 import {
-  AUTH_THROTTLE_WAIT_MS,
-  addFirstProductToCart,
+  addInStockProductToCart,
+  recoverFromSessionThrottle,
   registerFreshCustomer,
 } from './helpers/auth';
+import { openInStockProduct } from './helpers/catalog';
 
 test.describe('Cart and Checkout Entrypoint', () => {
   test('redirects unauthenticated guest accessing /cart to login with redirect param', async ({
@@ -12,9 +13,7 @@ test.describe('Cart and Checkout Entrypoint', () => {
     await page.context().clearCookies();
     await page.goto('/cart');
 
-    const sessionErrorAlert = page.getByText('Too many requests. Wait a moment and try again.');
-    if (await sessionErrorAlert.isVisible().catch(() => false)) {
-      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+    if (await recoverFromSessionThrottle(page)) {
       await page.goto('/cart');
     }
 
@@ -27,14 +26,7 @@ test.describe('Cart and Checkout Entrypoint', () => {
   test('redirects unauthenticated guest attempting to add to cart to login', async ({
     page,
   }) => {
-    await page.goto('/');
-
-    // Navigate to the first product card
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible();
-    await firstProduct.click();
-
-    await expect(page).toHaveURL(/\/products\/\d+/);
+    await openInStockProduct(page);
 
     const addToCartButton = page.getByRole('button', { name: /add to cart/i });
     await expect(addToCartButton).toBeVisible();
@@ -57,7 +49,7 @@ test.describe('Cart and Checkout Entrypoint', () => {
   }) => {
     await registerFreshCustomer(page);
 
-    await addFirstProductToCart(page);
+    await addInStockProductToCart(page);
 
     // Check header badge count
     const headerCartBadge = page.getByRole('link', {

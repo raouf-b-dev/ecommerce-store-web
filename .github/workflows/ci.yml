@@ -112,6 +112,12 @@ jobs:
       - name: Setup Node and install
         uses: ./.github/actions/setup-node-ci
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-ms-playwright-${{ hashFiles('package-lock.json') }}
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
@@ -119,8 +125,7 @@ jobs:
         run: npm run test:e2e:prod
 
   # Full shopper suite against a real API, required on release paths into master.
-  # Dependabot PRs target master too, so the customer secrets must also exist as
-  # Dependabot secrets.
+  # Demo seed passwords come from .secrets.example; optional GH secrets override.
   e2e:
     name: Playwright E2E
     runs-on: ubuntu-latest
@@ -139,20 +144,15 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Materialize e2e credentials
+        run: |
+          cp .secrets.example .secrets
+          echo "E2E credentials: .secrets.example defaults; non-empty GitHub secrets override."
+
       - name: Setup Node and install
         uses: ./.github/actions/setup-node-ci
 
-      - name: Verify required E2E secrets
-        env:
-          E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
-          E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
-        run: |
-          if [ -z "$E2E_CUSTOMER_EMAIL" ] || [ -z "$E2E_CUSTOMER_PASSWORD" ]; then
-            echo "::error::E2E secrets (E2E_CUSTOMER_EMAIL, E2E_CUSTOMER_PASSWORD) are required for Playwright E2E execution."
-            exit 1
-          fi
-
-      # global-setup resets the seeded customer from ../ecommerce-store-api, same layout as local.
+      # CI provisions the API. The storefront suite only calls it over HTTP.
       - name: Clone ecommerce-store-api
         run: |
           git clone --depth 1 --branch "$API_REF" https://github.com/raouf-b-dev/ecommerce-store-api.git ../ecommerce-store-api
@@ -224,15 +224,22 @@ jobs:
           tail -n 100 "$API_LOG"
           exit 1
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-ms-playwright-${{ hashFiles('package-lock.json') }}
+
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium webkit
+        run: npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
         run: npm run test:e2e
         env:
-          E2E_API_REPO_PATH: ${{ github.workspace }}/../ecommerce-store-api
           NEXT_PUBLIC_STOREFRONT_ORIGIN: http://localhost:3100
           NEXT_PUBLIC_API_BASE_URL: http://localhost:3000
+          # Optional overrides. Empty (unset secret) is stripped in playwright.config.ts
+          # so .secrets.example fills demo seed credentials.
           E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
           E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
           E2E_CUSTOMER_NEW_PASSWORD: ${{ secrets.E2E_CUSTOMER_NEW_PASSWORD }}

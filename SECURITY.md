@@ -4,9 +4,9 @@ Security baseline for this frontend. The API remains the authority for authn/aut
 
 ## Secrets and config
 
-- Never commit `.env`, `.env.local`, or files with real credentials.
+- Never commit `.env`, `.env.local`, or files with real / production credentials.
 - Only non-secret values may use `NEXT_PUBLIC_*`. API keys, private JWTs, and refresh tokens must not be embedded in public env vars.
-- Local seed users live only in the API seeding doc. Do not copy passwords into this repository.
+- Published local demo seed passwords may live in `.secrets.example` (and a gitignored `.secrets` copy) for Playwright. Do not put production shopper credentials in the repo.
 
 ## Trust boundaries
 

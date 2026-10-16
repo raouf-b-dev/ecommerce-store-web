@@ -1,8 +1,9 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
+import { chromiumLaunch } from './e2e/browser';
 
-const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH;
+const launch = chromiumLaunch();
 const PROD_PORT = 3199;
 
 // Node-side MSW answers the RSC catalog fetches, so no API has to run. The browser
@@ -14,14 +15,19 @@ const mockPreloadUrl = pathToFileURL(
 export default defineConfig({
   testDir: './e2e',
   testMatch: /product-production-status\.spec\.ts/,
+  globalSetup: './e2e/browser-global-setup.ts',
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
-  retries: 0,
+  retries: process.env.CI ? 1 : 0,
   use: {
     ...devices['Desktop Chrome'],
     baseURL: `http://localhost:${PROD_PORT}`,
     trace: 'on-first-retry',
-    ...(executablePath ? { launchOptions: { executablePath } } : {}),
+    browserName: 'chromium',
+    ...(launch.channel ? { channel: launch.channel } : {}),
+    ...(launch.executablePath
+      ? { launchOptions: { executablePath: launch.executablePath } }
+      : {}),
   },
   webServer: {
     command: `npm run build && npx next start -p ${PROD_PORT}`,

@@ -1,17 +1,33 @@
-import { execSync } from 'node:child_process';
-import path from 'node:path';
-import fs from 'node:fs';
 import { z } from 'zod';
+import { assertBrowserReady } from './browser';
 
 const catalogResponseSchema = z.object({
   items: z.array(z.unknown()),
   total: z.number().optional(),
 });
 
+// The Next server and every browser share one client IP, so the API default
+// (100 requests per minute) returns 429 partway through the suite.
+const MIN_GLOBAL_RATE_LIMIT = 1_000;
+
+function assertRateLimitFitsSuite(response: Response, apiBaseUrl: string): void {
+  const limit = Number(response.headers.get('x-ratelimit-limit'));
+  if (!Number.isFinite(limit) || limit === 0 || limit >= MIN_GLOBAL_RATE_LIMIT) {
+    return;
+  }
+  throw new Error(
+    `API at ${apiBaseUrl} allows ${limit} requests per minute; the suite needs at least ${MIN_GLOBAL_RATE_LIMIT}. Set THROTTLE_GLOBAL_LIMIT=100000 in ecommerce-store-api/.env.development and restart the API (CI does the same).`,
+  );
+}
+
 export default async function globalSetup(): Promise<void> {
+  console.log('[e2e] Checking Playwright browser...');
+  await assertBrowserReady();
+  console.log('[e2e] Browser ready.');
+
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
-  // 1. Verify API Connectivity
+  console.log(`[e2e] Checking API health at ${apiBaseUrl}...`);
   try {
     const healthRes = await fetch(`${apiBaseUrl}/health`);
     if (!healthRes.ok) {
@@ -23,10 +39,12 @@ export default async function globalSetup(): Promise<void> {
       { cause: error },
     );
   }
+  console.log('[e2e] API health ok.');
 
-  // 2. Verify Catalog Presence (Hard Fail if Empty)
+  console.log('[e2e] Checking catalog has at least one product...');
+  let catalogRes: Response;
   try {
-    const catalogRes = await fetch(`${apiBaseUrl}/v1/products?limit=1`);
+    catalogRes = await fetch(`${apiBaseUrl}/v1/products?limit=1`);
     if (!catalogRes.ok) {
       throw new Error(`Catalog query returned HTTP ${catalogRes.status}`);
     }
@@ -43,36 +61,9 @@ export default async function globalSetup(): Promise<void> {
       { cause: error },
     );
   }
+  console.log('[e2e] Catalog ok.');
 
-  // 3. Reset Customer Auth State
-  if (process.env.E2E_SKIP_DB_SEED === '1') {
-    console.log('[e2e global-setup] E2E_SKIP_DB_SEED=1 is set; bypassing db:seed:auth.');
-    return;
-  }
-
-  const apiPath =
-    process.env.E2E_API_REPO_PATH ||
-    path.resolve(process.cwd(), '../ecommerce-store-api');
-
-  if (!fs.existsSync(apiPath)) {
-    throw new Error(
-      `API repository not found at "${apiPath}". Set E2E_API_REPO_PATH or E2E_SKIP_DB_SEED=1.`,
-    );
-  }
-
-  console.log(`[e2e global-setup] Seeding auth users via 'npm run db:seed:auth' in ${apiPath}...`);
-  try {
-    execSync('npm run db:seed:auth', {
-      cwd: apiPath,
-      stdio: 'inherit',
-      timeout: 120_000,
-      env: { ...process.env },
-    });
-    console.log('[e2e global-setup] Auth seed completed successfully.');
-  } catch (error) {
-    throw new Error(
-      `Failed to seed auth users via 'npm run db:seed:auth' in ${apiPath}: ${error instanceof Error ? error.message : String(error)}`,
-      { cause: error },
-    );
-  }
+  console.log('[e2e] Checking global rate limit header...');
+  assertRateLimitFitsSuite(catalogRes, apiBaseUrl);
+  console.log('[e2e] Global setup done.');
 }

@@ -7,7 +7,11 @@ import {
   parseApiErrorBody,
   toApiRequestError,
 } from '@/lib/api/parse-api-error';
-import { toCatalogCacheKey } from '@/features/catalog/lib/catalog-params';
+import {
+  parseCatalogSearchParams,
+  toCatalogCacheKey,
+  toProductsQueryParams,
+} from '@/features/catalog/lib/catalog-params';
 import type {
   CatalogFilterParams,
   PaginatedProducts,
@@ -16,15 +20,35 @@ import type {
 
 const FETCH_TIMEOUT_MS = 10000;
 
+function productsQueryFromCacheKey(cacheKey: string): ProductsQueryParams {
+  const parsed: unknown = JSON.parse(cacheKey);
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new ApiRequestError({
+      statusCode: 500,
+      message: 'Malformed product list cache key',
+    });
+  }
+
+  const raw: Record<string, string> = {};
+  for (const [key, value] of Object.entries(parsed)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+    raw[key] = String(value);
+  }
+
+  return toProductsQueryParams(parseCatalogSearchParams(raw));
+}
+
 /**
  * Deduplicates identical catalog list requests within one RSC render
  * (e.g. generateMetadata + CatalogContent) via a stable string cache key.
  */
 const fetchProductsByCacheKey = cache(
   async (cacheKey: string): Promise<PaginatedProducts> => {
-    const query = JSON.parse(cacheKey) as ProductsQueryParams;
-
     try {
+      const query = productsQueryFromCacheKey(cacheKey);
+
       const { data, error, response } = await serverClient.GET('/v1/products', {
         params: { query },
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
