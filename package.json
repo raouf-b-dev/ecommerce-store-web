@@ -105,5 +105,8 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "allowScripts": {
+    "msw": true
   }
 }
