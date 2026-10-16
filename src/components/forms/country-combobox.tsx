@@ -58,7 +58,7 @@ export function CountryCombobox({
           aria-expanded={open}
           aria-invalid={invalid || undefined}
           disabled={disabled}
-          className="w-full justify-between font-normal"
+          className="w-full justify-between font-normal text-foreground"
         >
           <span
             className={cn('truncate', !selectedCode && 'text-muted-foreground')}

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import {
-  AUTH_THROTTLE_WAIT_MS,
-  addFirstProductToCart,
+  addInStockProductToCart,
+  recoverFromSessionThrottle,
   registerFreshCustomer,
 } from './helpers/auth';
 import { createMockAddress } from '@/test/fixtures/account.fixture';
@@ -13,11 +13,7 @@ test.describe('Checkout Flow', () => {
     await page.context().clearCookies();
     await page.goto('/checkout');
 
-    const sessionErrorAlert = page.getByText(
-      'Too many requests. Wait a moment and try again.',
-    );
-    if (await sessionErrorAlert.isVisible().catch(() => false)) {
-      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+    if (await recoverFromSessionThrottle(page)) {
       await page.goto('/checkout');
     }
 
@@ -43,23 +39,32 @@ test.describe('Checkout Flow', () => {
   test('authenticated customer can add item, proceed to checkout, and complete order via polling', async ({
     page,
   }) => {
+    test.setTimeout(180_000);
     await registerFreshCustomer(page);
 
     // 1. Add an in-stock product to cart
-    await addFirstProductToCart(page);
+    await addInStockProductToCart(page);
 
     // 2. Go to /cart and proceed to checkout
     await page.goto('/cart');
+    if (await recoverFromSessionThrottle(page)) {
+      await page.goto('/cart');
+    }
     const checkoutLink = page.getByRole('link', {
       name: /proceed to checkout/i,
     });
-    await expect(checkoutLink).toBeVisible();
+    await expect(checkoutLink).toBeVisible({ timeout: 15_000 });
     await checkoutLink.click();
 
     await expect(page).toHaveURL(/\/checkout/);
+    if (await recoverFromSessionThrottle(page)) {
+      await page.goto('/checkout');
+    }
 
     // 3. Verify checkout form rendered with address options
-    await expect(page.getByText('Shipping Address')).toBeVisible();
+    await expect(page.getByText('Shipping Address')).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(page.getByText('Use saved address on file')).toBeVisible();
     await expect(page.locator('form').getByText('Order Summary')).toBeVisible();
 
@@ -101,6 +106,7 @@ test.describe('Checkout Flow', () => {
   test('does not scroll horizontally from 360px up with long address and product name', async ({
     page,
   }) => {
+    test.setTimeout(180_000);
     const longName = 'Extraordinarily'.repeat(8) + ' Long Product Name '.repeat(4);
     const longWord = 'Supercalifragilisticexpialidocious'.repeat(3);
 
@@ -147,10 +153,22 @@ test.describe('Checkout Flow', () => {
     await registerFreshCustomer(page);
     await page.setViewportSize({ width: 360, height: 800 });
 
-    await addFirstProductToCart(page);
+    await addInStockProductToCart(page);
 
     await page.goto('/checkout');
-    await expect(page.locator('form').getByText('Order Summary')).toBeVisible();
+    if (await recoverFromSessionThrottle(page)) {
+      await page.goto('/checkout');
+    }
+    // Session may still be gone after a 429 window; rebuild shopper state once.
+    if (await page.getByRole('link', { name: 'Sign in' }).isVisible().catch(() => false)) {
+      await registerFreshCustomer(page);
+      await page.setViewportSize({ width: 360, height: 800 });
+      await addInStockProductToCart(page);
+      await page.goto('/checkout');
+    }
+    await expect(page.locator('form').getByText('Order Summary')).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(
       page.locator('form').getByText(longName, { exact: true }),
     ).toBeVisible();

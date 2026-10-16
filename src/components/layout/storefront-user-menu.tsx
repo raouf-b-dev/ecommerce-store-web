@@ -167,12 +167,12 @@ export function StorefrontUserMenu({ onNavigate }: StorefrontUserMenuProps) {
           Sign in
         </Link>
       </Button>
-      <Button size="sm" asChild>
+      <Button size="sm" className="hidden sm:inline-flex" asChild>
         <Link href="/register" onClick={onNavigate}>
           Create account
         </Link>
       </Button>
-      <ThemeToggle />
+      <ThemeToggle className="hidden sm:inline-flex" />
     </div>
   );
 }

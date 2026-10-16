@@ -131,7 +131,7 @@ The storefront's core modules are organized under `src/lib/` and `src/components
 | `src/components/ui/status-badge.tsx`               | Visual badges for order status (OpenAPI `OrderStatus`). Reused in checkout confirmation and Phase 8 orders.                                                                                                                     | Universal              |
 | `scripts/generate-api-client.js`                   | Script generating `src/lib/api/generated/schema.d.ts` from live OpenAPI/Swagger documentation.                                                                                                                                  | Build tooling          |
 | `scripts/generate-env.js`                          | Template initialization: generates `.env.local` and `.secrets` from `.env.example` and `.secrets.example`.                                                                                                                      | Build tooling          |
-| `e2e/global-setup.ts` + `e2e/README.md`            | Playwright setup: API connectivity, optional `db:seed:auth` (skip with `E2E_SKIP_DB_SEED`), login throttle (~61s), secrets.                                                                                                     | Testing harness        |
+| `e2e/global-setup.ts` + `e2e/README.md`            | Playwright setup: HTTP checks for API health, catalog, and rate limit. Login throttle (~61s) and secrets. The suite does not shell out to the API repo.                                                                       | Testing harness        |
 
 ### Storefront Architectural Boundaries & Exclusions
 

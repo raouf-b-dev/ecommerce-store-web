@@ -239,6 +239,9 @@ describe('CheckoutForm', () => {
     render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
     expect(screen.getByText('Shipping Address')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Mechanical Keyboard' }),
+    ).toHaveAttribute('href', '/products/100');
     expect(screen.getByText('Use saved address on file')).toBeInTheDocument();
     expect(screen.getByText('Card payment')).toBeInTheDocument();
     expect(

@@ -16,8 +16,14 @@ test('mobile navigation opens, navigates, and closes on Escape', async ({
   await expect(menu).toBeFocused();
 
   await menu.click();
-  await page.getByRole('link', { name: 'Home' }).first().click();
-  await expect(page.getByRole('heading', { name: 'Products', level: 1 })).toBeVisible();
+  await page
+    .getByRole('dialog', { name: 'Navigation menu' })
+    .getByRole('link', { name: 'All products' })
+    .click();
+  await expect(page).toHaveURL('/products');
+  await expect(
+    page.getByRole('heading', { name: 'All products', level: 1 }),
+  ).toBeVisible();
   await expect(menu).toBeVisible();
 });
 

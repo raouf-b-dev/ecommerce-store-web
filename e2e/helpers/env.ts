@@ -13,3 +13,27 @@ export function skipUnlessEnv(...names: string[]): void {
   }
   test.skip(true, `Set ${list} (see e2e/README.md).`);
 }
+
+/**
+ * The forced-password spec is one-shot: the API seed sets the flag, and
+ * changing the password clears it. No storefront request can set it again.
+ * CI seeds a fresh database, so a missing flag there is a broken precondition.
+ * A long-lived local database skips until `npm run db:seed:auth` is run there.
+ */
+export function skipUnlessForcedPasswordChange(): void {
+  const message =
+    'Seeded customer is not required to change password. Run `npm run db:seed:auth` against the API database, then run this suite again (see e2e/README.md).';
+  if (process.env.CI) {
+    throw new Error(message);
+  }
+  test.skip(true, message);
+}
+
+/** `skipUnlessEnv` already aborted when this is missing. */
+export function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing ${name} (see e2e/README.md).`);
+  }
+  return value;
+}
