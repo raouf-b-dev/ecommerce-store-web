@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from '@playwright/test';
 import { createAnimatedWebp } from './create-animated-webp.js';
 import {
   addCurrentProductToCart,
@@ -9,6 +8,7 @@ import {
   hideDevOverlay,
   BASE_URL,
   fillCheckoutAddress,
+  launchCaptureBrowser,
   mockLogin,
   openCartViaHeader,
   openCatalogViaNav,
@@ -25,7 +25,7 @@ async function captureWalkthrough() {
   const height = 800;
   const frames = [];
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchCaptureBrowser();
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: 1,

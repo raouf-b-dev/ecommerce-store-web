@@ -1,21 +1,20 @@
 # Storefront Conventions
 
+Rules for `ecommerce-store-web`. Section numbers are cited by ADRs and other docs: keep them stable. Bad and good examples: [ANTI-PATTERNS.md](ANTI-PATTERNS.md). Anything a tool can enforce lives in ESLint, not here.
+
 ## 1. Architecture Boundary
 
-- Keep domain rules in `ecommerce-store-api`.
-- UI guards, disabled actions, and hidden navigation are UX only.
-- Prefer the OpenAPI-generated client for API calls. Do not spread ad-hoc `fetch` calls through feature code.
-- Roadmap phase numbers and delivery sequencing belong only in [`docs/ROADMAP.md`](../ROADMAP.md). Other docs describe structure and behavior without phase IDs.
+- Domain rules live in `ecommerce-store-api`. UI guards, disabled actions, and hidden navigation are UX only.
+- Call the API through the OpenAPI-generated clients. No ad-hoc `fetch` for domain calls.
+- Roadmap phase numbers and delivery sequencing belong only in [ROADMAP.md](../ROADMAP.md). Other docs describe structure and behavior without phase IDs.
 
 ## 2. Feature Layout
 
 Server Components by default. `"use client"` only for interactivity.
 
-`src/app` is thin routes only (`layout.tsx`, `page.tsx`, `error.tsx`, `not-found.tsx`, metadata, `robots.ts`, `sitemap.ts`). Feature code lives in `src/features/<name>/`. Prefer explicit `<Suspense>` holes over route-segment `loading.tsx`, especially above detail routes whose not-found UI must replace the whole page.
+`src/app` holds thin routes only: `layout.tsx`, `page.tsx`, `error.tsx`, `not-found.tsx`, metadata, `robots.ts`, `sitemap.ts`. Feature code lives in `src/features/<name>/`. Prefer explicit `<Suspense>` holes over route-segment `loading.tsx`, especially above detail routes whose not-found UI must replace the whole page.
 
-**Thin routes = slot composition:** the route (or a thin shell) composes feature pieces. Do not put `AddToCart` inside `features/catalog`. Catalog owns product chrome; cart owns the CTA; the product page wires both as children/slots.
-
-Typical shape (no barrels):
+**Thin routes are slot composition.** The route (or a thin shell) composes feature pieces. `AddToCart` does not live in `features/catalog`: catalog owns product chrome, cart owns the CTA, and the product page wires both as children or slots.
 
 ```text
 src/features/catalog/
@@ -27,141 +26,109 @@ src/features/catalog/
   types.ts      # aliases to generated OpenAPI types
 ```
 
-Do **not** add barrel `index.ts` files. Import the concrete module.
+No barrel `index.ts` files. Import the concrete module. `schemas/` and `hooks/` exist only when the feature has forms or client queries.
 
 ### Import matrix
 
-| From ↓ / To → | `app/` | `features/*` | `lib/` | `components/` |
-| :--- | :---: | :---: | :---: | :---: |
-| `app/` | ✓ | ✓ | ✓ | ✓ |
-| `features/A` | ✗ | other features OK (concrete modules; no barrels) | ✓ | ✓ |
-| `lib/` | ✗ | **✗ forbidden** | ✓ | ✓ |
-| `components/` | ✗ | ✗ (prefer props/slots) | ✓ | ✓ |
+| From / To    | `app/` | `features/*`                           | `lib/` | `components/`             |
+| ------------ | ------ | -------------------------------------- | ------ | ------------------------- |
+| `app/`       | yes    | yes                                    | yes    | yes                       |
+| `features/A` | no     | other features, concrete modules only  | yes    | yes                       |
+| `lib/`       | no     | **forbidden**                          | yes    | yes                       |
+| `components/`| no     | no (prefer props or slots)             | yes    | yes                       |
 
-ESLint enforces `lib/` ↛ `features/` via `no-restricted-imports` (`error`). Invert with `lib` helpers or inject callbacks from `app/providers.tsx`.
+ESLint enforces `lib/` never imports `features/` (`no-restricted-imports`). Invert with a `lib` helper or inject callbacks from `app/providers.tsx`. Cross-feature code imports the other feature's concrete module; no re-export shims or adapter files. A preset query facade that calls another feature's request with fixed filters is fine. Shared primitives go in `src/components/`, shared utilities in `src/lib/`.
 
-Cross-feature dependencies must be imported directly from the target feature's concrete module. Do not create re-export shims or adapter files across features.
-
-Preset query facades that call another feature's request with fixed filters are allowed.
-
-Optional folders: `schemas/` and `hooks/` exist only when the feature has forms or client queries.
-
-**Auth exception:** session Query lives in `AuthProvider` (`src/lib/auth/`). Key `['auth','session']`. Session HTTP + redirect helpers live under `src/lib/auth/` (`session-api.ts`, `auth-routes.ts`). Feature forms import those modules from `lib/` directly. Do not invent `useAuthQuery` in the feature. Do not add feature-folder re-export shims for code that already lives in `lib/` or `components/`.
-
-Keep cross-feature primitives in `src/components/` and cross-feature utilities in `src/lib/`.
+**Auth exception:** the session Query lives in `AuthProvider` (`src/lib/auth/`) under key `['auth','session']`. Session HTTP and redirect helpers live in `src/lib/auth/` (`session-api.ts`, `auth-routes.ts`); feature forms import them from `lib/`. No `useAuthQuery` in a feature.
 
 ## 3. HTTP clients
 
-Two constructed clients, one generated `schema.d.ts`:
+Two clients, one generated `schema.d.ts`:
 
-- `src/lib/api/browser-client.ts` - cookies, Bearer, 401 recovery. **Never** import from Server Components.
-- `src/lib/api/server-client.ts` - `import 'server-only'`, no credentials, no Bearer, no login redirect.
+- `src/lib/api/browser-client.ts`: cookies, Bearer, 401 recovery. Never import it from Server Components.
+- `src/lib/api/server-client.ts`: `import 'server-only'`, no credentials, no Bearer, no login redirect.
 
-Do not one-file both with `typeof window` branches.
-
-Do **not** use Route Handlers or Server Actions as a BFF in front of the ecommerce API.
+Never one file with `typeof window` branches. No Route Handlers or Server Actions as a BFF in front of the ecommerce API.
 
 ## 4. Catalog vs client data
 
-- Catalog is RSC + awaited `searchParams`. Filters: Next `next/form` GET or `Link`. Never `useSearchParams` + `setSearchParams` (or `nuqs`) for the product list.
-- Cart, checkout, orders, and session use TanStack Query in Client Components. Do **not** prefetch or hydrate catalog into Query (`HydrationBoundary`).
-- Server catalog fetchers: wrap with React `cache()` so `generateMetadata` and the page share one HTTP call. Wrap async catalog UI in `<Suspense>` (Cache Components static shell). Prefer that over a route-segment `loading.tsx` for list/detail holes - especially above detail routes whose not-found UI must replace the whole page ([ADR-0009](../architecture/adr/ADR-0009-resource-soft-404-with-noindex.md)).
-- `"use cache"` only if catalog HTML can be stale versus stock. Default: request-time RSC. Do not put `"use cache"` on product or inventory reads.
-- After cart/checkout mutations, invalidate Query **and** `router.refresh()` so RSC inventory HTML is not stale.
+- Catalog is RSC with awaited `searchParams`. Filters use `next/form` GET or `Link`. Never `useSearchParams` + `setSearchParams` (or `nuqs`) for the product list.
+- Cart, checkout, orders, account, and session use TanStack Query in Client Components. Do not prefetch or hydrate catalog into Query (`HydrationBoundary`).
+- Server catalog fetchers are wrapped in React `cache()` so `generateMetadata` and the page share one HTTP call. Wrap async catalog UI in `<Suspense>` (Cache Components static shell).
+- `"use cache"` only if catalog HTML can be stale versus stock. Default is request-time RSC. Never put `"use cache"` on product or inventory reads.
+- After a cart or checkout mutation, invalidate Query and call `router.refresh()` so RSC inventory HTML is not stale.
 
-## 5. Query and forms (when those layers exist)
+## 5. Query and forms
 
-- QueryClient lives in a **client** `Providers`. Create a new client for each server render and reuse one module-scoped instance only in the browser (`getQueryClient`); never share Query cache across SSR users. Do not import Query from RSC.
-- Skip retry on HTTP `429`; else `failureCount < 2`. Session: never retry `isClientError`. No `throwOnError`.
-- Session bootstrap, pre-expiry refresh, and domain-`401` recovery share one raw-fetch single-flight operation plus a same-origin Web Lock for cross-tab refresh-cookie rotation. Logout uses the same lock. Refresh `401` means unauthenticated; refresh `429`, `5xx`, network failures, and malformed success payloads throw without clearing session state.
-- Access tokens stay in memory. Before authenticated browser requests, refresh if the token is missing, malformed, expired, or near JWT `exp`. The browser-only session Query schedules before `exp` and refetches on focus/reconnect only when the token is unusable.
-- TkDodo query-key factories per **client** feature (`all` / `lists()` / `list(filters)` / `details()` / `detail(id)`).
-- Client lists (orders, not catalog): URL search params as source of truth; `placeholderData: keepPreviousData`; `staleTime` ~45s; enums `satisfies` generated unions.
-- Handle Query `isError` with `QueryStateAlert` (`hasData` = last good data). RSC uses `error.tsx` / `not-found.tsx` instead.
-- Forms: React Hook Form + Zod (current major) aligned to DTOs. `throwApiErrorFromResponse` in browser `api/` only. `applyApiFormErrors` + `matchField`; skip OCC `409` fields. `ActionErrorAlert` on mutations.
-- RFC 9110 helpers: prefer predicates over `error as ApiRequestError`.
-- Confirm dialogs: block dismiss while `isPending`; `ActionErrorAlert` inside the dialog.
+- `QueryClient` lives in the client `Providers`. Create a new client per server render and reuse one module-scoped instance only in the browser (`getQueryClient`); never share a Query cache across SSR users. Do not import Query from RSC.
+- Retry: skip HTTP `429`, else `failureCount < 2`. Session: never retry `isClientError`. No `throwOnError`.
+- Session, refresh, and token rules (single-flight refresh, Web Lock, in-memory access token, refresh-failure handling): [CODE-MAP.md](CODE-MAP.md) Auth section and ADR-0002, ADR-0003, ADR-0007.
+- Query-key factories per client feature: `all` / `lists()` / `list(filters)` / `details()` / `detail(id)`.
+- Client lists (orders, not catalog): URL search params are the source of truth; `placeholderData: keepPreviousData`; `staleTime` about 45 s; enums `satisfies` the generated unions.
+- Query `isError` renders `QueryStateAlert` (`hasData` = last good data). RSC uses `error.tsx` and `not-found.tsx`.
+- Forms: React Hook Form + Zod (current major) aligned to the DTOs. `throwApiErrorFromResponse` in browser `api/` only. `applyApiFormErrors` + `matchField`; skip OCC `409` fields. `ActionErrorAlert` on mutations.
+- RFC 9110 helpers: prefer predicates (`hasHttpStatus`, `isClientError`) over `error as ApiRequestError`.
+- Confirm dialogs block dismiss while `isPending` and show `ActionErrorAlert` inside the dialog.
 
 ## 6. App Router and Next.js 16
 
-- `params` / `searchParams` / `cookies()` / `headers()` are async. Await them.
-- Env: `NEXT_PUBLIC_*` only in the browser. Use `process.env.NEXT_PUBLIC_*`, not Vite `import.meta.env`.
-- Security headers belong in `next.config.ts` `headers()`. Static redirects belong in `next.config.ts` `redirects()`. Auth gates stay in client layouts/providers ([ADR-0006](../architecture/adr/ADR-0006-security-headers-and-client-auth.md)).
-- **Layering (each layer one job):**
-  - `app/` - route composition only: layouts, pages, `generateMetadata`, `not-found` / `error`, `robots` / `sitemap`.
-  - `features/<name>/api` - OpenAPI wrappers (`server-only` or browser). Map HTTP → feature data or `null` / thrown `ApiRequestError`. No UI.
-  - `features/<name>/lib` - pure parsers, SEO policy, JSON-LD builders (no I/O unless named and documented).
-  - `features/<name>/components` - UI for that domain.
-  - `lib/seo` - site identity + Metadata factory + safe JSON-LD serialization. Pages/features supply page-specific SEO *data*.
-  - `components/seo` - tiny presentational SEO primitives (e.g. `<JsonLd />`).
-  - `lib/api` - clients + error parsing. Not a BFF.
-  - `lib/auth` - browser session, providers, and client route gates.
-  - `components/media` - shared `ProductImage`.
-  - `components/layout` - chrome including `AccountNav`. Feature folders import these; do not add feature re-export shims.
-- **Soft 404 for missing resources:** resolve existence with the feature fetcher, then call `notFound()` in `generateMetadata` and the page **before** any page-level Suspense boundary. Cache Components streams the static shell as `200` first, so the response stays `200` and Next.js injects `noindex`; do not add a second robots tag. Prefer explicit `<Suspense>` holes over ancestor `loading.tsx` on those detail routes. Use segment `not-found.tsx` for resource-specific UI; keep root `not-found.tsx` generic. `playwright.prod.config.ts` checks the status and `noindex` on a production build ([ADR-0009](../architecture/adr/ADR-0009-resource-soft-404-with-noindex.md)).
-- Storefront scrolls the document. Avoid viewport-locked `h-screen overflow-hidden` layouts.
-- Loading: `QueryLoading` / `role="status"` / `aria-busy` on client fetches. RSC: `<Suspense>` holes. No skeleton requirement in v1.
-- React Compiler is on. Do not add `useMemo` / `useCallback` by habit.
-- Treat rendered API strings as untrusted. No `dangerouslySetInnerHTML` except documented exceptions (theme FOUC script; JSON-LD via `<JsonLd />` / `serializeJsonLd`).
-- Do **not** invent SEO frameworks (`SEOProvider`, `<SEO />` meta components, SEO services). Use the Metadata API + `createPageMetadata` + feature builders.
-- Theme: Light / Dark / System, FOUC script, `useSyncExternalStore`, `ThemeAwareToaster`. Storage key `store-ui-theme`.
-- Format helpers: `en-US` until i18n exists. Do not use `undefined` locale (Node vs browser drift).
+- `params`, `searchParams`, `cookies()`, and `headers()` are async: await them.
+- `NEXT_PUBLIC_*` only in the browser, read as `process.env.NEXT_PUBLIC_*` (not Vite `import.meta.env`).
+- Security headers and static redirects belong in `next.config.ts` (`headers()`, `redirects()`). Auth gates stay in client layouts and providers ([ADR-0006](../architecture/adr/ADR-0006-security-headers-and-client-auth.md)).
+- Layering (who owns what under `app/`, `features/*`, `lib/`, `components/`) is in [CODE-MAP.md](CODE-MAP.md). `lib/seo` owns site identity, the Metadata factory, and safe JSON-LD serialization; pages and features supply page-specific data. `lib/api` is clients and error parsing, never a BFF.
+- **Soft 404 for a missing resource:** resolve existence with the feature fetcher, then call `notFound()` in `generateMetadata` and in the page, before any page-level Suspense boundary. Cache Components streams the static shell as `200` first, so the response stays `200` and Next.js injects `noindex`; do not add a second robots tag. Use segment `not-found.tsx` for resource-specific UI and keep the root one generic. `playwright.prod.config.ts` checks the status and `noindex` on a production build ([ADR-0009](../architecture/adr/ADR-0009-resource-soft-404-with-noindex.md)).
+- Typed routes: a literal href or a template literal Next can validate needs no cast. A href built from runtime data needs Next's documented `as Route`; mark it `// eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Next typedRoutes documented cast`.
+- The storefront scrolls the document. Avoid viewport-locked `h-screen overflow-hidden` layouts.
+- Loading: `QueryLoading` (`role="status"`, `aria-busy`) on client fetches; `<Suspense>` holes in RSC. No skeleton requirement.
+- React Compiler is on. Do not add `useMemo` or `useCallback` by habit.
+- Treat rendered API strings as untrusted. `dangerouslySetInnerHTML` only for the theme FOUC script and JSON-LD (`<JsonLd />`, `serializeJsonLd`).
+- No SEO frameworks (`SEOProvider`, `<SEO />`, SEO services). Use the Metadata API, `createPageMetadata`, and feature builders.
+- Theme: Light / Dark / System, FOUC script, `useSyncExternalStore`, `ThemeAwareToaster`, storage key `store-ui-theme`.
+- Format helpers use `en-US` until i18n exists. Never an `undefined` locale (Node and browser drift).
 
 ## 7. Testing
 
-- RTL + hook-mocked specs for **client** components and pure helpers.
-- Do not RTL-test Server Components.
-- Playwright for RSC routes and journeys.
-- ESLint: `typescript-eslint` + `react-hooks` + `jsx-a11y` + `consistent-type-imports` + `no-restricted-imports` (`lib` must not import `features`) + `ascii-prose/no-smart-punctuation`. Lint is `eslint .` then `node scripts/lint-ascii-prose.cjs`, not `next lint`.
-- Prefer **typed factories** / fixtures under `src/test/fixtures/` over inline DTO literals in every spec.
-- Component specs that mock hooks: render the component **without** `QueryClientProvider`.
-- Hook and `*-api` specs: real `QueryClient` + mock the feature `*-api` module.
+Procedure, golden specs, and typed-mock patterns: `.agents/skills/write-tests/SKILL.md`. RTL covers client components; pure helpers and RSC data fetchers are tested as plain functions; Playwright covers RSC routes and journeys. ESLint (`eslint .`) runs `typescript-eslint`, `react-hooks`, `jsx-a11y`, `consistent-type-imports`, `consistent-type-assertions` (baselined), the `lib` to `features` restriction, and `ascii-prose`; `npm run lint` then runs `scripts/lint-ascii-prose.cjs`. It does not use `next lint`.
 
 ## 8. Money, stock, checkout URL, images
 
-- Format money with `src/lib/format.ts` (`en-US` until i18n). Do not invent "Free shipping" or tax lines the API does not return.
-- Stock UI uses shopper inventory fields (`availableQuantity` / `isAvailable`) once the check endpoint is the contract surface - not operator reserved/total quantities.
-- After checkout starts polling, keep `?orderId=` in the URL via `router.replace` so refresh resumes confirmation.
-- Keep the checkout idempotency key until a **terminal** success; do not clear it on every mount or non-terminal failure.
-- Production `next/image` hosts must come from a shared allowlist (env-driven), not one-off per-page config.
-- `/` is the landing page and `/products` is the full catalog. Link to the catalog through `CATALOG_PATH` / `catalogHref()` from `features/catalog/lib/catalog-params.ts`; never hand-build catalog URLs.
+- Format money with `src/lib/format.ts` (`en-US`). Do not invent "Free shipping" or tax lines the API does not return.
+- Stock UI uses shopper inventory fields (`availableQuantity`, `isAvailable`), not operator reserved or total quantities.
+- While checkout polls, keep `?orderId=` in the URL via `router.replace` so a refresh resumes confirmation.
+- Keep the checkout idempotency key until a terminal success; do not clear it on every mount or non-terminal failure.
+- Production `next/image` hosts come from the shared env-driven allowlist (`src/lib/images/allowed-origins.ts`), not per-page config.
+- `/` is the landing page and `/products` the full catalog. Link to the catalog through `CATALOG_PATH` / `catalogHref()` from `features/catalog/lib/catalog-params.ts`; never hand-build catalog URLs.
 
 ## 9. No-workaround contract rule
 
-- If the OpenAPI contract is wrong or incomplete, **patch the API**. Do not parse JWT `sub` for profile ids, invent cart-id storage as a long-term read path when `GET /carts/current` exists, match English 403 messages, or invent BFF shims.
+- If the OpenAPI contract is wrong or incomplete, patch the API. Do not parse JWT `sub` for profile ids, keep a cart-id store as a long-term read path when `GET /carts/current` exists, match English 403 messages, or add BFF shims.
 - Forced password change: honor `code: 'MUST_CHANGE_PASSWORD'` only.
-- `GET /v1/carts/current` **404** = empty cart (`null`), never an error banner.
+- `GET /v1/carts/current` returning `404` is an empty cart (`null`), never an error banner.
 
 ## 10. Architecture Decision Records
 
-Follow [`docs/architecture/adr/README.md`](../architecture/adr/README.md):
-
-- Naming: `ADR-XXXX-[short-title].md` (4-digit zero-padded).
-- **Body is immutable.** Do not rewrite Context, Decisions, Alternatives, or Consequences on an existing ADR.
-- **Status (and supersede links) may change** in the file header and index only.
-- Extending a decision (prior ADR still stands) -> new ADR with `Does not supersede`; leave the prior ADR `Accepted`.
-- Full replacement -> new ADR with `Supersedes`; mark the old ADR `Superseded`. Never rewrite the old Decisions.
-- Lifecycle: `Proposed` | `Accepted` | `Deprecated` | `Superseded`.
-- Always update the ADR index when adding or superseding a record.
-
-See also [`ANTI-PATTERNS.md`](./ANTI-PATTERNS.md) for good/bad snippets.
+Rules (immutable body, supersede, naming, index): [adr/README.md](../architecture/adr/README.md). When to write one: `.agents/skills/write-docs/SKILL.md`.
 
 ## 11. ASCII prose (docs and comments)
 
-Docs, ADRs you write from now on, Markdown, and source comments must read like a human typed them in a plain editor. Do not use typography that chat models insert by default.
+Docs, Markdown, and source comments must read as typed in a plain editor, not with typography chat models insert by default. `npm run lint` runs `scripts/lint-ascii-prose.cjs` on Markdown (except immutable `docs/architecture/adr/`) and on comments in `ts`, `tsx`, and `js`; ESLint `ascii-prose/no-smart-punctuation` flags the same marks in comments.
 
-`npm run lint` runs `scripts/lint-ascii-prose.cjs` on Markdown (except immutable `docs/architecture/adr/`) and on comments in `ts`/`tsx`/`js`. ESLint `ascii-prose/no-smart-punctuation` flags the same marks in comments in the editor.
+| Avoid                                  | Use                                       |
+| -------------------------------------- | ----------------------------------------- |
+| Em dash (U+2014)                       | `-`, `:`, or a new sentence               |
+| En dash (U+2013)                       | ASCII `-` in ranges (`9b-9e`, `400-499`)  |
+| Curly quotes (U+2018/2019/201C/201D)   | `'` and `"`                               |
+| Ellipsis character (U+2026)            | `...`                                     |
+| Non-breaking space or hyphen           | Normal space or `-`                       |
 
-| Avoid | Use |
-| :--- | :--- |
-| Em dash (U+2014) | `-`, `:`, or a new sentence |
-| En dash (U+2013) | ASCII `-` in ranges (`9b-9e`, `400-499`) |
-| Curly quotes (U+2018/2019/201C/201D) | `'` and `"` |
-| Ellipsis character (U+2026) | `...` |
-| Non-breaking space or hyphen | Normal space / `-` |
+No emoji in comments. New user-visible strings follow the same habit (`Loading...`). Existing ADR bodies stay as written.
 
-Do not decorate comments with emoji. Arrows as notation (`->`, or `lib/` must not import `features/`) are fine.
+## 12. Mock mode (MSW)
 
-User-visible UI copy should follow the same ASCII habit for new strings (`Loading...` not the ellipsis character). Existing loading labels are not in this lint yet.
+`npm run dev:mock` runs the storefront without a backend: a Node preload for RSC requests plus a browser worker for client requests (`NEXT_PUBLIC_ENABLE_MOCK=true`, see `.env.mock`).
 
-Existing ADR bodies stay immutable; the linter skips `docs/architecture/adr/`.
+- Handlers, seed data, and demo UI live only in `src/lib/mock/`. Mock shopper operations only; unimplemented mutating routes return `501`.
+- Feature modules never import `@/lib/mock/*`. The allowed touchpoints are `src/components/mock/mock-mode-bootstrap.tsx` (dynamic import of the browser worker), `src/lib/api/server-client.ts` (dynamic import of `sync-node-handlers`), and `src/features/auth/components/login-form.tsx` (lazy demo login chrome).
+- Gate on `process.env.NEXT_PUBLIC_ENABLE_MOCK === 'true'` inline before any MSW import so production bundles drop the chunk.
+- Demo login stores a flag in `sessionStorage`, never an access token.
+- Contract tests: `npx vitest run src/lib/mock`.

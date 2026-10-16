@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AuthStatus } from '@/lib/auth/types';
 import { GuestRoute } from '@/lib/auth/guest-route';
 import {
   ChangePasswordRoute,
@@ -8,27 +9,87 @@ import {
 } from '@/lib/auth/password-change-routes';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 
-const mocks = vi.hoisted(() => ({
-  replace: vi.fn(),
-  retrySession: vi.fn(),
-  pathname: '/account',
-  searchParams: new URLSearchParams('tab=orders'),
-  auth: {
-    status: 'loading',
-    sessionError: null as unknown,
-    mustChangePassword: false,
-    session: null as {
-      mustChangePassword: boolean;
-      email: string;
-    } | null,
-  },
-}));
+type MockSession = {
+  email: string;
+  mustChangePassword: boolean;
+};
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: mocks.replace }),
-  usePathname: () => mocks.pathname,
-  useSearchParams: () => mocks.searchParams,
-}));
+type MockAuth = {
+  status: AuthStatus;
+  sessionError: unknown;
+  mustChangePassword: boolean;
+  session: MockSession | null;
+};
+
+const mocks = vi.hoisted(() => {
+  let pathname = '/account';
+  let searchParams = new URLSearchParams('tab=orders');
+  const listeners = new Set<() => void>();
+
+  function notify() {
+    for (const listener of listeners) {
+      listener();
+    }
+  }
+
+  const auth: MockAuth = {
+    status: 'loading',
+    sessionError: null,
+    mustChangePassword: false,
+    session: null,
+  };
+
+  return {
+    replace: vi.fn(),
+    retrySession: vi.fn(),
+    auth,
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    getPathname() {
+      return pathname;
+    },
+    getSearchParams() {
+      return searchParams;
+    },
+    get pathname() {
+      return pathname;
+    },
+    set pathname(value: string) {
+      pathname = value;
+      notify();
+    },
+    get searchParams() {
+      return searchParams;
+    },
+    set searchParams(value: URLSearchParams) {
+      searchParams = value;
+      notify();
+    },
+  };
+});
+
+vi.mock('next/navigation', async () => {
+  const { useSyncExternalStore } = await import('react');
+  return {
+    useRouter: () => ({ replace: mocks.replace }),
+    usePathname: () =>
+      useSyncExternalStore(
+        mocks.subscribe,
+        mocks.getPathname,
+        mocks.getPathname,
+      ),
+    useSearchParams: () =>
+      useSyncExternalStore(
+        mocks.subscribe,
+        mocks.getSearchParams,
+        mocks.getSearchParams,
+      ),
+  };
+});
 vi.mock('@/lib/auth/auth-context', () => ({
   useAuth: () => ({
     ...mocks.auth,
@@ -182,8 +243,10 @@ describe('forced-password routes', () => {
     });
 
     mocks.replace.mockClear();
-    mocks.pathname = '/cart';
-    mocks.searchParams = new URLSearchParams('discount=vip');
+    act(() => {
+      mocks.pathname = '/cart';
+      mocks.searchParams = new URLSearchParams('discount=vip');
+    });
     rerender(
       <RequirePasswordChanged>Public catalog</RequirePasswordChanged>,
     );

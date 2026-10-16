@@ -185,7 +185,7 @@ Regenerate: [`docs/assets/README.md`](docs/assets/README.md).
 | [`docs/README.md`](docs/README.md)                   | Docs index                                                                                        |
 | [`docs/ai/README.md`](docs/ai/README.md)             | Agent and conventions docs                                                                        |
 | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) | System context                                                                                    |
-| [`AGENT.md`](AGENT.md)                               | Canonical agent policy                                                                            |
+| [`AGENTS.md`](AGENTS.md)                             | Agent entry point and contributor rules                                                           |
 | API docs                                             | [`ecommerce-store-api/docs`](https://github.com/raouf-b-dev/ecommerce-store-api/tree/master/docs) |
 
 ---

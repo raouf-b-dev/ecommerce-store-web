@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { loginSeededCustomer } from './helpers/auth';
+import {
+  accountMenuButton,
+  addInStockProductToCart,
+  loginSeededCustomer,
+} from './helpers/auth';
 import { skipUnlessEnv } from './helpers/env';
 
 test.describe.configure({ mode: 'serial' });
@@ -13,45 +17,39 @@ test.describe('Shopper Journey Glue', () => {
 
     // 1. Authenticate seeded customer (handling rotation if pending)
     const { email } = await loginSeededCustomer(page);
-    await expect(page.getByText(email).first()).toBeVisible();
+    await expect(accountMenuButton(page, email)).toBeVisible();
 
     // 2. Browse Catalog via in-app navigation
-    const homeLink = page.getByRole('link', { name: /storefront/i }).first();
+    const homeLink = page
+      .getByRole('banner')
+      .getByRole('link', { name: 'Everyday Goods' });
     await homeLink.click();
     await expect(page).toHaveURL('/');
 
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible({ timeout: 15_000 });
-    const productTitle = await firstProduct.locator('h3').first().textContent();
-    await firstProduct.click();
-
-    await expect(page).toHaveURL(/\/products\/\d+/);
-    if (productTitle) {
-      await expect(
-        page.getByRole('heading', { name: productTitle.trim(), level: 1 }),
-      ).toBeVisible();
-    }
-
-    // 3. Add to Cart
-    const addToCartButton = page.getByRole('button', { name: /add to cart/i });
-    await expect(addToCartButton).toBeEnabled();
-    await addToCartButton.click();
+    // 3. Add an in-stock product (waits for the toast so the next click is not intercepted)
+    await addInStockProductToCart(page);
+    const addedToast = page.getByText(/added .* to cart/i);
+    await expect(addedToast).toBeHidden({ timeout: 15_000 });
 
     // 4. Navigate to Cart via Header Link
-    const cartLink = page.getByRole('link', { name: /cart/i }).first();
+    const cartLink = page
+      .getByRole('banner')
+      .getByRole('link', { name: /shopping cart/i });
     await cartLink.click();
     await expect(page).toHaveURL('/cart');
     await expect(
-      page.getByRole('heading', { name: /shopping cart/i }),
+      page.getByRole('heading', { name: /shopping cart/i, level: 1 }),
     ).toBeVisible();
 
     // 5. Proceed to Checkout via in-app link
     const checkoutLink = page.getByRole('link', {
-      name: /proceed to checkout/i,
+      name: 'Proceed to Checkout',
     });
     await expect(checkoutLink).toBeVisible();
-    await checkoutLink.click();
-    await expect(page).toHaveURL('/checkout');
+    await Promise.all([
+      page.waitForURL('/checkout', { timeout: 15_000 }),
+      checkoutLink.click(),
+    ]);
     await expect(page.getByRole('main')).toBeFocused();
     await expect(
       page.getByRole('heading', { name: /checkout/i, level: 1 }),
@@ -70,17 +68,18 @@ test.describe('Shopper Journey Glue', () => {
     await placeOrderBtn.click();
 
     // 7. Poll and Confirm Order
-    await expect(page.getByText(/thank you for your order!/i)).toBeVisible({
-      timeout: 25_000,
-    });
+    await expect(
+      page.getByRole('heading', { name: /your order is confirmed/i }),
+    ).toBeVisible({ timeout: 25_000 });
 
     const orderText = await page
       .getByText(/ORD-\d+/)
       .first()
       .textContent();
-    const orderMatch = orderText?.match(/ORD-\d+/);
-    expect(orderMatch).toBeTruthy();
-    const orderNumber = orderMatch![0];
+    const orderNumber = orderText?.match(/ORD-\d+/)?.[0];
+    if (!orderNumber) {
+      throw new Error('Confirmation page did not show an order number.');
+    }
 
     // 8. In-App Navigation to Order Detail
     const viewDetailBtn = page.getByRole('link', {
@@ -97,11 +96,15 @@ test.describe('Shopper Journey Glue', () => {
     await expect(page.getByText('Confirmed').first()).toBeVisible();
 
     // 9. In-App Navigation to Orders History
-    const ordersNav = page.getByRole('link', { name: /orders/i }).first();
-    await ordersNav.click();
+    await page
+      .getByRole('navigation', { name: 'Account' })
+      .getByRole('link', { name: 'Orders', exact: true })
+      .click();
     await expect(page).toHaveURL('/orders');
     await expect(page.getByRole('main')).toBeFocused();
-    await expect(page.getByRole('heading', { name: /orders/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Orders', level: 1 }),
+    ).toBeVisible();
     await expect(
       page.getByRole('link', { name: new RegExp(orderNumber) }),
     ).toBeVisible({ timeout: 15_000 });

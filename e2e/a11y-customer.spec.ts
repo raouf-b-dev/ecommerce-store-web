@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { checkA11y } from './helpers/axe';
-import { loginSeededCustomer, AUTH_THROTTLE_WAIT_MS } from './helpers/auth';
+import {
+  addInStockProductToCart,
+  loginSeededCustomer,
+  recoverFromSessionThrottle,
+} from './helpers/auth';
 import { skipUnlessEnv } from './helpers/env';
 
 test.describe.configure({ mode: 'serial' });
@@ -25,17 +29,16 @@ test.describe('Customer Accessibility & Dialog Keyboard Navigation', () => {
     await checkA11y(page, 'Cart page');
 
     // 3. Add item and test Checkout accessibility
-    await page.goto('/');
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible({ timeout: 15_000 });
-    await firstProduct.click();
-    await expect(page).toHaveURL(/\/products\/\d+/, { timeout: 15_000 });
-    await page.getByRole('button', { name: /add to cart/i }).click();
+    await addInStockProductToCart(page);
 
     await page.goto('/checkout');
     await expect(
       page.getByRole('heading', { name: /checkout/i, level: 1 }),
     ).toBeVisible({
+      timeout: 15_000,
+    });
+    // Profile load may flip the address mode; wait for a stable field first.
+    await expect(page.getByText('Shipping Address')).toBeVisible({
       timeout: 15_000,
     });
     await checkA11y(page, 'Checkout page');
@@ -52,9 +55,9 @@ test.describe('Customer Accessibility & Dialog Keyboard Navigation', () => {
     await expect(placeOrderBtn).toBeEnabled();
     await placeOrderBtn.click();
 
-    await expect(page.getByText(/thank you for your order!/i)).toBeVisible({
-      timeout: 25_000,
-    });
+    await expect(
+      page.getByRole('heading', { name: /your order is confirmed/i }),
+    ).toBeVisible({ timeout: 25_000 });
 
     await page.getByRole('link', { name: /view order details/i }).click();
     await expect(page).toHaveURL(/\/orders\/\d+/, { timeout: 15_000 });
@@ -69,11 +72,7 @@ test.describe('Customer Accessibility & Dialog Keyboard Navigation', () => {
     } else {
       await page.goto('/account');
     }
-    const sessionErrorAlert = page.getByText(
-      'Too many requests. Wait a moment and try again.',
-    );
-    if (await sessionErrorAlert.isVisible().catch(() => false)) {
-      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+    if (await recoverFromSessionThrottle(page)) {
       await page.goto('/account');
     }
     const accountHeading = page.getByRole('heading', {

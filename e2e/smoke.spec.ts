@@ -17,9 +17,27 @@ test('home shell renders chrome', async ({ page }) => {
   ).toBeVisible();
   await expect(page.locator('#main')).toBeVisible();
   await expect(page.getByRole('contentinfo')).toBeVisible();
-  await expect(
-    page.getByRole('radiogroup', { name: 'Theme selector' }),
-  ).toBeVisible();
+
+  // Auth loading hides the guest chrome (theme control included). Wait for it.
+  await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
+
+  // Below sm the theme control lives in the mobile nav sheet; from sm up it is
+  // in the header. The menu button is lg:hidden, so only open it when needed.
+  const themeSelector = page.getByRole('radiogroup', {
+    name: 'Theme selector',
+  });
+  if (!(await themeSelector.isVisible())) {
+    const menu = page.getByRole('button', { name: 'Open navigation menu' });
+    await expect(menu).toBeVisible();
+    await menu.click();
+    const nav = page.getByRole('dialog', { name: 'Navigation menu' });
+    await expect(nav).toBeVisible();
+    await expect(
+      nav.getByRole('radiogroup', { name: 'Theme selector' }),
+    ).toBeVisible();
+    return;
+  }
+  await expect(themeSelector).toBeVisible();
 });
 
 test('skip link moves focus to main', async ({ page }) => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useFormState, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { CreditCard, Lock, Truck, CheckCircle2 } from 'lucide-react';
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/card';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { QueryLoading, QueryStateAlert } from '@/components/feedback/query-state';
 import { ActionErrorAlert } from '@/components/feedback/action-error-alert';
 import { CountryCombobox } from '@/components/forms/country-combobox';
 import { ProductImageFrame } from '@/components/media/product-image';
@@ -53,8 +54,10 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     shippingCost,
     totalAmount,
     isLoading: isCartLoading,
+    isError,
+    error: cartError,
+    refetch: refetchCart,
   } = useCart();
-  const currency = cart?.currency ?? 'USD';
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   const { mutateAsync: submitCheckout, isPending } = useCheckoutMutation({
@@ -67,7 +70,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
       useDefaultAddress: true,
-      paymentMethod: 'STRIPE',
+      paymentMethod: 'CARD',
       customerNotes: '',
       shippingAddress: {
         firstName: '',
@@ -87,6 +90,10 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
   const useDefaultAddress = useWatch({
     control: form.control,
     name: 'useDefaultAddress',
+  });
+
+  const { errors } = useFormState({
+    control: form.control,
   });
 
   useEffect(() => {
@@ -130,7 +137,27 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     }
   };
 
-  if (!isCartLoading && itemCount === 0) {
+  if (isCartLoading) {
+    return <QueryLoading>Loading checkout...</QueryLoading>;
+  }
+
+  if (isError && !cart) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <QueryStateAlert
+          isError
+          hasData={false}
+          error={cartError}
+          onRetry={() => {
+            void refetchCart();
+          }}
+          resource="shopping cart"
+        />
+      </div>
+    );
+  }
+
+  if (!cart || itemCount === 0 || !cart.currency) {
     return (
       <div className="mx-auto max-w-xl">
         <CartEmptyState />
@@ -138,15 +165,17 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
     );
   }
 
+  const currency = cart.currency;
+
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
       className="space-y-8"
       noValidate
     >
-      <div className="grid gap-8 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Left column: Address, Payment & Notes */}
-        <div className="space-y-6 lg:col-span-7">
+        <div className="min-w-0 space-y-6 lg:col-span-7">
           {/* Shipping Address Section */}
           <Card className="border shadow-xs">
             <CardHeader className="border-b pb-4">
@@ -180,9 +209,9 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                   />
                   <label
                     htmlFor="address-option-saved"
-                    className={
+                    className={`min-w-0 flex-1 wrap-break-word ${
                       defaultAddress ? 'cursor-pointer' : 'cursor-not-allowed'
-                    }
+                    }`}
                   >
                     <span className="block text-sm font-medium text-foreground">
                       Use saved address on file
@@ -228,7 +257,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                   />
                   <label
                     htmlFor="address-option-custom"
-                    className="cursor-pointer"
+                    className="min-w-0 flex-1 cursor-pointer wrap-break-word"
                   >
                     <span className="block text-sm font-medium text-foreground">
                       Ship to a custom address
@@ -243,104 +272,133 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
 
               {/* Custom Address Fields */}
               {!useDefaultAddress && (
-                <div className="pt-4 border-t space-y-4 animate-in fade-in-50 duration-200">
+                <div className="space-y-4 border-t pt-4">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(
+                        errors.shippingAddress?.firstName,
+                      )}
+                    >
                       <FieldLabel htmlFor="firstName">First Name</FieldLabel>
                       <Input
                         id="firstName"
                         placeholder="Jane"
+                        aria-invalid={Boolean(
+                          errors.shippingAddress?.firstName,
+                        )}
                         {...form.register('shippingAddress.firstName')}
                       />
                       <FieldError>
-                        {
-                          form.formState.errors.shippingAddress?.firstName
-                            ?.message
-                        }
+                        {errors.shippingAddress?.firstName?.message}
                       </FieldError>
                     </Field>
 
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(
+                        errors.shippingAddress?.lastName,
+                      )}
+                    >
                       <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
                       <Input
                         id="lastName"
                         placeholder="Doe"
+                        aria-invalid={Boolean(
+                          errors.shippingAddress?.lastName,
+                        )}
                         {...form.register('shippingAddress.lastName')}
                       />
                       <FieldError>
-                        {
-                          form.formState.errors.shippingAddress?.lastName
-                            ?.message
-                        }
+                        {errors.shippingAddress?.lastName?.message}
                       </FieldError>
                     </Field>
                   </div>
 
-                  <Field>
+                  <Field
+                    data-invalid={Boolean(errors.shippingAddress?.street)}
+                  >
                     <FieldLabel htmlFor="street">Street Address</FieldLabel>
                     <Input
                       id="street"
                       placeholder="123 Market Street"
+                      aria-invalid={Boolean(errors.shippingAddress?.street)}
                       {...form.register('shippingAddress.street')}
                     />
                     <FieldError>
-                      {form.formState.errors.shippingAddress?.street?.message}
+                      {errors.shippingAddress?.street?.message}
                     </FieldError>
                   </Field>
 
-                  <Field>
+                  <Field
+                    data-invalid={Boolean(errors.shippingAddress?.street2)}
+                  >
                     <FieldLabel htmlFor="street2">
                       Apartment, suite, unit (optional)
                     </FieldLabel>
                     <Input
                       id="street2"
                       placeholder="Apt 4B"
+                      aria-invalid={Boolean(errors.shippingAddress?.street2)}
                       {...form.register('shippingAddress.street2')}
                     />
+                    <FieldError>
+                      {errors.shippingAddress?.street2?.message}
+                    </FieldError>
                   </Field>
 
                   <div className="grid gap-4 sm:grid-cols-3">
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(errors.shippingAddress?.city)}
+                    >
                       <FieldLabel htmlFor="city">City</FieldLabel>
                       <Input
                         id="city"
                         placeholder="New York"
+                        aria-invalid={Boolean(errors.shippingAddress?.city)}
                         {...form.register('shippingAddress.city')}
                       />
                       <FieldError>
-                        {form.formState.errors.shippingAddress?.city?.message}
+                        {errors.shippingAddress?.city?.message}
                       </FieldError>
                     </Field>
 
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(errors.shippingAddress?.state)}
+                    >
                       <FieldLabel htmlFor="state">State / Province</FieldLabel>
                       <Input
                         id="state"
                         placeholder="NY"
+                        aria-invalid={Boolean(errors.shippingAddress?.state)}
                         {...form.register('shippingAddress.state')}
                       />
                       <FieldError>
-                        {form.formState.errors.shippingAddress?.state?.message}
+                        {errors.shippingAddress?.state?.message}
                       </FieldError>
                     </Field>
 
-                    <Field>
+                    <Field
+                      data-invalid={Boolean(
+                        errors.shippingAddress?.postalCode,
+                      )}
+                    >
                       <FieldLabel htmlFor="postalCode">Postal Code</FieldLabel>
                       <Input
                         id="postalCode"
                         placeholder="10001"
+                        aria-invalid={Boolean(
+                          errors.shippingAddress?.postalCode,
+                        )}
                         {...form.register('shippingAddress.postalCode')}
                       />
                       <FieldError>
-                        {
-                          form.formState.errors.shippingAddress?.postalCode
-                            ?.message
-                        }
+                        {errors.shippingAddress?.postalCode?.message}
                       </FieldError>
                     </Field>
                   </div>
 
-                  <Field>
+                  <Field
+                    data-invalid={Boolean(errors.shippingAddress?.country)}
+                  >
                     <FieldLabel htmlFor="country">Country</FieldLabel>
                     <Controller
                       control={form.control}
@@ -356,19 +414,29 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                       )}
                     />
                     <FieldError>
-                      {form.formState.errors.shippingAddress?.country?.message}
+                      {errors.shippingAddress?.country?.message}
                     </FieldError>
                   </Field>
 
-                  <Field>
+                  <Field
+                    data-invalid={Boolean(
+                      errors.shippingAddress?.deliveryInstructions,
+                    )}
+                  >
                     <FieldLabel htmlFor="deliveryInstructions">
                       Delivery Instructions (optional)
                     </FieldLabel>
                     <Input
                       id="deliveryInstructions"
                       placeholder="Ring bell or leave at front desk"
+                      aria-invalid={Boolean(
+                        errors.shippingAddress?.deliveryInstructions,
+                      )}
                       {...form.register('shippingAddress.deliveryInstructions')}
                     />
+                    <FieldError>
+                      {errors.shippingAddress?.deliveryInstructions?.message}
+                    </FieldError>
                   </Field>
                 </div>
               )}
@@ -385,16 +453,16 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                 </CardTitle>
               </div>
               <CardDescription>
-                Card payments are processed securely by Stripe.
+                Pay by card.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
               <div className="flex items-start gap-4 rounded-xl border-2 border-primary/40 bg-primary/5 p-4">
-                <div className="rounded-lg bg-primary p-2 text-primary-foreground">
+                <div className="shrink-0 rounded-lg bg-primary p-2 text-primary-foreground">
                   <CreditCard className="size-6" />
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                     <span className="font-semibold text-foreground">
                       Card payment
                     </span>
@@ -422,14 +490,15 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Field>
+              <Field data-invalid={Boolean(errors.customerNotes)}>
                 <Input
                   id="customerNotes"
                   placeholder="e.g. Please handle with extra care"
+                  aria-invalid={Boolean(errors.customerNotes)}
                   {...form.register('customerNotes')}
                 />
                 <FieldError>
-                  {form.formState.errors.customerNotes?.message}
+                  {errors.customerNotes?.message}
                 </FieldError>
               </Field>
             </CardContent>
@@ -437,7 +506,7 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
         </div>
 
         {/* Right column: Summary & CTA */}
-        <div className="space-y-6 lg:col-span-5">
+        <div className="min-w-0 space-y-6 lg:col-span-5">
           <Card className="border shadow-xs sticky top-8">
             <CardHeader className="border-b pb-4">
               <CardTitle className="text-lg font-semibold">
@@ -450,7 +519,11 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
             <CardContent className="space-y-4 pt-4">
               {/* Item preview */}
               {cart?.items && cart.items.length > 0 && (
-                <div className="max-h-56 space-y-3 overflow-y-auto pr-1">
+                <div
+                  className="max-h-56 space-y-3 overflow-y-auto pr-1"
+                  role="region"
+                  aria-label="Order items"
+                >
                   {cart.items.map((item) => (
                     <div
                       key={item.id}
@@ -463,16 +536,19 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                         className="w-12 rounded-md border"
                       />
                       <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-medium truncate">
+                        <Link
+                          href={`/products/${item.productId}`}
+                          className="font-medium truncate block hover:underline underline-offset-2"
+                        >
                           {item.productName}
-                        </p>
+                        </Link>
                         <p className="text-xs text-muted-foreground">
                           Qty: {item.quantity} ×{' '}
-                          {formatMoney(item.price, currency)}
+                          {formatMoney(item.price, item.currency)}
                         </p>
                       </div>
-                      <span className="font-medium text-foreground">
-                        {formatMoney(item.subtotal, currency)}
+                      <span className="shrink-0 font-medium text-foreground">
+                        {formatMoney(item.subtotal, item.currency)}
                       </span>
                     </div>
                   ))}
@@ -480,23 +556,23 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
               )}
 
               <div className="space-y-2 border-t pt-4 text-sm">
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">
                     Subtotal ({itemCount} {itemCount === 1 ? 'unit' : 'units'})
                   </span>
-                  <span className="font-medium text-foreground">
+                  <span className="shrink-0 font-medium text-foreground">
                     {formatMoney(subtotal, currency)}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-medium text-foreground">
+                  <span className="shrink-0 font-medium text-foreground">
                     {formatShipping(shippingCost, currency)}
                   </span>
                 </div>
-                <div className="flex justify-between border-t pt-3 text-base font-bold">
+                <div className="flex justify-between gap-2 border-t pt-3 text-base font-bold">
                   <span className="text-foreground">Total Due</span>
-                  <span className="text-foreground">
+                  <span className="shrink-0 text-foreground">
                     {formatMoney(totalAmount, currency)}
                   </span>
                 </div>

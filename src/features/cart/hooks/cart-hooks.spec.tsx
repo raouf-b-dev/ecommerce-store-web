@@ -195,36 +195,27 @@ describe('Cart hooks', () => {
       });
     });
 
-    it('retries once with a fresh cart when addItem encounters a stale 422', async () => {
-      vi.mocked(cartApi.addItemToCartRequest)
-        .mockRejectedValueOnce(
-          new ApiRequestError({
-            statusCode: 422,
-            message: 'Cart not active',
-          }),
-        )
-        .mockResolvedValueOnce();
-
-      vi.mocked(cartApi.createCartRequest).mockResolvedValue({
-        ...emptyCart,
-        id: 99,
-      });
+    it('surfaces a 422 from addItem instead of creating a new cart', async () => {
+      vi.mocked(cartApi.addItemToCartRequest).mockRejectedValue(
+        new ApiRequestError({
+          statusCode: 422,
+          message: 'Cart not active',
+        }),
+      );
 
       const { result } = renderHook(() => useAddToCart(), {
         wrapper: createWrapper({ ...emptyCart, id: 88 }),
       });
 
       await act(async () => {
-        await result.current.mutateAsync({ productId: 103, quantity: 1 });
+        await expect(
+          result.current.mutateAsync({ productId: 103, quantity: 1 }),
+        ).rejects.toMatchObject({ statusCode: 422, message: 'Cart not active' });
       });
 
-      expect(cartApi.createCartRequest).toHaveBeenCalledTimes(1);
-      expect(cartApi.addItemToCartRequest).toHaveBeenCalledTimes(2);
-      expect(cartApi.addItemToCartRequest).toHaveBeenNthCalledWith(1, 88, {
-        productId: 103,
-        quantity: 1,
-      });
-      expect(cartApi.addItemToCartRequest).toHaveBeenNthCalledWith(2, 99, {
+      expect(cartApi.createCartRequest).not.toHaveBeenCalled();
+      expect(cartApi.addItemToCartRequest).toHaveBeenCalledTimes(1);
+      expect(cartApi.addItemToCartRequest).toHaveBeenCalledWith(88, {
         productId: 103,
         quantity: 1,
       });

@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { AUTH_THROTTLE_WAIT_MS, registerFreshCustomer } from './helpers/auth';
+import {
+  addInStockProductToCart,
+  recoverFromSessionThrottle,
+  registerFreshCustomer,
+} from './helpers/auth';
+import { createMockAddress } from '@/test/fixtures/account.fixture';
 
 test.describe('Checkout Flow', () => {
   test('redirects unauthenticated guest accessing /checkout to login with redirect param', async ({
@@ -8,11 +13,7 @@ test.describe('Checkout Flow', () => {
     await page.context().clearCookies();
     await page.goto('/checkout');
 
-    const sessionErrorAlert = page.getByText(
-      'Too many requests. Wait a moment and try again.',
-    );
-    if (await sessionErrorAlert.isVisible().catch(() => false)) {
-      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+    if (await recoverFromSessionThrottle(page)) {
       await page.goto('/checkout');
     }
 
@@ -38,31 +39,32 @@ test.describe('Checkout Flow', () => {
   test('authenticated customer can add item, proceed to checkout, and complete order via polling', async ({
     page,
   }) => {
+    test.setTimeout(180_000);
     await registerFreshCustomer(page);
 
     // 1. Add an in-stock product to cart
-    await page.goto('/');
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible();
-    await firstProduct.click();
-
-    await expect(page).toHaveURL(/\/products\/\d+/);
-    const addToCartBtn = page.getByRole('button', { name: /add to cart/i });
-    await expect(addToCartBtn).toBeVisible();
-    await addToCartBtn.click();
+    await addInStockProductToCart(page);
 
     // 2. Go to /cart and proceed to checkout
     await page.goto('/cart');
+    if (await recoverFromSessionThrottle(page)) {
+      await page.goto('/cart');
+    }
     const checkoutLink = page.getByRole('link', {
       name: /proceed to checkout/i,
     });
-    await expect(checkoutLink).toBeVisible();
+    await expect(checkoutLink).toBeVisible({ timeout: 15_000 });
     await checkoutLink.click();
 
     await expect(page).toHaveURL(/\/checkout/);
+    if (await recoverFromSessionThrottle(page)) {
+      await page.goto('/checkout');
+    }
 
     // 3. Verify checkout form rendered with address options
-    await expect(page.getByText('Shipping Address')).toBeVisible();
+    await expect(page.getByText('Shipping Address')).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(page.getByText('Use saved address on file')).toBeVisible();
     await expect(page.locator('form').getByText('Order Summary')).toBeVisible();
 
@@ -86,13 +88,13 @@ test.describe('Checkout Flow', () => {
     await placeOrderBtn.click();
 
     // 5. Verify transition to confirmation and polling to confirmed status
-    // Order number badge and confirmation header should become visible
-    await expect(page.getByText(/thank you for your order!/i)).toBeVisible({
-      timeout: 20_000,
-    });
-
-    await expect(page.getByText(/ORD-\d+/)).toBeVisible();
-    await expect(page.getByText('Confirmed').first()).toBeVisible();
+    await expect(page.getByRole('status')).toHaveText(/confirmed/i);
+    await expect(
+      page.getByRole('heading', { name: /your order is confirmed/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Order ORD-\d+/i }),
+    ).toBeVisible();
     await expect(
       page.getByRole('link', { name: /view order details/i }),
     ).toBeVisible();
@@ -100,4 +102,96 @@ test.describe('Checkout Flow', () => {
       page.getByRole('link', { name: /continue shopping/i }),
     ).toBeVisible();
   });
+
+  test('does not scroll horizontally from 360px up with long address and product name', async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    const longName = 'Extraordinarily'.repeat(8) + ' Long Product Name '.repeat(4);
+    const longWord = 'Supercalifragilisticexpialidocious'.repeat(3);
+
+    // Rewrite the cart read so a long product name reaches the order summary.
+    await page.route(/\/v1\/carts\/[^/?]+(\?.*)?$/, async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      const response = await route.fetch();
+      const body = await response.text();
+      await route.fulfill({
+        response,
+        body: body.replace(
+          /("productName"\s*:\s*)"(?:[^"\\]|\\.)*"/g,
+          `$1${JSON.stringify(longName)}`,
+        ),
+      });
+    });
+
+    // Rewrite the user profile read so a long saved address reaches the checkout options.
+    await page.route(/\/v1\/users\/me(\?.*)?$/, async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      const response = await route.fetch();
+      const json = await response.json();
+      json.addresses = [
+        createMockAddress({
+          street: `${longWord} ${longWord} Street`,
+          street2: `Suite ${longWord}`,
+          city: longWord,
+          deliveryInstructions: longWord,
+        }),
+      ];
+      json.addressCount = json.addresses.length;
+      await route.fulfill({
+        response,
+        json,
+      });
+    });
+
+    await registerFreshCustomer(page);
+    await page.setViewportSize({ width: 360, height: 800 });
+
+    await addInStockProductToCart(page);
+
+    await page.goto('/checkout');
+    if (await recoverFromSessionThrottle(page)) {
+      await page.goto('/checkout');
+    }
+    // Session may still be gone after a 429 window; rebuild shopper state once.
+    if (await page.getByRole('link', { name: 'Sign in' }).isVisible().catch(() => false)) {
+      await registerFreshCustomer(page);
+      await page.setViewportSize({ width: 360, height: 800 });
+      await addInStockProductToCart(page);
+      await page.goto('/checkout');
+    }
+    await expect(page.locator('form').getByText('Order Summary')).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(
+      page.locator('form').getByText(longName, { exact: true }),
+    ).toBeVisible();
+
+    // Verify "Use saved address on file" is selected and renders the long address lines
+    const savedOption = page.locator('#address-option-saved');
+    await expect(savedOption).toBeChecked();
+    await expect(page.getByText(longWord).first()).toBeVisible();
+
+    const placeOrderBtn = page.getByRole('button', { name: /place order/i });
+    for (const width of [360, 390, 768]) {
+      await page.setViewportSize({ width, height: 800 });
+      await placeOrderBtn.scrollIntoViewIfNeeded();
+      await expect(placeOrderBtn).toBeVisible();
+      const scrollWidth = await page.evaluate(
+        () => document.documentElement.scrollWidth,
+      );
+      const viewportWidth = await page.evaluate(
+        () => document.documentElement.clientWidth,
+      );
+      expect(scrollWidth, `scrollWidth at ${width}px`).toBe(viewportWidth);
+      expect(viewportWidth).toBe(width);
+    }
+  });
 });
+

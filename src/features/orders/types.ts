@@ -10,6 +10,7 @@ export type OrderItemDetailResponseDto =
   components['schemas']['OrderItemDetailResponseDto'];
 export type PaymentDetailResponseDto =
   components['schemas']['PaymentDetailResponseDto'];
+export type PaymentMethod = PaymentDetailResponseDto['paymentMethod'];
 
 export type OrderStatus = OrderDetailResponseDto['status'];
 

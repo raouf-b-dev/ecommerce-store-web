@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { AUTH_THROTTLE_WAIT_MS, registerFreshCustomer } from './helpers/auth';
+import {
+  addInStockProductToCart,
+  recoverFromSessionThrottle,
+  registerFreshCustomer,
+} from './helpers/auth';
 
 test.describe('Orders', () => {
   test('has noindex, nofollow robots metadata on /orders', async ({ page }) => {
@@ -24,13 +28,7 @@ test.describe('Orders', () => {
   }) => {
     await registerFreshCustomer(page);
 
-    await page.goto('/');
-    const firstProduct = page.locator('main a[href^="/products/"]').first();
-    await expect(firstProduct).toBeVisible();
-    await firstProduct.click();
-
-    await expect(page).toHaveURL(/\/products\/\d+/);
-    await page.getByRole('button', { name: /add to cart/i }).click();
+    await addInStockProductToCart(page);
 
     await page.goto('/cart');
     await page.getByRole('link', { name: /proceed to checkout/i }).click();
@@ -45,9 +43,9 @@ test.describe('Orders', () => {
     await page.locator('#postalCode').fill('94105');
     await page.getByRole('button', { name: /place order/i }).click();
 
-    await expect(page.getByText(/thank you for your order!/i)).toBeVisible({
-      timeout: 20_000,
-    });
+    await expect(
+      page.getByRole('heading', { name: /your order is confirmed/i }),
+    ).toBeVisible({ timeout: 20_000 });
 
     const orderText = await page
       .getByText(/ORD-\d+/)
@@ -71,11 +69,7 @@ test.describe('Orders', () => {
       await page.goto('/orders');
     }
 
-    const sessionErrorAlert = page.getByText(
-      'Too many requests. Wait a moment and try again.',
-    );
-    if (await sessionErrorAlert.isVisible().catch(() => false)) {
-      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+    if (await recoverFromSessionThrottle(page)) {
       await page.goto('/orders');
     }
 

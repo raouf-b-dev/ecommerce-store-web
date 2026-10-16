@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { AUTH_THROTTLE_WAIT_MS, registerFreshCustomer } from './helpers/auth';
+import {
+  recoverFromSessionThrottle,
+  registerFreshCustomer,
+} from './helpers/auth';
 
 test.describe('Account address book', () => {
   test('redirects unauthenticated guest accessing /account to login', async ({
@@ -8,11 +11,7 @@ test.describe('Account address book', () => {
     await page.context().clearCookies();
     await page.goto('/account');
 
-    const sessionErrorAlert = page.getByText(
-      'Too many requests. Wait a moment and try again.',
-    );
-    if (await sessionErrorAlert.isVisible().catch(() => false)) {
-      await page.waitForTimeout(AUTH_THROTTLE_WAIT_MS);
+    if (await recoverFromSessionThrottle(page)) {
       await page.goto('/account');
     }
 

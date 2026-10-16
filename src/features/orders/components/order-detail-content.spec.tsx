@@ -80,5 +80,6 @@ describe('OrderDetailContent', () => {
     expect(screen.getByText(/456 Oak Avenue/)).toBeInTheDocument();
     expect(screen.getByText('Ergonomic Desk Chair')).toBeInTheDocument();
     expect(screen.getByText('Payment')).toBeInTheDocument();
+    expect(screen.getByText('Card')).toBeInTheDocument();
   });
 });

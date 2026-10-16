@@ -131,7 +131,7 @@ The storefront's core modules are organized under `src/lib/` and `src/components
 | `src/components/ui/status-badge.tsx`               | Visual badges for order status (OpenAPI `OrderStatus`). Reused in checkout confirmation and Phase 8 orders.                                                                                                                     | Universal              |
 | `scripts/generate-api-client.js`                   | Script generating `src/lib/api/generated/schema.d.ts` from live OpenAPI/Swagger documentation.                                                                                                                                  | Build tooling          |
 | `scripts/generate-env.js`                          | Template initialization: generates `.env.local` and `.secrets` from `.env.example` and `.secrets.example`.                                                                                                                      | Build tooling          |
-| `e2e/global-setup.ts` + `e2e/README.md`            | Playwright setup: API connectivity, optional `db:seed:auth` (skip with `E2E_SKIP_DB_SEED`), login throttle (~61s), secrets.                                                                                                     | Testing harness        |
+| `e2e/global-setup.ts` + `e2e/README.md`            | Playwright setup: HTTP checks for API health, catalog, and rate limit. Login throttle (~61s) and secrets. The suite does not shell out to the API repo.                                                                       | Testing harness        |
 
 ### Storefront Architectural Boundaries & Exclusions
 
@@ -236,7 +236,7 @@ Pick the first unchecked phase. Phases 14 and 14c do not block the release gate.
 - [x] Stranger onboarding: README → `env:init` → `dev` on **3100** against a live API started from the API repo's docs (including CORS origin)
 - [x] Seeded purchase path: forced password change → browse → cart → checkout → order
 - [x] `next build` + `next start` (or platform preview) on **3100** against the same API
-- [x] README + PROJECT-CONTEXT + API-INTEGRATION match the repo
+- [x] README + docs/ai/CODE-MAP.md + API-INTEGRATION match the repo
 - [x] Confirm no secrets in `NEXT_PUBLIC_*`
 
 **Done when:** A stranger can follow the README and complete a seeded purchase without tribal knowledge.

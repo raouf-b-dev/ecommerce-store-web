@@ -6,6 +6,7 @@ import {
 import type {
   CategoryResponseDto,
   MockCartItem,
+  OrderDetailResponseDto,
   ProductDetailResponseDto,
   SeedInventoryRow,
 } from '@/lib/mock/data/types';
@@ -54,6 +55,7 @@ export type MockOrder = {
   userEmail: string;
   status: string;
   shippingAddress: string;
+  paymentMethod: OrderDetailResponseDto['paymentMethod'];
   items: Array<{
     productId: number;
     sku: string;

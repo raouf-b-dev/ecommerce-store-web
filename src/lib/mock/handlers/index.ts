@@ -416,6 +416,10 @@ export const handlers = [
     if (!isMockSessionActive()) {
       return nestError(401, 'Unauthorized');
     }
+    const idempotencyKey = request.headers.get('Idempotency-Key');
+    if (!idempotencyKey || !idempotencyKey.trim()) {
+      return nestError(400, 'Idempotency-Key is required');
+    }
     const body = await request.json();
     const store = getMockStore();
     const cart = store.cart;
@@ -454,6 +458,7 @@ export const handlers = [
       userEmail: DEMO_CUSTOMER_EMAIL,
       status: 'confirmed',
       shippingAddress,
+      paymentMethod: body.paymentMethod,
       items: cart.items.map((item) => {
         const product = store.products.find(
           (candidate) => candidate.id === item.productId,
@@ -537,7 +542,7 @@ export const handlers = [
       amount: order.totalAmount,
       currency: order.currency,
       status: 'completed',
-      paymentMethod: 'stripe',
+      paymentMethod: 'CARD',
       transactionId: `mock-txn-${orderId}`,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,

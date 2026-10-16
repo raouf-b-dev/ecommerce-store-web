@@ -49,6 +49,7 @@ export function createMockOrderDetail(
     totalAmount: overrides?.totalAmount ?? totalPrice,
     totalPrice,
     currency: 'USD',
+    paymentMethod: 'CARD',
     createdAt: '2026-09-13T12:00:00.000Z',
     updatedAt: '2026-09-13T12:00:00.000Z',
     ...overrides,
@@ -85,7 +86,12 @@ export function createMockPaginatedOrders(
     limit: overrides?.limit ?? 10,
     totalPages:
       overrides?.totalPages ??
-      Math.max(1, Math.ceil((overrides?.total ?? items.length) / (overrides?.limit ?? 10))),
+      Math.max(
+        1,
+        Math.ceil(
+          (overrides?.total ?? items.length) / (overrides?.limit ?? 10),
+        ),
+      ),
     ...overrides,
   };
 }
@@ -102,7 +108,7 @@ export function createMockPaymentDetail(
     amount: 200,
     currency: 'USD',
     status: 'completed',
-    paymentMethod: 'stripe',
+    paymentMethod: 'CARD',
     transactionId: 'txn_123',
     createdAt: '2026-09-13T12:00:00.000Z',
     updatedAt: '2026-09-13T12:05:00.000Z',

@@ -1,29 +1,28 @@
-# AI and agent docs
+# AI Guidance
 
-Agent policy and coding conventions for this repository. Sequencing lives in [`../ROADMAP.md`](../ROADMAP.md).
+Agent instructions are deliberately small. [AGENTS.md](../../AGENTS.md) at the repository root is the single entry point. Claude Code reaches it through `CLAUDE.md` (`@AGENTS.md`), Gemini CLI through `.gemini/settings.json`; Cursor, Codex, Copilot, Windsurf, and Antigravity read `AGENTS.md` natively. It tells agents which file to load for which task.
 
-## Files
+| File                                 | Purpose                                                 |
+| ------------------------------------ | ------------------------------------------------------- |
+| [CONVENTIONS.md](CONVENTIONS.md)     | Layout, clients, caching, Query, SEO, and mock rules    |
+| [ANTI-PATTERNS.md](ANTI-PATTERNS.md) | Bad and good examples, review checklist                 |
+| [CODE-MAP.md](CODE-MAP.md)           | Where modules and shared code live                      |
 
-| File | Role |
-| :--- | :--- |
-| [../../AGENT.md](../../AGENT.md) | Canonical agent policy (repo root) |
-| [../../.agents/PROJECT-CONTEXT.md](../../.agents/PROJECT-CONTEXT.md) | Compact project snapshot |
-| [CONVENTIONS.md](CONVENTIONS.md) | UI coding conventions |
-| [ANTI-PATTERNS.md](ANTI-PATTERNS.md) | Good/bad snippets + review checklist |
-| [GOVERNANCE-AND-QUALITY-GATES.md](GOVERNANCE-AND-QUALITY-GATES.md) | Merge / quality gates |
-| [WORKFLOW-PLAYBOOK.md](WORKFLOW-PLAYBOOK.md) | How to execute a roadmap task |
-| [../architecture/ARCHITECTURE.md](../architecture/ARCHITECTURE.md) | System context and composition |
-| [../architecture/adr/README.md](../architecture/adr/README.md) | ADR index |
+Task procedures are skills in `.agents/skills/<name>/SKILL.md`: `write-tests`, `add-feature`, `write-docs`. Skills follow the open [Agent Skills](https://agentskills.io) layout: a folder with a `SKILL.md` whose frontmatter has `name` and a "use when" `description`; extra files under `references/` load on demand.
 
-Tool adapters (`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*`) should point at `AGENT.md` and must not fork policy.
+Human reference docs (architecture, ADRs, API integration, roadmap) are indexed in [docs/README.md](../README.md) and are not loaded by agents unless the task is in that area.
 
-## Non-negotiables
+## CI and merge gates
 
-- No business rules in this UI repo.
-- Call the versioned API using the OpenAPI client where possible. No BFF.
-- Server Components by default; catalog RSC stays unauthenticated.
-- Session, cart, checkout, and orders are browser client + TanStack Query (admin session pattern).
-- Write tests with features.
-- Require verification for behavior changes.
+`.github/workflows/ci.yml` runs `lint`, `typecheck`, `unit-tests`, `build`, and `audit` in parallel; branch protection requires the aggregate **CI Status Check** (`ci`), not the job names. Playwright is not part of that aggregate: the `e2e` job runs only on manual dispatch against a live API with the `E2E_*` secrets, and fails when they are missing (no skip-to-green). Details: [e2e/README.md](../../e2e/README.md). Prettier is for local formatting only and is not a gate. Dependabot (npm and GitHub Actions) is configured in `.github/dependabot.yml`.
 
-Sequencing: [`../ROADMAP.md`](../ROADMAP.md). Client contract: [`../API-INTEGRATION.md`](../API-INTEGRATION.md).
+## Next.js agent rules
+
+`next dev` can write a managed block into `AGENTS.md` that tells agents to read `node_modules/next/dist/docs/` before any code. It does so when it detects an AI agent and `agentRules` is not `false`. `next.config.ts` sets `agentRules: false` and `AGENTS.md` carries a scoped replacement, so the block is not regenerated. Reference: `node_modules/next/dist/docs/01-app/02-guides/ai-agents.md`.
+
+## Maintaining this folder
+
+- Keep `AGENTS.md` under about 60 lines. Move detail into a skill or a doc linked from its table.
+- One rule lives in one place. Link instead of copying.
+- Rules a tool can enforce belong in ESLint, not prose.
+- Do not add per-tool adapter files (Cursor rules, Copilot instructions, `.windsurfrules`, `GEMINI.md`). Tools read `AGENTS.md`.

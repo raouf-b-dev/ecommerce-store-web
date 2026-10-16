@@ -1,12 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from '@playwright/test';
 import {
   addCurrentProductToCart,
   applyTheme,
   captureScreenshot,
   BASE_URL,
   fillCheckoutAddress,
+  launchCaptureBrowser,
   mockLogin,
   openCartViaHeader,
   openCatalogViaNav,
@@ -97,7 +97,7 @@ async function main() {
   console.log(
     `Starting storefront showcase capture at ${BASE_URL} (1440x900 @ 2x)...`,
   );
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchCaptureBrowser();
 
   await captureThemeStills(browser, assetsDir, 'dark');
   await captureThemeStills(browser, assetsDir, 'light');

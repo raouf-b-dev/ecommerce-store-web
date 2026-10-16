@@ -6,6 +6,7 @@ import * as cartHooks from '@/features/cart/hooks/use-cart';
 import * as checkoutMutationHook from '@/features/checkout/hooks/use-checkout-mutation';
 import * as userProfileHook from '@/features/account/hooks/use-user-profile';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
+import { formatMoney } from '@/lib/format';
 import {
   createMockCart,
   createMockCartItem,
@@ -85,6 +86,24 @@ describe('CheckoutForm', () => {
     );
   });
 
+  it('renders loading state while cart is loading', () => {
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: null,
+        cartId: null,
+        itemCount: 0,
+        totalAmount: 0,
+        subtotal: 0,
+        items: [],
+        isLoading: true,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(screen.getByText('Loading checkout...')).toBeInTheDocument();
+  });
+
   it('renders empty cart state when cart item count is 0', () => {
     vi.mocked(cartHooks.useCart).mockReturnValue(
       createMockUseCartResult({
@@ -105,12 +124,124 @@ describe('CheckoutForm', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders error alert with retry button when cart fails to load', async () => {
+    const user = userEvent.setup();
+    const mockRefetch = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: null,
+        cartId: null,
+        itemCount: 0,
+        totalAmount: 0,
+        subtotal: 0,
+        items: [],
+        isError: true,
+        error: new Error('Failed to load cart'),
+        refetch: mockRefetch,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(
+      screen.getByText('Could not load shopping cart'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/cart is empty/i)).not.toBeInTheDocument();
+
+    const retryBtn = screen.getByRole('button', { name: /retry/i });
+    await user.click(retryBtn);
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText('Could not load shopping cart'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/cart is empty/i)).not.toBeInTheDocument();
+  });
+
+  it('renders no place order button when cart has null currency', () => {
+    const mockCart = createMockCart({
+      id: 3,
+      currency: null,
+      totalAmount: 150,
+      itemCount: 1,
+      items: [
+        createMockCartItem({
+          id: 12,
+          productId: 102,
+          productName: 'Mechanical Keyboard',
+          price: 150,
+          currency: 'USD',
+          quantity: 1,
+          subtotal: 150,
+        }),
+      ],
+    });
+
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: mockCart,
+        cartId: 3,
+        itemCount: 1,
+        totalAmount: 150,
+        subtotal: 150,
+        items: mockCart.items,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(
+      screen.queryByRole('button', { name: /place order/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('formats amounts in the cart currency when non-USD', () => {
+    const mockCart = createMockCart({
+      id: 2,
+      currency: 'EUR',
+      totalAmount: 150,
+      itemCount: 1,
+      items: [
+        createMockCartItem({
+          id: 11,
+          productId: 101,
+          productName: 'Mechanical Keyboard',
+          price: 150,
+          currency: 'EUR',
+          quantity: 1,
+          subtotal: 150,
+        }),
+      ],
+    });
+
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: mockCart,
+        cartId: 2,
+        itemCount: 1,
+        totalAmount: 150,
+        subtotal: 150,
+        items: mockCart.items,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(screen.getAllByText('€150.00').length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('button', { name: /place order • €150\.00/i }),
+    ).toBeInTheDocument();
+  });
+
   it('renders form with saved address selected by default when cart has items', () => {
     mockCartWithItems();
 
     render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
 
     expect(screen.getByText('Shipping Address')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Mechanical Keyboard' }),
+    ).toHaveAttribute('href', '/products/100');
     expect(screen.getByText('Use saved address on file')).toBeInTheDocument();
     expect(screen.getByText('Card payment')).toBeInTheDocument();
     expect(
@@ -169,7 +300,7 @@ describe('CheckoutForm', () => {
       expect(mockSubmitCheckout).toHaveBeenCalledWith(
         expect.objectContaining({
           useDefaultAddress: true,
-          paymentMethod: 'STRIPE',
+          paymentMethod: 'CARD',
         }),
       );
     });
@@ -222,5 +353,103 @@ describe('CheckoutForm', () => {
         ),
       ).toBeInTheDocument();
     });
+  });
+
+  it('shows validation errors and blocks submit when custom address is invalid', async () => {
+    const user = userEvent.setup();
+    mockCartWithItems();
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    const customRadio = screen.getByLabelText(/ship to a custom address/i);
+    await user.click(customRadio);
+
+    const submitBtn = screen.getByRole('button', { name: /place order/i });
+    await user.click(submitBtn);
+
+    expect(
+      await screen.findByText('First name is required'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Last name is required')).toBeInTheDocument();
+    expect(screen.getByText('Street address is required')).toBeInTheDocument();
+    expect(screen.getByText('City is required')).toBeInTheDocument();
+    expect(
+      screen.getByText('State or province is required'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Postal code is required')).toBeInTheDocument();
+    expect(mockSubmitCheckout).not.toHaveBeenCalled();
+  });
+
+  it('submits checkout when custom address is valid', async () => {
+    const user = userEvent.setup();
+    mockSubmitCheckout.mockResolvedValue({ orderId: 99, jobId: 'job-99' });
+    mockCartWithItems();
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    const customRadio = screen.getByLabelText(/ship to a custom address/i);
+    await user.click(customRadio);
+
+    await user.type(screen.getByLabelText(/first name/i), 'Bob');
+    await user.type(screen.getByLabelText(/last name/i), 'Jones');
+    await user.type(screen.getByLabelText(/street address/i), '456 Elm St');
+    await user.type(screen.getByLabelText(/city/i), 'Boston');
+    await user.type(screen.getByLabelText(/state \/ province/i), 'MA');
+    await user.type(screen.getByLabelText(/postal code/i), '02108');
+
+    const submitBtn = screen.getByRole('button', { name: /place order/i });
+    await user.click(submitBtn);
+
+    await waitFor(() => {
+      expect(mockSubmitCheckout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          useDefaultAddress: false,
+          shippingAddress: expect.objectContaining({
+            firstName: 'Bob',
+            lastName: 'Jones',
+            street: '456 Elm St',
+            city: 'Boston',
+            state: 'MA',
+            postalCode: '02108',
+            country: 'US',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('renders line item price and subtotal in the item currency for a EUR cart', () => {
+    const eurCart = createMockCart({
+      id: 2,
+      currency: 'EUR',
+      totalAmount: 120,
+      itemCount: 1,
+      items: [
+        createMockCartItem({
+          id: 20,
+          productId: 200,
+          productName: 'Mechanical Keyboard ISO',
+          price: 120,
+          currency: 'EUR',
+          quantity: 1,
+          subtotal: 120,
+        }),
+      ],
+    });
+
+    vi.mocked(cartHooks.useCart).mockReturnValue(
+      createMockUseCartResult({
+        cart: eurCart,
+        cartId: 2,
+        itemCount: 1,
+        totalAmount: 120,
+        subtotal: 120,
+        items: eurCart.items,
+      }),
+    );
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    expect(screen.getByText(/Qty: 1/)).toHaveTextContent(formatMoney(120, 'EUR'));
   });
 });
