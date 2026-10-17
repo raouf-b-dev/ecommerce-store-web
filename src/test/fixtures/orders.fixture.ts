@@ -128,7 +128,7 @@ export function createMockUseOrdersListResult(
     isFetching: false,
     isError: false,
     error: null,
-    refetch: vi.fn().mockResolvedValue(undefined),
+    refetch: vi.fn<UseOrdersListResult['refetch']>().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -142,7 +142,7 @@ export function createMockUseOrderDetailResult(
     isFetching: false,
     isError: false,
     error: null,
-    refetch: vi.fn().mockResolvedValue(undefined),
+    refetch: vi.fn<UseOrderDetailResult['refetch']>().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -156,7 +156,7 @@ export function createMockUseOrderPaymentResult(
     isFetching: false,
     isError: false,
     error: null,
-    refetch: vi.fn().mockResolvedValue(undefined),
+    refetch: vi.fn<UseOrderPaymentResult['refetch']>().mockResolvedValue(undefined),
     ...overrides,
   };
 }

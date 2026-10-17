@@ -33,7 +33,7 @@ npm run playwright:install
 
 Playwright reuses a storefront already running on port 3100 (`npm run dev`), which skips recompiling routes between runs. Override the binary with `PLAYWRIGHT_EXECUTABLE_PATH` if needed.
 
-Specs that need a purchasable product use `openInStockProduct` from `e2e/helpers/catalog.ts`. The seed keeps some products at zero stock, and their position on the home page is not stable.
+Specs that need a purchasable product use `openInStockProduct` from `e2e/helpers/catalog.ts`. It skips products with fewer than 20 units, because the seed keeps some products at zero or low stock and checkout specs consume stock on every run. Their position on the home page is not stable.
 
 ## Projects
 

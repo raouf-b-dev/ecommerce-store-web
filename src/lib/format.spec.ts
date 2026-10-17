@@ -20,7 +20,7 @@ describe('format', () => {
     expect(formatMoney(10, 'not-a-code')).toBe('10 not-a-code');
   });
 
-  it('returns an em dash for empty dates and passes through invalid strings', () => {
+  it('returns a dash for empty dates and passes through invalid strings', () => {
     expect(formatDate(null)).toBe('-');
     expect(formatDateTime(undefined)).toBe('-');
     expect(formatDate('not-a-date')).toBe('not-a-date');
@@ -52,4 +52,3 @@ describe('format', () => {
     expect(formatOptionalText('  SKU-1 ')).toBe('SKU-1');
   });
 });
-
