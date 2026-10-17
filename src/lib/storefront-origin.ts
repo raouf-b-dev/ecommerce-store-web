@@ -16,8 +16,10 @@ export function getStorefrontOrigin(): string {
     throw new Error(`Invalid protocol or missing hostname in origin: ${trimmed}`);
   }
 
+  // NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN=true is the opt-in for local demo images.
   if (
     isProd &&
+    process.env.NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN !== 'true' &&
     (url.hostname === 'localhost' || url.hostname === '127.0.0.1')
   ) {
     throw new Error(

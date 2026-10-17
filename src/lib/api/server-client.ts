@@ -1,7 +1,7 @@
 import 'server-only';
 
 import createClient from 'openapi-fetch';
-import { API_BASE_URL } from '@/lib/api/api-base-url';
+import { getServerApiBaseUrl } from '@/lib/api/api-base-url';
 import type { paths } from '@/lib/api/generated/schema';
 
 async function mockAwareFetch(
@@ -20,6 +20,6 @@ async function mockAwareFetch(
 }
 
 export const serverClient = createClient<paths>({
-  baseUrl: API_BASE_URL,
+  baseUrl: getServerApiBaseUrl(),
   fetch: mockAwareFetch,
 });

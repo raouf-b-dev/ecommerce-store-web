@@ -1,6 +1,6 @@
 import 'client-only';
 
-import { API_BASE_URL } from '@/lib/api/api-base-url';
+import { getBrowserApiBaseUrl } from '@/lib/api/api-base-url';
 import { throwApiErrorFromResponse } from '@/lib/api/throw-api-error';
 import { isAccessTokenUsable } from '@/lib/auth/access-token';
 import { parseAuthTokensPayload } from '@/lib/auth/parse-auth-tokens';
@@ -51,7 +51,8 @@ function notifySessionRefreshed(result: SilentRefreshResult): void {
 }
 
 async function performSilentRefresh(): Promise<SilentRefreshResult | null> {
-  const response = await fetch(`${API_BASE_URL}/v1/authentication/refresh`, {
+  const apiBaseUrl = getBrowserApiBaseUrl();
+  const response = await fetch(`${apiBaseUrl}/v1/authentication/refresh`, {
     method: 'POST',
     credentials: 'include',
     headers: {
