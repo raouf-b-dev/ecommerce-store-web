@@ -30,11 +30,11 @@ describe('ProfileReadOnlyPanel', () => {
     expect(screen.queryByRole('link', { name: /edit/i })).not.toBeInTheDocument();
   });
 
-  it('shows an em dash when phone is missing', () => {
+  it('shows a dash when phone is missing', () => {
     const user = createMockUserDetail({ phone: null });
 
     render(<ProfileReadOnlyPanel user={user} />);
 
-    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.getByText('-')).toBeInTheDocument();
   });
 });

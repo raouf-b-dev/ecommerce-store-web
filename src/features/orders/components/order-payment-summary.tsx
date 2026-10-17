@@ -6,7 +6,7 @@ import {
 } from '@/components/feedback/query-state';
 import { useOrderPayment } from '@/features/orders/hooks/use-order-payment';
 import { PAYMENT_METHOD_LABELS } from '@/features/orders/lib/payment-method-labels';
-import { formatMoney, formatStatusLabel } from '@/lib/format';
+import { formatMoney, formatOptionalText, formatStatusLabel } from '@/lib/format';
 
 type OrderPaymentSummaryProps = {
   orderId: number;
@@ -62,7 +62,7 @@ export function OrderPaymentSummary({ orderId }: OrderPaymentSummaryProps) {
           <div>
             <dt className="text-muted-foreground">Transaction ID</dt>
             <dd className="font-medium break-all text-foreground">
-              {payment.transactionId || '—'}
+              {formatOptionalText(payment.transactionId)}
             </dd>
           </div>
           <div>

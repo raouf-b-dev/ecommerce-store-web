@@ -59,7 +59,7 @@ export function createMockUseUserProfileResult(
     isFetching: false,
     isError: false,
     error: null,
-    refetch: vi.fn().mockResolvedValue(undefined),
+    refetch: vi.fn<UseUserProfileResult['refetch']>().mockResolvedValue(undefined),
     ...overrides,
   };
 }

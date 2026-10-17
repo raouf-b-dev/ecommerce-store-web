@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { assertBrowserReady } from './browser';
+import { E2E_API_BASE_URL } from './helpers/env';
 
 const catalogResponseSchema = z.object({
   items: z.array(z.unknown()),
@@ -25,7 +26,7 @@ export default async function globalSetup(): Promise<void> {
   await assertBrowserReady();
   console.log('[e2e] Browser ready.');
 
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+  const apiBaseUrl = E2E_API_BASE_URL;
 
   console.log(`[e2e] Checking API health at ${apiBaseUrl}...`);
   try {

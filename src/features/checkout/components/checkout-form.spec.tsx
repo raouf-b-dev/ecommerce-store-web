@@ -126,7 +126,7 @@ describe('CheckoutForm', () => {
 
   it('renders error alert with retry button when cart fails to load', async () => {
     const user = userEvent.setup();
-    const mockRefetch = vi.fn().mockResolvedValue(undefined);
+    const mockRefetch = vi.fn<cartHooks.UseCartResult['refetch']>().mockResolvedValue(undefined);
     vi.mocked(cartHooks.useCart).mockReturnValue(
       createMockUseCartResult({
         cart: null,

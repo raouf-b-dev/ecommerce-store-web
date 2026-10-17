@@ -73,7 +73,7 @@ export function createMockUseCartResult(
     isFetching: false,
     isError: false,
     error: null,
-    refetch: vi.fn().mockResolvedValue(undefined),
+    refetch: vi.fn<UseCartResult['refetch']>().mockResolvedValue(undefined),
     ...overrides,
   };
 }
