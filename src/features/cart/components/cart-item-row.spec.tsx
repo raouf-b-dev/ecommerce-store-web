@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CartItemRow } from './cart-item-row';
-import type { CartItemResponse } from '@/features/cart/types';
+import { createMockCartItem } from '@/test/fixtures/cart.fixture';
 
 const mockMutateUpdate = vi.fn();
 const mockMutateRemove = vi.fn();
@@ -17,16 +17,14 @@ vi.mock('@/features/cart/hooks/use-cart-mutations', () => ({
   }),
 }));
 
-const mockItem: CartItemResponse = {
+const mockItem = createMockCartItem({
   id: 1,
   productId: 10,
   productName: 'Ergonomic Desk',
-  price: 150,
-  currency: 'USD',
   quantity: 2,
   subtotal: 300,
   imageUrl: 'http://localhost:3000/desk.jpg',
-};
+});
 
 describe('CartItemRow', () => {
   beforeEach(() => {

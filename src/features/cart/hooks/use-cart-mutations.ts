@@ -49,6 +49,9 @@ export function useAddToCart() {
 
       if (!cartId) {
         const created = await createCartRequest();
+        if (created.id === null) {
+          throw new Error('Cart creation returned no cart id');
+        }
         cartId = created.id;
         queryClient.setQueryData(cartKeys.current(userId), created);
       }

@@ -29,7 +29,7 @@ Customer storefront for `ecommerce-store-api`. It consumes the versioned HTTP co
 ## Local environment
 
 - `npm run dev` and `npm run start` both bind `http://localhost:3100`; they cannot run together.
-- `NEXT_PUBLIC_API_BASE_URL` is the API origin (default `http://localhost:3000`), which must allow `http://localhost:3100` with `credentials: true`. `NEXT_PUBLIC_STOREFRONT_ORIGIN` feeds `metadataBase`; a production build fails when it is missing or points at localhost (CI sets `https://storefront.test`). `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS` adds image origins.
+- `NEXT_PUBLIC_API_BASE_URL` is the API origin (default `http://localhost:3000`), which must allow `http://localhost:3100` with `credentials: true`. A production build and `next typegen` fail without it; CI sets `https://api.test`. `NEXT_PUBLIC_STOREFRONT_ORIGIN` feeds `metadataBase`; a production build fails when it is missing or points at localhost (CI sets `https://storefront.test`). `NEXT_PUBLIC_IMAGE_ALLOWED_HOSTS` adds image origins.
 - `npm run env:init` creates `.env.local` from `.env.example`. Browser configuration uses `NEXT_PUBLIC_*` only; never expose secrets, never commit `.secrets`.
 - `npm run dev:mock` runs without a backend (MSW, demo login). Playwright needs a seeded API. Boot, Docker, and credentials: the API repo's `README.md`, `docs/development/LOCAL-SETUP.md`, and `docs/development/SEEDING.md`.
 

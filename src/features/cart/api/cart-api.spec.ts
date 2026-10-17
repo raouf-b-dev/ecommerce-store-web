@@ -9,6 +9,7 @@ import {
   updateCartItemRequest,
 } from './cart-api';
 import type { CartResponse } from '@/features/cart/types';
+import { createMockCartItem } from '@/test/fixtures/cart.fixture';
 
 const mockClient = vi.hoisted(() => ({
   POST: vi.fn(),
@@ -26,16 +27,14 @@ describe('cart-api', () => {
     id: 1,
     userId: 10,
     items: [
-      {
+      createMockCartItem({
         id: 100,
         productId: 5,
-        productName: 'Mechanical Keyboard',
         price: 89.99,
-        currency: 'USD',
         quantity: 2,
         subtotal: 179.98,
         imageUrl: 'https://example.com/keyboard.jpg',
-      },
+      }),
     ],
     itemCount: 2,
     subtotal: 179.98,

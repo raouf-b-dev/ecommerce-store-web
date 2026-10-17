@@ -255,6 +255,7 @@ export const handlers = [
         quantity,
         subtotal,
         imageUrl: product.imageUrl ?? null,
+        sku: product.sku,
       });
     }
     return HttpResponse.json(cartResponse());
@@ -460,12 +461,9 @@ export const handlers = [
       shippingAddress,
       paymentMethod: body.paymentMethod,
       items: cart.items.map((item) => {
-        const product = store.products.find(
-          (candidate) => candidate.id === item.productId,
-        );
         return {
           productId: item.productId,
-          sku: product?.sku ?? `SKU-${item.productId}`,
+          sku: item.sku,
           title: item.productName,
           unitPrice: item.price,
           quantity: item.quantity,

@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { OrderDetailContent } from './order-detail-content';
 import {
   createMockOrderDetail,
+  createMockOrderItemDetail,
   createMockPaymentDetail,
   createMockUseOrderDetailResult,
   createMockUseOrderPaymentResult,
@@ -82,4 +83,21 @@ describe('OrderDetailContent', () => {
     expect(screen.getByText('Payment')).toBeInTheDocument();
     expect(screen.getByText('Card')).toBeInTheDocument();
   });
+
+  it('renders a dash for null shipping address and SKU', () => {
+    mockUseOrderDetail.mockReturnValue(
+      createMockUseOrderDetailResult({
+        order: createMockOrderDetail({
+          shippingAddress: null,
+          items: [createMockOrderItemDetail({ sku: null })],
+        }),
+      }),
+    );
+
+    render(<OrderDetailContent orderId={123} />);
+
+    expect(screen.getAllByText('-')).toHaveLength(2);
+    expect(screen.queryByText(/null/i)).not.toBeInTheDocument();
+  });
 });
+

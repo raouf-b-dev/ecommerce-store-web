@@ -13,6 +13,7 @@ import * as cartApi from '@/features/cart/api/cart-api';
 import { cartKeys } from '@/features/cart/hooks/cart-keys';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
 import type { CartResponse } from '@/features/cart/types';
+import { createMockCartItem } from '@/test/fixtures/cart.fixture';
 
 const mockUseAuth = vi.fn();
 const mockRouterRefresh = vi.fn();
@@ -126,16 +127,14 @@ describe('Cart hooks', () => {
         createdAt: '2026-09-11T00:00:00Z',
         updatedAt: '2026-09-11T00:00:00Z',
         items: [
-          {
+          createMockCartItem({
             id: 1,
             productId: 101,
             productName: 'Product 1',
             price: 2500,
-            currency: 'USD',
             quantity: 2,
             subtotal: 5000,
-            imageUrl: null,
-          },
+          }),
         ],
       });
 
@@ -175,6 +174,26 @@ describe('Cart hooks', () => {
         quantity: 2,
       });
       expect(mockRouterRefresh).toHaveBeenCalled();
+    });
+
+    it('rejects when cart creation returns no cart id', async () => {
+      vi.mocked(cartApi.getCurrentCartRequest).mockResolvedValue(null);
+      vi.mocked(cartApi.createCartRequest).mockResolvedValue({
+        ...emptyCart,
+        id: null,
+      });
+
+      const { result } = renderHook(() => useAddToCart(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await expect(
+          result.current.mutateAsync({ productId: 101, quantity: 2 }),
+        ).rejects.toThrow('Cart creation returned no cart id');
+      });
+
+      expect(cartApi.addItemToCartRequest).not.toHaveBeenCalled();
     });
 
     it('uses cached current cart without creating', async () => {
