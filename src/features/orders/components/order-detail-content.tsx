@@ -11,7 +11,12 @@ import { OrderDetailItems } from '@/features/orders/components/order-detail-item
 import { OrderPaymentSummary } from '@/features/orders/components/order-payment-summary';
 import { useOrderDetail } from '@/features/orders/hooks/use-order-detail';
 import { ORDERS_LIST_HREF } from '@/features/orders/lib/order-list-filters';
-import { formatDateTime, formatMoney, formatShipping } from '@/lib/format';
+import {
+  formatDateTime,
+  formatMoney,
+  formatOptionalText,
+  formatShipping,
+} from '@/lib/format';
 
 type OrderDetailContentProps = {
   orderId: number;
@@ -100,7 +105,7 @@ export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
                 Shipping address
               </h2>
               <p className="whitespace-pre-line text-sm text-muted-foreground">
-                {order.shippingAddress}
+                {formatOptionalText(order.shippingAddress)}
               </p>
             </section>
 

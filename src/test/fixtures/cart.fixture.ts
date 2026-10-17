@@ -14,6 +14,7 @@ export function createMockCartItem(
     quantity: 1,
     subtotal: 150,
     imageUrl: null,
+    sku: 'KB-MECH-01',
     ...overrides,
   };
 }

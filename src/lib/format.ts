@@ -64,6 +64,14 @@ export function formatDateTime(value: string | null | undefined): string {
   return date.toLocaleString(SHOPPER_LOCALE);
 }
 
+export function formatOptionalText(value: string | null | undefined): string {
+  if (value === null || value === undefined) {
+    return '-';
+  }
+  const trimmed = value.trim();
+  return trimmed === '' ? '-' : trimmed;
+}
+
 export function formatStatusLabel(status: string): string {
   return status.replaceAll('_', ' ');
 }
