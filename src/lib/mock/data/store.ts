@@ -58,7 +58,7 @@ export type MockOrder = {
   paymentMethod: OrderDetailResponseDto['paymentMethod'];
   items: Array<{
     productId: number;
-    sku: string;
+    sku: string | null;
     title: string;
     unitPrice: number;
     quantity: number;

@@ -1,5 +1,5 @@
 import { ProductImageFrame } from '@/components/media/product-image';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatOptionalText } from '@/lib/format';
 import type { OrderItemDetailResponseDto } from '@/features/orders/types';
 
 type OrderDetailItemsProps = {
@@ -29,7 +29,7 @@ export function OrderDetailItems({ items, currency }: OrderDetailItemsProps) {
         </thead>
         <tbody className="divide-y">
           {items.map((item) => (
-            <tr key={`${item.productId}-${item.sku}`}>
+            <tr key={item.productId}>
               <td className="py-3 pr-4 font-medium text-foreground">
                 <div className="flex items-center gap-3">
                   <ProductImageFrame
@@ -41,7 +41,9 @@ export function OrderDetailItems({ items, currency }: OrderDetailItemsProps) {
                   <span>{item.title}</span>
                 </div>
               </td>
-              <td className="py-3 pr-4 text-muted-foreground">{item.sku}</td>
+              <td className="py-3 pr-4 text-muted-foreground">
+                {formatOptionalText(item.sku)}
+              </td>
               <td className="py-3 pr-4 text-muted-foreground">
                 {item.quantity} × {formatMoney(item.unitPrice, currency)}
               </td>

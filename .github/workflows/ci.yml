@@ -50,6 +50,8 @@ jobs:
 
       - name: Run TypeScript typecheck
         run: npm run typecheck
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.test
 
   unit-tests:
     name: Unit Tests
@@ -81,6 +83,7 @@ jobs:
       - name: Run build
         run: npm run build
         env:
+          NEXT_PUBLIC_API_BASE_URL: https://api.test
           NEXT_PUBLIC_STOREFRONT_ORIGIN: https://storefront.test
 
   audit:

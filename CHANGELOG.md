@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Generated API client synced with API v0.11.0: order item SKU, customer name and shipping address may be null and render as '-'; cart items carry a nullable sku.
+
+### Fixed
+
+- A production build without NEXT_PUBLIC_API_BASE_URL fails instead of calling localhost (CI sets https://api.test).
+
 ## [0.4.0] - 2026-10-15
 
 Works with ecommerce-store-api v0.10.0 or later.

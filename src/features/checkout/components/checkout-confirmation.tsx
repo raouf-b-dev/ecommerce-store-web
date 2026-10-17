@@ -24,6 +24,7 @@ import { ProductImageFrame } from '@/components/media/product-image';
 import {
   formatDateTime,
   formatMoney,
+  formatOptionalText,
   formatShipping,
   formatStatusLabel,
   shippingSentence,
@@ -274,7 +275,7 @@ export function CheckoutConfirmation({
             <div className="divide-y rounded-lg border">
               {order.items.map((item) => (
                 <div
-                  key={`${item.productId}-${item.sku}`}
+                  key={item.productId}
                   className="flex items-center gap-4 p-4 text-sm"
                 >
                   <ProductImageFrame
@@ -306,10 +307,10 @@ export function CheckoutConfirmation({
                 Shipping Destination
               </h4>
               <p className="font-medium text-sm text-foreground">
-                {order.userName}
+                {formatOptionalText(order.userName)}
               </p>
               <p className="text-xs text-muted-foreground whitespace-pre-line">
-                {order.shippingAddress}
+                {formatOptionalText(order.shippingAddress)}
               </p>
             </div>
 

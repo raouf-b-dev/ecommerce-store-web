@@ -3,6 +3,7 @@ import {
   formatDate,
   formatDateTime,
   formatMoney,
+  formatOptionalText,
   formatShipping,
   formatStatusLabel,
   shippingSentence,
@@ -44,4 +45,11 @@ describe('format', () => {
   it('humanizes status codes', () => {
     expect(formatStatusLabel('NEEDS_ATTENTION')).toBe('NEEDS ATTENTION');
   });
+
+  it('formats optional text as a dash when null or blank', () => {
+    expect(formatOptionalText(null)).toBe('-');
+    expect(formatOptionalText('   ')).toBe('-');
+    expect(formatOptionalText('  SKU-1 ')).toBe('SKU-1');
+  });
 });
+

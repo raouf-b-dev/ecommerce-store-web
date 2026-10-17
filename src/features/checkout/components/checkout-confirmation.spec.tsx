@@ -3,7 +3,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { CheckoutConfirmation } from './checkout-confirmation';
 import * as pollingHook from '@/features/checkout/hooks/use-order-polling';
 import { createMockUseOrderPollingResult } from '@/test/fixtures/checkout.fixture';
-import { createMockOrderDetail } from '@/test/fixtures/orders.fixture';
+import {
+  createMockOrderDetail,
+  createMockOrderItemDetail,
+} from '@/test/fixtures/orders.fixture';
 
 vi.mock('@/features/checkout/hooks/use-order-polling', () => ({
   useOrderPolling: vi.fn(),
@@ -100,5 +103,23 @@ describe('CheckoutConfirmation', () => {
     expect(
       screen.getByRole('link', { name: /continue shopping/i }),
     ).toBeInTheDocument();
+  });
+
+  it('renders a dash for null customer name and shipping address', () => {
+    vi.mocked(pollingHook.useOrderPolling).mockReturnValue(
+      createMockUseOrderPollingResult({
+        order: createMockOrderDetail({
+          status: 'confirmed',
+          userName: null,
+          shippingAddress: null,
+          items: [createMockOrderItemDetail({ sku: null })],
+        }),
+      }),
+    );
+
+    render(<CheckoutConfirmation orderId={123} />);
+
+    expect(screen.getAllByText('-')).toHaveLength(2);
+    expect(screen.getByText('Ergonomic Desk Chair')).toBeInTheDocument();
   });
 });
