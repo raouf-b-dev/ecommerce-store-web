@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - develop
+    tags: ['v*.*.*']
   pull_request:
   workflow_dispatch:
     inputs:
@@ -304,3 +305,107 @@ jobs:
           fi
 
           echo "All checks passed successfully!"
+
+  # Docker jobs mirror ecommerce-store-api. The image is the local demo build:
+  # next build inlines the NEXT_PUBLIC_* origins below, and API_BASE_URL /
+  # API_INTERNAL_BASE_URL override the API origin at run time.
+  docker-validate:
+    name: Docker Validate
+    runs-on: ubuntu-latest
+    needs: [ci]
+    # ci runs with always(), so the implicit success() check would skip this job;
+    # gate on ci's result instead.
+    if: ${{ !cancelled() && needs.ci.result == 'success' && github.event_name == 'pull_request' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      # linux/amd64 only: the arm64 build runs under QEMU and is left to Docker Publish.
+      - name: Build production image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ecommerce-store-web:ci-${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
+            NEXT_PUBLIC_STOREFRONT_ORIGIN=http://localhost:3100
+            NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN=true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test image
+        env:
+          IMAGE: ecommerce-store-web:ci-${{ github.sha }}
+        run: |
+          docker run -d --name web -p 3100:3100 -e API_BASE_URL=https://api.example.test "$IMAGE"
+          for _ in $(seq 1 30); do
+            if curl -fs -o /dev/null http://localhost:3100/icon.svg; then
+              break
+            fi
+            sleep 1
+          done
+          curl -fsS -o /dev/null http://localhost:3100/icon.svg
+          curl -fsS http://localhost:3100/runtime-config.js | grep -F '"apiBaseUrl":"https://api.example.test"'
+          docker rm -f web
+
+  docker-publish:
+    name: Docker Publish
+    runs-on: ubuntu-latest
+    needs: [ci]
+    if: ${{ !cancelled() && needs.ci.result == 'success' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')) }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # npm ci and next build run per platform, so arm64 needs emulation.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ghcr.io/raouf-b-dev/ecommerce-store-web
+          tags: |
+            type=sha,prefix=sha-,enable=${{ github.ref_type == 'branch' }}
+            type=semver,pattern={{version}}
+
+      - name: Build and push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
+            NEXT_PUBLIC_STOREFRONT_ORIGIN=http://localhost:3100
+            NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN=true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          sbom: true
+          provenance: mode=max

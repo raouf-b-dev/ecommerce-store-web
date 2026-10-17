@@ -13,6 +13,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   agentRules: false,
+  // The Dockerfile sets NEXT_OUTPUT_STANDALONE=true. `next start` (npm start,
+  // test:e2e:prod) does not support standalone output, so other builds keep it off.
+  output:
+    process.env.NEXT_OUTPUT_STANDALONE === 'true' ? 'standalone' : undefined,
   cacheComponents: true,
   reactCompiler: true,
   typedRoutes: true,
@@ -24,7 +28,11 @@ const nextConfig: NextConfig = {
     // allowed origin would turn the optimizer into an open proxy.
     maximumRedirects: 0,
     maximumResponseBody: 5_000_000,
-    dangerouslyAllowLocalIP: process.env.NODE_ENV !== 'production',
+    // Production blocks local and private IPs (SSRF). IMAGES_ALLOW_LOCAL_IP=true
+    // is the opt-in for a private network; standalone output freezes it at build.
+    dangerouslyAllowLocalIP:
+      process.env.NODE_ENV !== 'production' ||
+      process.env.IMAGES_ALLOW_LOCAL_IP === 'true',
   },
   async headers() {
     return [
