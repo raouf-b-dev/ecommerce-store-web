@@ -7,13 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-17
+
+Works with ecommerce-store-api v0.10.0 or later. The generated client matches v0.11.0.
+
 ### Changed
 
-- Generated API client synced with API v0.11.0: order item SKU, customer name and shipping address may be null and render as '-'; cart items carry a nullable sku.
+- **Breaking:** production builds require `NEXT_PUBLIC_API_BASE_URL` and fail without it instead of calling localhost; CI sets `https://api.test` (#94).
+- Generated API client synced with API v0.11.0: order item SKU, customer name and shipping address may be null and render as `-`; cart items carry a nullable `sku` (#94).
+- README storefront walkthrough image updated (#89).
+- Dependency updates: production deps (TanStack Query, lucide-react, radix-ui, react-hook-form, zod) and dev deps (Playwright 1.64, Vitest 5.0.4, ESLint 10.12 and others) (#85, #86).
 
 ### Fixed
 
-- A production build without NEXT_PUBLIC_API_BASE_URL fails instead of calling localhost (CI sets https://api.test).
+- Add-to-cart fails with a clear error when cart creation returns no cart id (#94).
+- `npm run verify` finds the npm CLI through `npm_execpath` on Windows and Unix, and MSW install scripts are allowed so `npm install` stays quiet (#91).
+
+[Compare v0.4.0...v0.5.0](https://github.com/raouf-b-dev/ecommerce-store-web/compare/v0.4.0...v0.5.0)
 
 ## [0.4.0] - 2026-10-15
 
