@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-18
+
+Works with ecommerce-store-api v0.10.0 or later. The generated client matches API v0.11.0.
+
+### Added
+
+- Production Docker image (Next.js standalone, port 3100) published to `ghcr.io/raouf-b-dev/ecommerce-store-web` for linux/amd64 and linux/arm64 on pushes to master and `v*` tags. Run-time `API_BASE_URL` (browser) and server-only `API_INTERNAL_BASE_URL` override the build-time API origin, and `NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN` / `IMAGES_ALLOW_LOCAL_IP` are explicit opt-ins, off by default (#100).
+
+### Changed
+
+- Stop tracking generated `next-env.d.ts` (#99).
+- E2E stock headroom, typed refetch stubs, and dash fallbacks for nullable API fields (#98).
+
+[Compare v0.5.0...v0.6.0](https://github.com/raouf-b-dev/ecommerce-store-web/compare/v0.5.0...v0.6.0)
+
 ## [0.5.0] - 2026-10-17
 
 Works with ecommerce-store-api v0.10.0 or later. The generated client matches v0.11.0.

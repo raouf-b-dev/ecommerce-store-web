@@ -47,6 +47,24 @@ describe('getStorefrontOrigin', () => {
     );
   });
 
+  it('allows a loopback origin in production with NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN=true', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_STOREFRONT_ORIGIN', 'http://localhost:3100');
+    vi.stubEnv('NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN', 'true');
+
+    expect(getStorefrontOrigin()).toBe('http://localhost:3100');
+  });
+
+  it('keeps rejecting a loopback origin for any other opt-in value', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_STOREFRONT_ORIGIN', 'http://127.0.0.1:3100');
+    vi.stubEnv('NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN', '1');
+
+    expect(() => getStorefrontOrigin()).toThrow(
+      /cannot be localhost in production/,
+    );
+  });
+
   it('returns valid public URL in production', () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('NEXT_PUBLIC_STOREFRONT_ORIGIN', 'https://ecommerce.store.com');

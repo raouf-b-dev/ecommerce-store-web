@@ -1,7 +1,7 @@
 import 'client-only';
 
 import createClient from 'openapi-fetch';
-import { API_BASE_URL } from '@/lib/api/api-base-url';
+import { getBrowserApiBaseUrl } from '@/lib/api/api-base-url';
 import type { paths } from '@/lib/api/generated/schema';
 import {
   ensureFreshAccessToken,
@@ -14,7 +14,7 @@ import {
 } from '@/lib/auth/auth-routes';
 
 export const browserClient = createClient<paths>({
-  baseUrl: API_BASE_URL,
+  baseUrl: getBrowserApiBaseUrl(),
   credentials: 'include',
 });
 

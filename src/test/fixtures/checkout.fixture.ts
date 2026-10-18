@@ -31,8 +31,8 @@ export function createMockUseOrderPollingResult(
     isError: false,
     error: null,
     isTimedOut: false,
-    handleManualRefetch: vi.fn(),
-    refetch: vi.fn().mockResolvedValue(undefined),
+    handleManualRefetch: vi.fn<UseOrderPollingResult['handleManualRefetch']>(),
+    refetch: vi.fn<UseOrderPollingResult['refetch']>().mockResolvedValue(undefined),
     ...overrides,
   };
 }

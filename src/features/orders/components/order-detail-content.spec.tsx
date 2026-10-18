@@ -100,4 +100,3 @@ describe('OrderDetailContent', () => {
     expect(screen.queryByText(/null/i)).not.toBeInTheDocument();
   });
 });
-

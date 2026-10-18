@@ -32,7 +32,7 @@ describe('CheckoutConfirmation', () => {
   });
 
   it('renders timeout notice with manual check button when timed out', () => {
-    const mockRefetch = vi.fn();
+    const mockRefetch = vi.fn<pollingHook.UseOrderPollingResult['handleManualRefetch']>();
     vi.mocked(pollingHook.useOrderPolling).mockReturnValue(
       createMockUseOrderPollingResult({
         order: createMockOrderDetail({ status: 'pending_payment' }),

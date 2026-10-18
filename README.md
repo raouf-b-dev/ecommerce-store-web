@@ -46,7 +46,7 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 | Application code | Port **3100**. Catalog, cart, checkout, orders, and account are live (mock payments). Further hardening is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). |
 | Payments         | Mock adapter behind a swappable hexagonal port (no live card UI / Stripe Elements). |
 | Guest cart       | None. Add to cart requires a signed-in account because the API has no guest cart. |
-| Hosted demo      | None.                                                                  |
+| Hosted demo      | No hosted URL yet; use the Docker image below or [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). |
 
 ---
 
@@ -70,6 +70,20 @@ Requires Node.js 24+ and npm 11+ (see `.nvmrc`).
 Regenerate OpenAPI types (API must be running): `npm run api:generate`.
 
 Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md). Security baseline: [`SECURITY.md`](SECURITY.md).
+
+### Docker image (GHCR)
+
+Published as `ghcr.io/raouf-b-dev/ecommerce-store-web` on pushes to `master` and on `v*` tags (linux/amd64 and linux/arm64). Listens on **3100**. Published builds bake `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000` and `NEXT_PUBLIC_STOREFRONT_ORIGIN=http://localhost:3100` with `NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN=true`. Override at run time with `API_BASE_URL` (browser, via `/runtime-config.js`) and `API_INTERNAL_BASE_URL` (server-side fetches).
+
+```bash
+docker pull ghcr.io/raouf-b-dev/ecommerce-store-web:0.6.0
+docker run --rm -p 3100:3100 \
+  -e API_BASE_URL=http://localhost:3000 \
+  -e API_INTERNAL_BASE_URL=http://localhost:3000 \
+  ghcr.io/raouf-b-dev/ecommerce-store-web:0.6.0
+```
+
+For the full stack, use ecommerce-platform.
 
 ---
 

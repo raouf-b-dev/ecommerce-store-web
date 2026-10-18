@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import Script from 'next/script';
 import { Suspense } from 'react';
 import { CacheComponentsDynamicMarker } from '@/components/seo/cache-components-dynamic-marker';
 import { FocusMainOnNavigate } from '@/components/layout/focus-main-on-navigate';
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <CacheComponentsDynamicMarker />
       </Suspense>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
+        <Script src="/runtime-config.js" strategy="beforeInteractive" />
         <Providers>
           <Suspense fallback={null}>
             <FocusMainOnNavigate />

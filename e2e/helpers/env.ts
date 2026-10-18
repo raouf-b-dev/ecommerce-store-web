@@ -37,3 +37,12 @@ export function requireEnv(name: string): string {
   }
   return value;
 }
+
+/**
+ * API origin for direct e2e requests. Same development default as
+ * src/lib/api/api-base-url.ts, without its production guard, so loading a spec
+ * never throws. CI sets NEXT_PUBLIC_API_BASE_URL.
+ */
+export const E2E_API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || 'http://localhost:3000';
+

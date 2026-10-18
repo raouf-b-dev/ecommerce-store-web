@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { UserDetailResponseDto } from '@/features/account/types';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, formatOptionalText } from '@/lib/format';
 
 type ProfileReadOnlyPanelProps = {
   user: UserDetailResponseDto;
@@ -30,14 +30,14 @@ function ProfileField({
 }
 
 export function ProfileReadOnlyPanel({ user }: ProfileReadOnlyPanelProps) {
-  const phone = user.phone?.trim() ? user.phone : '—';
+  const phone = formatOptionalText(user.phone);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Profile</CardTitle>
         <CardDescription>
-          Profile editing is not available through this storefront — the contract
+          Profile editing is not available through this storefront. The contract
           does not expose self-update for shoppers.
         </CardDescription>
       </CardHeader>
