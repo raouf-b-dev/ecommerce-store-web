@@ -19,6 +19,7 @@
 ## Table of Contents
 
 - [What this is](#what-this-is)
+- [Live demo](#live-demo)
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
 - [Screenshots](#screenshots)
@@ -46,7 +47,23 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 | Application code | Port **3100**. Catalog, cart, checkout, orders, and account are live (mock payments). Further hardening is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). |
 | Payments         | Mock adapter behind a swappable hexagonal port (no live card UI / Stripe Elements). |
 | Guest cart       | None. Add to cart requires a signed-in account because the API has no guest cart. |
-| Hosted demo      | No hosted URL yet; use the Docker image below or [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). |
+| Hosted demo      | Hybrid deploy: register on the shop (see [Live demo](#live-demo)). Local full stack: [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). |
+
+---
+
+<a id="live-demo"></a>
+
+## Live demo
+
+Operator-filled placeholders after the hybrid hosted deploy:
+
+| What | URL |
+| :--- | :-- |
+| Storefront | https://shop.example.com |
+
+**Hosted shared demo:** there is no public seeded shopper password. **Register** with your own email, then try cart and checkout (mock payments). Catalog baselines reset on a schedule; your account is not deleted by reset.
+
+Architecture, admin viewer credentials, and local Compose: [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). Local / seed env details: [API SEEDING.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/develop/docs/development/SEEDING.md) (for contributors running Compose, not for hosted visitors).
 
 ---
 

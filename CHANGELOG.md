@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Live demo README section: hosted storefront visitors register their own accounts (no public seeded shopper password); links to platform and API SEEDING for local Compose.
+
 ## [0.6.0] - 2026-10-18
 
 Works with ecommerce-store-api v0.10.0 or later. The generated client matches API v0.11.0.
