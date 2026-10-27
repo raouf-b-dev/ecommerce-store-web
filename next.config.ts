@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   typedRoutes: true,
   serverExternalPackages: ['msw'],
+  // msw 3 `exports['./browser']` is `{ node: null, types, default }`, which
+  // Turbopack fails to resolve for the mock worker (src/lib/mock/browser.ts).
+  // Point it at the file msw ships. Drop this once Turbopack/msw resolve it.
+  turbopack: {
+    resolveAlias: {
+      'msw/browser': './node_modules/msw/lib/browser/index.js',
+    },
+  },
   images: {
     remotePatterns: getConfiguredImageRemotePatterns(),
     localPatterns: IMAGE_LOCAL_PATTERNS,
