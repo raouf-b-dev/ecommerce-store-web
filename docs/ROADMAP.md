@@ -196,7 +196,7 @@ Pick the first unchecked phase. Phases 14 and 14c do not block the release gate.
 - [x] Feature modules must **not** import `@/lib/mock/*`. Allowed touchpoints: client provider (dynamic import) and login page (lazy demo chrome)
 - [x] **Inline** env gate before any MSW import so production bundling drops the chunk. Do not hide the gate behind a helper the bundler cannot tree-shake
 - [x] Browser MSW **does not** intercept RSC `fetch`. Also start MSW in the **Node** runtime via `dev:mock` preload (`NODE_OPTIONS --import`, not `instrumentation.ts`) so catalog pages work. A client-only worker mock is an incomplete storefront demo.
-- [x] Worker / interceptor: `onUnhandledRequest: 'bypass'`, `quiet: true`
+- [x] Worker / interceptor: `onUnhandledFrame: 'bypass'`, `quiet: true`
 - [x] Demo login chrome lazy-loaded only when mock is on. Persist a **flag** in `sessionStorage`, not an access token
 - [x] Realistic seed: active catalog, categories, one customer, cart, checkout → confirmed order
 - [x] Scripts: `dev:mock`. Do **not** add `build:mock` / `start:mock` for a public mock host; the Node-runtime MSW preload rules out a static export, and public hosting waits on live API staging (Phase 14c).

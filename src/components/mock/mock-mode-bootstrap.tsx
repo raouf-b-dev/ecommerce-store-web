@@ -9,7 +9,7 @@ function ensureMockWorkerStarted(): Promise<void> {
     mockWorkerStartPromise = import('@/lib/mock/browser').then(
       async ({ worker }) => {
         await worker.start({
-          onUnhandledRequest: 'bypass',
+          onUnhandledFrame: 'bypass',
           quiet: true,
         });
       },
