@@ -65,12 +65,18 @@ export function StorefrontUserMenu({ onNavigate }: StorefrontUserMenuProps) {
           <button
             type="button"
             className="group flex cursor-pointer items-center gap-2 rounded-full border border-border/80 bg-background/80 py-1 pl-1 pr-2.5 shadow-xs transition-all hover:border-border hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label={`User account menu for ${email}`}
           >
-            <span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-xs">
+            <span className="sr-only">User account menu for {email}</span>
+            <span
+              aria-hidden="true"
+              className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-xs"
+            >
               {initial}
             </span>
-            <span className="hidden max-w-[120px] truncate text-xs font-medium text-foreground sm:inline-block">
+            <span
+              aria-hidden="true"
+              className="hidden max-w-[120px] truncate text-xs font-medium text-foreground sm:inline-block"
+            >
               {emailPrefix}
             </span>
             <ChevronDown
