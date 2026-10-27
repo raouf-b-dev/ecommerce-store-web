@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Node version guardrails: `.npmrc` with `engine-strict=true`, a Dependabot `docker` entry that ignores Node majors, and a Node version policy in CONTRIBUTING (`.nvmrc` is the single source).
 - Live demo README section: hosted storefront visitors register their own accounts (no public seeded shopper password); links to platform and API SEEDING for local Compose.
+
+### Changed
+
+- Move to Node.js 26 LTS (npm 11.6+): `.nvmrc`, `engines`, and the `Dockerfile` base image, now pinned to `node:26.12.1-alpine3.24` by digest. The CI setup action uses `actions/setup-node` v7.1.0.
 
 ## [0.6.0] - 2026-10-18
 

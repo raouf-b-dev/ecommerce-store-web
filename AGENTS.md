@@ -1,6 +1,6 @@
 # ecommerce-store-web
 
-Customer storefront for `ecommerce-store-api`. Next.js 16 App Router (Cache Components, React Compiler, typed routes), React 19, TypeScript (strict), TanStack Query, React Hook Form + Zod, Tailwind v4 + shadcn/ui, `openapi-fetch`. Vitest + Testing Library, Playwright. Node 24+.
+Customer storefront for `ecommerce-store-api`. Next.js 16 App Router (Cache Components, React Compiler, typed routes), React 19, TypeScript (strict), TanStack Query, React Hook Form + Zod, Tailwind v4 + shadcn/ui, `openapi-fetch`. Vitest + Testing Library, Playwright. Node.js LTS (see `.nvmrc`, currently 26).
 
 ## Checks
 
