@@ -21,5 +21,5 @@ export function startMockServer(): void {
   }
   started = true;
   registerNodeMockServer(server);
-  server.listen({ onUnhandledRequest: 'bypass' });
+  server.listen({ onUnhandledFrame: 'bypass' });
 }
