@@ -32,8 +32,8 @@
     "assets:capture": "npm run assets:stills && npm run assets:walkthrough"
   },
   "engines": {
-    "node": ">=24.0.0",
-    "npm": ">=11.0.0"
+    "node": ">=26.0.0",
+    "npm": ">=11.6.0"
   },
   "repository": {
     "type": "git",

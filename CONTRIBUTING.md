@@ -17,7 +17,7 @@ Do not push directly to `master` or `develop`. Force-pushes and branch deletion 
 
 ## Local setup
 
-Requires Node.js 24+ and npm 11+ (see `.nvmrc`).
+Requires Node.js LTS (see `.nvmrc`, currently 26) and npm 11.6+.
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/ecommerce-store-web.git
@@ -34,6 +34,10 @@ npm run env:init
 | Verify mock handlers (no API) | `npx vitest run src/lib/mock` - contract tests for filters, auth, and 501 fallbacks |
 
 `npm run dev` talks to the real API. `npm run dev:mock` enables MSW (`NEXT_PUBLIC_ENABLE_MOCK=true`) with a Node preload for RSC catalog requests plus a browser worker for client mutations; unimplemented mutating routes return **501** instead of silently hitting the API. Demo quick-login UI appears only in mock mode.
+
+### Node version policy
+
+`.nvmrc` is the single source of truth for the Node.js version and tracks the current Active LTS. CI reads it through `.github/actions/setup-node-ci`. The `Dockerfile` base image (pinned by tag and digest) and `engines` in `package.json` follow it, and `.npmrc` sets `engine-strict=true` so `npm ci` fails on an older Node or npm. Dependabot bumps Node patches and minors in the `Dockerfile` but ignores Node majors. To move to a new LTS, update `.nvmrc`, the `Dockerfile` `FROM` lines, and `engines` (then `npm install --package-lock-only`) in one PR.
 
 Details: [README](README.md). Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md).
 
