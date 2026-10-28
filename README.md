@@ -19,6 +19,7 @@
 ## Table of Contents
 
 - [What this is](#what-this-is)
+- [Hosted demo](#hosted-demo)
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
 - [Screenshots](#screenshots)
@@ -46,7 +47,17 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 | Application code | Port **3100**. Catalog, cart, checkout, orders, and account are live (mock payments). Further hardening is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). |
 | Payments         | Mock adapter behind a swappable hexagonal port (no live card UI / Stripe Elements). |
 | Guest cart       | None. Add to cart requires a signed-in account because the API has no guest cart. |
-| Hosted demo      | No hosted URL yet; use the Docker image below or [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). |
+| Hosted demo      | Coming soon (see [Hosted demo](#hosted-demo)). Local full stack: [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). |
+
+---
+
+<a id="hosted-demo"></a>
+
+## Hosted demo
+
+Hosted demo: coming soon. Until then, run the full stack locally with the [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform) repo (`docker compose up`).
+
+Sign-in accounts for a local run: [platform README](https://github.com/raouf-b-dev/ecommerce-platform#local-demo-sign-in-demo_read_onlyfalse). Seed env keys: [API SEEDING.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/develop/docs/development/SEEDING.md).
 
 ---
 
@@ -54,7 +65,7 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 
 ## Quick start
 
-Requires Node.js 24+ and npm 11+ (see `.nvmrc`).
+Requires Node.js LTS (see `.nvmrc`, currently 26) and npm 12.2.1, pinned through `devEngines.packageManager` in `package.json` because no Node release bundles npm 12 yet. Run `npm install -g npm@12.2.1` once; see [CONTRIBUTING](CONTRIBUTING.md#npm-version-policy).
 
 1. `npm ci`
 2. `npm run env:init` (copies `.env.example` to `.env.local`; create `.secrets` for later Playwright)
@@ -76,11 +87,11 @@ Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md). Security bas
 Published as `ghcr.io/raouf-b-dev/ecommerce-store-web` on pushes to `master` and on `v*` tags (linux/amd64 and linux/arm64). Listens on **3100**. Published builds bake `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000` and `NEXT_PUBLIC_STOREFRONT_ORIGIN=http://localhost:3100` with `NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN=true`. Override at run time with `API_BASE_URL` (browser, via `/runtime-config.js`) and `API_INTERNAL_BASE_URL` (server-side fetches).
 
 ```bash
-docker pull ghcr.io/raouf-b-dev/ecommerce-store-web:0.6.0
+docker pull ghcr.io/raouf-b-dev/ecommerce-store-web:0.7.0
 docker run --rm -p 3100:3100 \
   -e API_BASE_URL=http://localhost:3000 \
   -e API_INTERNAL_BASE_URL=http://localhost:3000 \
-  ghcr.io/raouf-b-dev/ecommerce-store-web:0.6.0
+  ghcr.io/raouf-b-dev/ecommerce-store-web:0.7.0
 ```
 
 For the full stack, use ecommerce-platform.

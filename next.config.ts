@@ -21,6 +21,16 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   typedRoutes: true,
   serverExternalPackages: ['msw'],
+  // msw 3 `exports['./browser']` is `{ node: null, types, default }`, which
+  // Turbopack fails to resolve for the mock worker (src/lib/mock/browser.ts).
+  // Point it at the file msw ships. Drop this once Turbopack/msw resolve it.
+  // The SSR pass of that client module still hits serverExternalPackages, so
+  // `next build` warns "Package msw can't be external": expected and harmless.
+  turbopack: {
+    resolveAlias: {
+      'msw/browser': './node_modules/msw/lib/browser/index.js',
+    },
+  },
   images: {
     remotePatterns: getConfiguredImageRemotePatterns(),
     localPatterns: IMAGE_LOCAL_PATTERNS,

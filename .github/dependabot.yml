@@ -28,3 +28,16 @@ updates:
     labels:
       - 'dependencies'
       - 'github-actions'
+  - package-ecosystem: 'docker'
+    directory: '/'
+    target-branch: 'master'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'docker'
+    ignore:
+      # Node majors move with .nvmrc and engines in one PR (CONTRIBUTING, Node version policy).
+      - dependency-name: 'node'
+        update-types: ['version-update:semver-major']

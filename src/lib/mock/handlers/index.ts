@@ -1,4 +1,5 @@
-import { http, HttpResponse, passthrough } from 'msw';
+import { passthrough } from 'msw';
+import { http, HttpResponse } from 'msw/http';
 import {
   DEMO_CUSTOMER_EMAIL,
   DEMO_CUSTOMER_PASSWORD,
@@ -90,17 +91,23 @@ function availableQuantityFor(productId: number): number {
 }
 
 export const handlers = [
-  http.post<never, LoginDto>('*/v1/authentication/login', async ({ request }) => {
-    const body = await request.json();
-    if (
-      body.email !== DEMO_CUSTOMER_EMAIL ||
-      body.password !== DEMO_CUSTOMER_PASSWORD
-    ) {
-      return HttpResponse.json({ message: 'Invalid credentials' }, { status: 401 });
-    }
-    setMockSessionActive(true);
-    return HttpResponse.json(customerSessionBody());
-  }),
+  http.post<never, LoginDto>(
+    '*/v1/authentication/login',
+    async ({ request }) => {
+      const body = await request.json();
+      if (
+        body.email !== DEMO_CUSTOMER_EMAIL ||
+        body.password !== DEMO_CUSTOMER_PASSWORD
+      ) {
+        return HttpResponse.json(
+          { message: 'Invalid credentials' },
+          { status: 401 },
+        );
+      }
+      setMockSessionActive(true);
+      return HttpResponse.json(customerSessionBody());
+    },
+  ),
 
   http.post('*/v1/authentication/refresh', () => {
     if (!isMockSessionActive()) {
@@ -133,7 +140,9 @@ export const handlers = [
     const sortOrder = url.searchParams.get('sortOrder');
 
     // Shoppers only see active products (mirrors API forcing isActive for anonymous/customer).
-    let products = getMockStore().products.filter((product) => product.isActive);
+    let products = getMockStore().products.filter(
+      (product) => product.isActive,
+    );
 
     if (search) {
       products = products.filter((product) => {
@@ -147,7 +156,9 @@ export const handlers = [
       });
     }
     if (categoryId !== undefined) {
-      products = products.filter((product) => product.categoryId === categoryId);
+      products = products.filter(
+        (product) => product.categoryId === categoryId,
+      );
     }
     if (minPrice !== undefined) {
       products = products.filter((product) => product.price >= minPrice);
@@ -216,50 +227,50 @@ export const handlers = [
     return HttpResponse.json(cartResponse(), { status: 201 });
   }),
 
-  http.post<{ id: string }, AddCartItemDto>('*/v1/carts/:id/items', async ({ request }) => {
-    if (!isMockSessionActive()) {
-      return nestError(401, 'Unauthorized');
-    }
-    const body = await request.json();
-    const store = getMockStore();
-    const cart = ensureMockCart(DEMO_CUSTOMER_USER_ID)!;
-    const product = store.products.find((item) => item.id === body.productId);
-    if (!product) {
-      return nestError(404, 'Product not found');
-    }
+  http.post<{ id: string }, AddCartItemDto>(
+    '*/v1/carts/:id/items',
+    async ({ request }) => {
+      if (!isMockSessionActive()) {
+        return nestError(401, 'Unauthorized');
+      }
+      const body = await request.json();
+      const store = getMockStore();
+      const cart = ensureMockCart(DEMO_CUSTOMER_USER_ID)!;
+      const product = store.products.find((item) => item.id === body.productId);
+      if (!product) {
+        return nestError(404, 'Product not found');
+      }
 
-    const quantity = body.quantity ?? 1;
-    const availableQuantity = availableQuantityFor(product.id);
-    // Mirrors AddCartItemUseCase: check requested add qty only.
-    if (quantity > availableQuantity) {
-      return nestError(
-        422,
-        `Insufficient stock for product ${product.name}`,
-      );
-    }
+      const quantity = body.quantity ?? 1;
+      const availableQuantity = availableQuantityFor(product.id);
+      // Mirrors AddCartItemUseCase: check requested add qty only.
+      if (quantity > availableQuantity) {
+        return nestError(422, `Insufficient stock for product ${product.name}`);
+      }
 
-    const existing = cart.items.find((line) => line.productId === product.id);
-    if (existing) {
-      existing.quantity += quantity;
-      existing.subtotal = Number(
-        (existing.price * existing.quantity).toFixed(2),
-      );
-    } else {
-      const subtotal = Number((product.price * quantity).toFixed(2));
-      cart.items.push({
-        id: store.nextCartItemId++,
-        productId: product.id,
-        productName: product.name,
-        price: product.price,
-        currency: product.currency,
-        quantity,
-        subtotal,
-        imageUrl: product.imageUrl ?? null,
-        sku: product.sku,
-      });
-    }
-    return HttpResponse.json(cartResponse());
-  }),
+      const existing = cart.items.find((line) => line.productId === product.id);
+      if (existing) {
+        existing.quantity += quantity;
+        existing.subtotal = Number(
+          (existing.price * existing.quantity).toFixed(2),
+        );
+      } else {
+        const subtotal = Number((product.price * quantity).toFixed(2));
+        cart.items.push({
+          id: store.nextCartItemId++,
+          productId: product.id,
+          productName: product.name,
+          price: product.price,
+          currency: product.currency,
+          quantity,
+          subtotal,
+          imageUrl: product.imageUrl ?? null,
+          sku: product.sku,
+        });
+      }
+      return HttpResponse.json(cartResponse());
+    },
+  ),
 
   http.patch<{ cartId: string; itemId: string }, UpdateCartItemDto>(
     '*/v1/carts/:cartId/items/:itemId',
@@ -316,39 +327,42 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  http.post<{ userId: string }, AddAddressDto>('*/v1/users/:userId/addresses', async ({ request }) => {
-    if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-    const body = await request.json();
-    const store = getMockStore();
-    const now = new Date().toISOString();
-    const isDefault = Boolean(body.isDefault);
-    if (isDefault) {
-      store.userProfile.addresses.forEach((addr) => {
-        addr.isDefault = false;
-      });
-    }
-    const address: MockAddress = {
-      id: store.userProfile.nextAddressId++,
-      street: body.street,
-      street2: body.street2 ?? null,
-      city: body.city,
-      state: body.state,
-      postalCode: body.postalCode,
-      country: body.country,
-      // Mirrors AddAddressUseCase default.
-      type: body.type ?? 'SHIPPING',
-      isDefault,
-      deliveryInstructions: body.deliveryInstructions ?? null,
-      createdAt: now,
-      updatedAt: now,
-    };
-    store.userProfile.addresses.push(address);
-    store.userProfile.addressCount = store.userProfile.addresses.length;
-    store.userProfile.updatedAt = now;
-    return HttpResponse.json(address, { status: 201 });
-  }),
+  http.post<{ userId: string }, AddAddressDto>(
+    '*/v1/users/:userId/addresses',
+    async ({ request }) => {
+      if (!isMockSessionActive()) {
+        return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      }
+      const body = await request.json();
+      const store = getMockStore();
+      const now = new Date().toISOString();
+      const isDefault = Boolean(body.isDefault);
+      if (isDefault) {
+        store.userProfile.addresses.forEach((addr) => {
+          addr.isDefault = false;
+        });
+      }
+      const address: MockAddress = {
+        id: store.userProfile.nextAddressId++,
+        street: body.street,
+        street2: body.street2 ?? null,
+        city: body.city,
+        state: body.state,
+        postalCode: body.postalCode,
+        country: body.country,
+        // Mirrors AddAddressUseCase default.
+        type: body.type ?? 'SHIPPING',
+        isDefault,
+        deliveryInstructions: body.deliveryInstructions ?? null,
+        createdAt: now,
+        updatedAt: now,
+      };
+      store.userProfile.addresses.push(address);
+      store.userProfile.addressCount = store.userProfile.addresses.length;
+      store.userProfile.updatedAt = now;
+      return HttpResponse.json(address, { status: 201 });
+    },
+  ),
 
   http.patch<{ userId: string; addressId: string }, UpdateAddressDto>(
     '*/v1/users/:userId/addresses/:addressId',
@@ -362,7 +376,10 @@ export const handlers = [
         (row) => row.id === Number(params.addressId),
       );
       if (!address) {
-        return HttpResponse.json({ message: 'Address not found' }, { status: 404 });
+        return HttpResponse.json(
+          { message: 'Address not found' },
+          { status: 404 },
+        );
       }
       Object.assign(address, body, {
         updatedAt: new Date().toISOString(),
@@ -383,7 +400,10 @@ export const handlers = [
       (row) => row.id !== addressId,
     );
     if (store.userProfile.addresses.length === before) {
-      return HttpResponse.json({ message: 'Address not found' }, { status: 404 });
+      return HttpResponse.json(
+        { message: 'Address not found' },
+        { status: 404 },
+      );
     }
     store.userProfile.addressCount = store.userProfile.addresses.length;
     return new HttpResponse(null, { status: 204 });
@@ -401,7 +421,10 @@ export const handlers = [
         (row) => row.id === addressId,
       );
       if (!target) {
-        return HttpResponse.json({ message: 'Address not found' }, { status: 404 });
+        return HttpResponse.json(
+          { message: 'Address not found' },
+          { status: 404 },
+        );
       }
       store.userProfile.addresses.forEach((row) => {
         row.isDefault = row.id === addressId;
@@ -481,7 +504,10 @@ export const handlers = [
     };
     store.orders.unshift(order);
     store.cart = { id: cart.id, userId: cart.userId, items: [] };
-    return HttpResponse.json({ orderId, jobId: `mock-job-${orderId}` }, { status: 201 });
+    return HttpResponse.json(
+      { orderId, jobId: `mock-job-${orderId}` },
+      { status: 201 },
+    );
   }),
 
   http.get('*/v1/orders/:id', ({ params }) => {
