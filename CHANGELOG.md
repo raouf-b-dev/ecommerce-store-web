@@ -25,6 +25,8 @@ Works with ecommerce-store-api v0.10.0 or later. The generated client matches AP
 - Migrate to msw 3.0.3: `onUnhandledRequest` is now `onUnhandledFrame`, and `public/mockServiceWorker.js` is regenerated (#124).
 - Dependency updates: production deps, including `@hookform/resolvers` 6.0.0 (#106, #120, #121); dev deps, including `@babel/core` 8.0.7, `globals` 17.13.0, `hono`, `qs`, and the dev-deps group (#109, #110, #113, #122, #123); transitive `vite`, `fast-uri`, and `undici` (#112, #114, #115); GitHub Actions `actions/cache` 6.1.0, `actions/upload-artifact` 7.0.2, and `docker/login-action` 4.7.0 (#104, #105, #119).
 
+- README replaces the placeholder Live demo section with Hosted demo: coming soon, pointing to the local ecommerce-platform stack, and `CITATION.cff` is bumped to 0.7.0 (#131).
+
 ### Fixed
 
 - The user menu trigger passes axe-core 4.14 `label-content-name-mismatch`: an sr-only label replaces its `aria-label`, and the visible initial and email prefix are `aria-hidden` (#123).
