@@ -1,6 +1,6 @@
 # ecommerce-store-web
 
-Customer storefront for `ecommerce-store-api`. Next.js 16 App Router (Cache Components, React Compiler, typed routes), React 19, TypeScript (strict), TanStack Query, React Hook Form + Zod, Tailwind v4 + shadcn/ui, `openapi-fetch`. Vitest + Testing Library, Playwright. Node.js LTS (see `.nvmrc`, currently 26).
+Customer storefront for `ecommerce-store-api`. Next.js 16 App Router (Cache Components, React Compiler, typed routes), React 19, TypeScript (strict), TanStack Query, React Hook Form + Zod, Tailwind v4 + shadcn/ui, `openapi-fetch`. Vitest + Testing Library, Playwright. Node.js LTS (see `.nvmrc`, currently 26). npm is pinned to 12.2.1 through `devEngines.packageManager` in `package.json` (no Node release bundles npm 12 yet; CI and the Dockerfile install it from there). Do not add a top-level `packageManager` field. New dependency install scripts need `allowScripts` (`npm install-scripts approve`).
 
 ## Checks
 

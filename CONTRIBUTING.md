@@ -17,7 +17,7 @@ Do not push directly to `master` or `develop`. Force-pushes and branch deletion 
 
 ## Local setup
 
-Requires Node.js LTS (see `.nvmrc`, currently 26) and npm 11.6+.
+Requires Node.js LTS (see `.nvmrc`, currently 26) and npm 12.2.1 (pinned in `package.json` `devEngines`).
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/ecommerce-store-web.git
@@ -38,6 +38,12 @@ npm run env:init
 ### Node version policy
 
 `.nvmrc` is the single source of truth for the Node.js version and tracks the current Active LTS. CI reads it through `.github/actions/setup-node-ci`. The `Dockerfile` base image (pinned by tag and digest) and `engines` in `package.json` follow it, and `.npmrc` sets `engine-strict=true` so `npm ci` fails on an older Node or npm. Dependabot bumps Node patches and minors in the `Dockerfile` but ignores Node majors. To move to a new LTS, update `.nvmrc`, the `Dockerfile` `FROM` lines, and `engines` (then `npm install --package-lock-only`) in one PR.
+
+### npm version policy
+
+npm is pinned to one exact version through `devEngines.packageManager` in `package.json` (currently npm 12.2.1, `onFail: "error"`), so `npm ci`, `npm install`, and `npm run` fail on any other npm. `devEngines.runtime` (`node >=26.0.0`, `onFail: "error"`) keeps the Node guardrail, because npm 12 no longer enforces the root `engines.node` even with `engine-strict`. No Node.js release bundles npm 12 yet, so CI (`.github/actions/setup-node-ci`, with setup-node caching off and `actions/cache` restoring `~/.npm` instead, because setup-node runs the bundled npm in the repo) and the `Dockerfile` read that version from `package.json` and run `npm install -g npm@<version>` before installing dependencies. Locally, run `npm install -g npm@12.2.1` once (global installs ignore this repo's `devEngines`). There is no top-level `packageManager` field, so Corepack stays off. `engines.npm` stays the minimum supported range. npm 12 blocks dependency install scripts unless `allowScripts` in `package.json` allows them: approve new ones with `npm install-scripts approve`, then run `npm rebuild`. To bump npm, change `devEngines.packageManager.version` (CI and Docker follow it) and the version named in these docs. Revisit this pin (and drop the extra install step) once the Node LTS in `.nvmrc` bundles npm 12.
+
+Hosting note: a host that installs with its own bundled npm (for example Vercel, which runs its default npm for `package-lock.json` projects) fails with `EBADDEVENGINES`. Set its install command to `npm install -g npm@12.2.1 && npm ci`.
 
 Details: [README](README.md). Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md).
 

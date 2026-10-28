@@ -7,6 +7,9 @@ FROM node:26.12.1-alpine3.24@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d2
 WORKDIR /app
 
 COPY package.json package-lock.json ./
+# No Node release bundles npm 12 yet: install the npm pinned in package.json
+# devEngines.packageManager (the single source) before any npm command.
+RUN npm install -g "npm@$(node -p "require('./package.json').devEngines.packageManager.version")"
 RUN npm ci --no-audit --no-fund
 
 # -- Stage 2: build -------------------------------------------------------------
@@ -15,6 +18,9 @@ WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# No Node release bundles npm 12 yet: install the npm pinned in package.json
+# devEngines.packageManager (the single source) before any npm command.
+RUN npm install -g "npm@$(node -p "require('./package.json').devEngines.packageManager.version")"
 
 # Build-time config. next build inlines NEXT_PUBLIC_* and standalone output
 # freezes next.config.ts, so these cannot change at run time (.env.example).

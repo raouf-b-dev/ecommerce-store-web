@@ -71,7 +71,7 @@ Architecture, admin viewer credentials, and local Compose: [ecommerce-platform](
 
 ## Quick start
 
-Requires Node.js LTS (see `.nvmrc`, currently 26) and npm 11.6+.
+Requires Node.js LTS (see `.nvmrc`, currently 26) and npm 12.2.1, pinned through `devEngines.packageManager` in `package.json` because no Node release bundles npm 12 yet. Run `npm install -g npm@12.2.1` once; see [CONTRIBUTING](CONTRIBUTING.md#npm-version-policy).
 
 1. `npm ci`
 2. `npm run env:init` (copies `.env.example` to `.env.local`; create `.secrets` for later Playwright)
