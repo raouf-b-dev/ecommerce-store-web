@@ -35,6 +35,13 @@
     "node": ">=26.0.0",
     "npm": ">=11.6.0"
   },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": "12.2.1",
+      "onFail": "error"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/raouf-b-dev/ecommerce-store-web.git"
