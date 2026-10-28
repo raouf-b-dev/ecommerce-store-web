@@ -7,17 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-28
+
+Works with ecommerce-store-api v0.10.0 or later. The generated client matches API v0.11.0.
+
 ### Added
 
-- Pin npm 12.2.1 through `devEngines.packageManager` (`onFail: "error"`) as the single source for the npm version. The CI setup action and the `Dockerfile` deps and build stages install it from `package.json`, because no Node release bundles npm 12 yet. `devEngines.runtime` (`node >=26.0.0`) restores the Node guardrail, which npm 12 no longer enforces from root `engines`. CONTRIBUTING gains an npm version policy.
-- Node version guardrails: `.npmrc` with `engine-strict=true`, a Dependabot `docker` entry that ignores Node majors, and a Node version policy in CONTRIBUTING (`.nvmrc` is the single source).
-- Live demo README section: hosted storefront visitors register their own accounts (no public seeded shopper password); links to platform and API SEEDING for local Compose.
+- Pin npm 12.2.1 through `devEngines.packageManager` (`onFail: "error"`) as the single source for the npm version. The CI setup action and the `Dockerfile` deps and build stages install it from `package.json`, because no Node release bundles npm 12 yet. `devEngines.runtime` (`node >=26.0.0`) restores the Node guardrail, which npm 12 no longer enforces from root `engines`. CONTRIBUTING gains an npm version policy (#129).
+- Node version guardrails: `.npmrc` with `engine-strict=true`, a Dependabot `docker` entry that ignores Node majors, and a Node version policy in CONTRIBUTING (`.nvmrc` is the single source) (#128).
+- Live demo README section: hosted storefront visitors register their own accounts (no public seeded shopper password); links to platform and API SEEDING for local Compose (#111).
 
 ### Changed
 
-- MSW HTTP handlers import `http` and `HttpResponse` from the `msw/http` entry point that msw 3 documents (`passthrough` stays on the root `msw` export, which is its only entry point).
-- CONTRIBUTING passes `prettier --check` and its Node version policy names every copy of the Node version (`.nvmrc`, the `Dockerfile` `FROM` lines, `engines.node`, `devEngines.runtime`) and the pinned npm 12.2.1.
-- Move to Node.js 26 LTS (npm 11.6+): `.nvmrc`, `engines`, and the `Dockerfile` base image, now pinned to `node:26.12.1-alpine3.24` by digest. The CI setup action uses `actions/setup-node` v7.1.0.
+- MSW HTTP handlers import `http` and `HttpResponse` from the `msw/http` entry point that msw 3 documents (`passthrough` stays on the root `msw` export, which is its only entry point) (#130).
+- CONTRIBUTING passes `prettier --check` and its Node version policy names every copy of the Node version (`.nvmrc`, the `Dockerfile` `FROM` lines, `engines.node`, `devEngines.runtime`) and the pinned npm 12.2.1 (#130).
+- Move to Node.js 26 LTS (npm 11.6+): `.nvmrc`, `engines`, and the `Dockerfile` base image, now pinned to `node:26.12.1-alpine3.24` by digest. The CI setup action uses `actions/setup-node` v7.1.0 (#128).
+- Migrate to msw 3.0.3: `onUnhandledRequest` is now `onUnhandledFrame`, and `public/mockServiceWorker.js` is regenerated (#124).
+- Dependency updates: production deps, including `@hookform/resolvers` 6.0.0 (#106, #120, #121); dev deps, including `@babel/core` 8.0.7, `globals` 17.13.0, `hono`, `qs`, and the dev-deps group (#109, #110, #113, #122, #123); transitive `vite`, `fast-uri`, and `undici` (#112, #114, #115); GitHub Actions `actions/cache` 6.1.0, `actions/upload-artifact` 7.0.2, and `docker/login-action` 4.7.0 (#104, #105, #119).
+- `CITATION.cff` is bumped to version 0.7.0, released 2026-10-28 (#131).
+
+### Fixed
+
+- The user menu trigger passes axe-core 4.14 `label-content-name-mismatch`: an sr-only label replaces its `aria-label`, and the visible initial and email prefix are `aria-hidden` (#123).
+
+[Compare v0.6.0...v0.7.0](https://github.com/raouf-b-dev/ecommerce-store-web/compare/v0.6.0...v0.7.0)
 
 ## [0.6.0] - 2026-10-18
 
