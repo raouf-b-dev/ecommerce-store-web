@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Documentation
-
-- README: the placeholder Live demo section (a placeholder storefront URL) becomes Hosted demo: coming soon and points to the local [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform) stack (`docker compose up`). Local sign-in accounts link to the platform README Local demo sign-in section and the API SEEDING.md.
-
 ## [0.7.0] - 2026-10-28
 
 Works with ecommerce-store-api v0.10.0 or later. The generated client matches API v0.11.0.
@@ -19,7 +15,6 @@ Works with ecommerce-store-api v0.10.0 or later. The generated client matches AP
 
 - Pin npm 12.2.1 through `devEngines.packageManager` (`onFail: "error"`) as the single source for the npm version. The CI setup action and the `Dockerfile` deps and build stages install it from `package.json`, because no Node release bundles npm 12 yet. `devEngines.runtime` (`node >=26.0.0`) restores the Node guardrail, which npm 12 no longer enforces from root `engines`. CONTRIBUTING gains an npm version policy (#129).
 - Node version guardrails: `.npmrc` with `engine-strict=true`, a Dependabot `docker` entry that ignores Node majors, and a Node version policy in CONTRIBUTING (`.nvmrc` is the single source) (#128).
-- Live demo README section: hosted storefront visitors register their own accounts (no public seeded shopper password); links to platform and API SEEDING for local Compose (#111).
 
 ### Changed
 
@@ -29,6 +24,7 @@ Works with ecommerce-store-api v0.10.0 or later. The generated client matches AP
 - Migrate to msw 3.0.3: `onUnhandledRequest` is now `onUnhandledFrame`, and `public/mockServiceWorker.js` is regenerated (#124).
 - Dependency updates: production deps, including `@hookform/resolvers` 6.0.0 (#106, #120, #121); dev deps, including `@babel/core` 8.0.7, `globals` 17.13.0, `hono`, `qs`, and the dev-deps group (#109, #110, #113, #122, #123); transitive `vite`, `fast-uri`, and `undici` (#112, #114, #115); GitHub Actions `actions/cache` 6.1.0, `actions/upload-artifact` 7.0.2, and `docker/login-action` 4.7.0 (#104, #105, #119).
 - `CITATION.cff` is bumped to version 0.7.0, released 2026-10-28 (#131).
+- README: the placeholder Live demo section becomes Hosted demo: coming soon and points to the local [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform) stack (`docker compose up`); local sign-in accounts link to the platform README Local demo sign-in section and the API SEEDING.md (#133).
 
 ### Fixed
 
