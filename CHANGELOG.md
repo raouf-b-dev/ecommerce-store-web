@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Pin npm 12.2.1 through `devEngines.packageManager` (`onFail: "error"`) as the single source for the npm version. The CI setup action and the `Dockerfile` deps and build stages install it from `package.json`, because no Node release bundles npm 12 yet. CONTRIBUTING gains an npm version policy.
+- Pin npm 12.2.1 through `devEngines.packageManager` (`onFail: "error"`) as the single source for the npm version. The CI setup action and the `Dockerfile` deps and build stages install it from `package.json`, because no Node release bundles npm 12 yet. `devEngines.runtime` (`node >=26.0.0`) restores the Node guardrail, which npm 12 no longer enforces from root `engines`. CONTRIBUTING gains an npm version policy.
 - Node version guardrails: `.npmrc` with `engine-strict=true`, a Dependabot `docker` entry that ignores Node majors, and a Node version policy in CONTRIBUTING (`.nvmrc` is the single source).
 - Live demo README section: hosted storefront visitors register their own accounts (no public seeded shopper password); links to platform and API SEEDING for local Compose.
 
