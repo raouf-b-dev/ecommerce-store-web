@@ -57,7 +57,7 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 
 Hosted demo: coming soon. Until then, run the full stack locally with the [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform) repo (`docker compose up`).
 
-Local Compose only: the seeded accounts and their credentials are in [API SEEDING.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/develop/docs/development/SEEDING.md), and the architecture and admin viewer details are in [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). They apply to your local stack, not to a hosted site.
+Sign-in accounts for a local run: [platform README](https://github.com/raouf-b-dev/ecommerce-platform#local-demo-sign-in-demo_read_onlyfalse). Seed env keys: [API SEEDING.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/develop/docs/development/SEEDING.md).
 
 ---
 
