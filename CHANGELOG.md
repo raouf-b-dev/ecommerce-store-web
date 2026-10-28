@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- README: the placeholder Live demo section (a placeholder storefront URL) becomes Hosted demo: coming soon and points to the local [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform) stack (`docker compose up`). Local sign-in accounts link to the platform README Local demo sign-in section and the API SEEDING.md.
+
 ## [0.7.0] - 2026-10-28
 
 Works with ecommerce-store-api v0.10.0 or later. The generated client matches API v0.11.0.
