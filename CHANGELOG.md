@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- README: the placeholder Live demo section (which linked `https://shop.example.com`) becomes Hosted demo: coming soon and points to the local [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform) stack (`docker compose up`). Seeded credentials are described as local Compose only.
+
 ### Added
 
 - Pin npm 12.2.1 through `devEngines.packageManager` (`onFail: "error"`) as the single source for the npm version. The CI setup action and the `Dockerfile` deps and build stages install it from `package.json`, because no Node release bundles npm 12 yet. `devEngines.runtime` (`node >=26.0.0`) restores the Node guardrail, which npm 12 no longer enforces from root `engines`. CONTRIBUTING gains an npm version policy.
