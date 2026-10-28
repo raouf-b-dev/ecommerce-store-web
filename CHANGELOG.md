@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- MSW HTTP handlers import `http` and `HttpResponse` from the `msw/http` entry point that msw 3 documents (`passthrough` stays on the root `msw` export, which is its only entry point).
+- CONTRIBUTING passes `prettier --check` and its Node version policy names every copy of the Node version (`.nvmrc`, the `Dockerfile` `FROM` lines, `engines.node`, `devEngines.runtime`) and the pinned npm 12.2.1.
 - Move to Node.js 26 LTS (npm 11.6+): `.nvmrc`, `engines`, and the `Dockerfile` base image, now pinned to `node:26.12.1-alpine3.24` by digest. The CI setup action uses `actions/setup-node` v7.1.0.
 
 ## [0.6.0] - 2026-10-18

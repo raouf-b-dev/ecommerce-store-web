@@ -26,18 +26,18 @@ npm ci
 npm run env:init
 ```
 
-| Goal | Command |
-| :--- | :------ |
-| UI without a backend (MSW mocks) | `npm run dev:mock` -> [http://localhost:3100](http://localhost:3100) - cart, checkout, addresses, and demo 1-click login are handled in-browser |
-| Live API integration | Start the [API](https://github.com/raouf-b-dev/ecommerce-store-api) on port **3000** (CORS must allow `http://localhost:3100` with credentials), then `npm run dev` |
-| Refresh OpenAPI types | With the API running: `npm run api:generate` |
-| Verify mock handlers (no API) | `npx vitest run src/lib/mock` - contract tests for filters, auth, and 501 fallbacks |
+| Goal                             | Command                                                                                                                                                             |
+| :------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| UI without a backend (MSW mocks) | `npm run dev:mock` -> [http://localhost:3100](http://localhost:3100) - cart, checkout, addresses, and demo 1-click login are handled in-browser                     |
+| Live API integration             | Start the [API](https://github.com/raouf-b-dev/ecommerce-store-api) on port **3000** (CORS must allow `http://localhost:3100` with credentials), then `npm run dev` |
+| Refresh OpenAPI types            | With the API running: `npm run api:generate`                                                                                                                        |
+| Verify mock handlers (no API)    | `npx vitest run src/lib/mock` - contract tests for filters, auth, and 501 fallbacks                                                                                 |
 
 `npm run dev` talks to the real API. `npm run dev:mock` enables MSW (`NEXT_PUBLIC_ENABLE_MOCK=true`) with a Node preload for RSC catalog requests plus a browser worker for client mutations; unimplemented mutating routes return **501** instead of silently hitting the API. Demo quick-login UI appears only in mock mode.
 
 ### Node version policy
 
-`.nvmrc` is the single source of truth for the Node.js version and tracks the current Active LTS. CI reads it through `.github/actions/setup-node-ci`. The `Dockerfile` base image (pinned by tag and digest) and `engines` in `package.json` follow it, and `.npmrc` sets `engine-strict=true` so `npm ci` fails on an older Node or npm. Dependabot bumps Node patches and minors in the `Dockerfile` but ignores Node majors. To move to a new LTS, update `.nvmrc`, the `Dockerfile` `FROM` lines, and `engines` (then `npm install --package-lock-only`) in one PR.
+`.nvmrc` is the single source of truth for the Node.js version and tracks the current Active LTS. CI reads it through `.github/actions/setup-node-ci`. Three copies follow it and cannot read it, so they stay in sync by hand: the `Dockerfile` base image (pinned by tag and digest so Dependabot can bump it), `engines.node` in `package.json` (the range published for consumers), and `devEngines.runtime` in `package.json` (`node >=26.0.0`, `onFail: "error"`, the guardrail npm 12 enforces for this repo). `.npmrc` sets `engine-strict=true` so `npm ci` fails on an older Node or npm. Dependabot bumps Node patches and minors in the `Dockerfile` but ignores Node majors. To move to a new LTS, update `.nvmrc`, the `Dockerfile` `FROM` lines, `engines.node`, and `devEngines.runtime.version` (then `npm install --package-lock-only`) in one PR.
 
 ### npm version policy
 
@@ -78,9 +78,9 @@ Playwright needs a live API; see [`e2e/README.md`](e2e/README.md). Prefer unit/c
 
 ## Related repositories
 
-| Repository | Role |
-| :--------- | :--- |
-| [ecommerce-store-api](https://github.com/raouf-b-dev/ecommerce-store-api) | Backend |
+| Repository                                                                            | Role         |
+| :------------------------------------------------------------------------------------ | :----------- |
+| [ecommerce-store-api](https://github.com/raouf-b-dev/ecommerce-store-api)             | Backend      |
 | [ecommerce-admin-dashboard](https://github.com/raouf-b-dev/ecommerce-admin-dashboard) | Operator SPA |
 
 Questions welcome via issues. Maintainers will review PRs as capacity allows.
