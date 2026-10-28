@@ -19,7 +19,7 @@
 ## Table of Contents
 
 - [What this is](#what-this-is)
-- [Hosted demo](#hosted-demo)
+- [Live demo](#live-demo)
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
 - [Screenshots](#screenshots)
@@ -47,17 +47,23 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 | Application code | Port **3100**. Catalog, cart, checkout, orders, and account are live (mock payments). Further hardening is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). |
 | Payments         | Mock adapter behind a swappable hexagonal port (no live card UI / Stripe Elements). |
 | Guest cart       | None. Add to cart requires a signed-in account because the API has no guest cart. |
-| Hosted demo      | Coming soon (see [Hosted demo](#hosted-demo)). Local full stack: [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). |
+| Hosted demo      | Hybrid deploy: register on the shop (see [Live demo](#live-demo)). Local full stack: [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). |
 
 ---
 
-<a id="hosted-demo"></a>
+<a id="live-demo"></a>
 
-## Hosted demo
+## Live demo
 
-Hosted demo: coming soon. Until then, run the full stack locally with the [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform) repo (`docker compose up`).
+Operator-filled placeholders after the hybrid hosted deploy:
 
-Local Compose only: the seeded accounts and their credentials are in [API SEEDING.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/develop/docs/development/SEEDING.md), and the architecture and admin viewer details are in [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). They apply to your local stack, not to a hosted site.
+| What | URL |
+| :--- | :-- |
+| Storefront | https://shop.example.com |
+
+**Hosted shared demo:** there is no public seeded shopper password. **Register** with your own email, then try cart and checkout (mock payments). Catalog baselines reset on a schedule; your account is not deleted by reset.
+
+Architecture, admin viewer credentials, and local Compose: [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). Local / seed env details: [API SEEDING.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/develop/docs/development/SEEDING.md) (for contributors running Compose, not for hosted visitors).
 
 ---
 
