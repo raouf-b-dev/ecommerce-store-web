@@ -17,6 +17,10 @@ describe('ProfileReadOnlyPanel', () => {
     render(<ProfileReadOnlyPanel user={user} />);
 
     expect(screen.getByText('Profile')).toBeInTheDocument();
+    expect(
+      screen.getByText('Profile details cannot be edited here yet.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/contract/i)).not.toBeInTheDocument();
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.getByText('Smith')).toBeInTheDocument();
     expect(screen.getByText('alice@store.local')).toBeInTheDocument();

@@ -1,6 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { formatAddressLines, formatAddressOneLine } from './format-address';
+import {
+  formatAddressLines,
+  formatAddressOneLine,
+  formatAddressTypeLabel,
+} from './format-address';
 import { createMockAddress } from '@/test/fixtures/account.fixture';
+
+describe('formatAddressTypeLabel', () => {
+  it.each([
+    ['HOME', 'Home'],
+    ['WORK', 'Work'],
+    ['OTHER', 'Other'],
+    ['BILLING', 'Billing'],
+    ['SHIPPING', 'Shipping'],
+  ] as const)('labels %s as %s', (type, label) => {
+    expect(formatAddressTypeLabel(type)).toBe(label);
+  });
+});
 
 describe('formatAddressLines', () => {
   it('returns street, city/state/postal, and country lines', () => {

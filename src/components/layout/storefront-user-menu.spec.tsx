@@ -117,6 +117,14 @@ describe('StorefrontUserMenu', () => {
     expect(screen.getByText('store manager')).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /my orders/i })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /account settings/i })).toBeInTheDocument();
+    const changePassword = screen.getByRole('menuitem', {
+      name: /change password/i,
+    });
+    expect(changePassword).toBeInTheDocument();
+    expect(changePassword).toHaveAttribute(
+      'href',
+      '/change-password?redirect=%2Faccount',
+    );
     expect(screen.getByText('Appearance')).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'Light' })).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'Dark' })).toBeInTheDocument();
