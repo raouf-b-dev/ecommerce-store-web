@@ -133,16 +133,18 @@ export function StorefrontUserMenu({ onNavigate }: StorefrontUserMenuProps) {
             </Link>
           </DropdownMenuItem>
 
-          <DropdownMenuItem asChild>
-            <Link
-              href={getChangePasswordRedirectPath('/account')}
-              onClick={onNavigate}
-              className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-accent"
-            >
-              <KeyRound className="size-4 text-muted-foreground" aria-hidden="true" />
-              <span className="font-medium">Change password</span>
-            </Link>
-          </DropdownMenuItem>
+          {session.permissions.includes('change_own_credentials') ? (
+            <DropdownMenuItem asChild>
+              <Link
+                href={getChangePasswordRedirectPath('/account')}
+                onClick={onNavigate}
+                className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-accent"
+              >
+                <KeyRound className="size-4 text-muted-foreground" aria-hidden="true" />
+                <span className="font-medium">Change password</span>
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
 
           <DropdownMenuSeparator className="my-1.5" />
 

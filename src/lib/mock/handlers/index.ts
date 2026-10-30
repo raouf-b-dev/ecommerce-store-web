@@ -45,7 +45,11 @@ function customerSessionBody() {
       role: 'customer',
     }),
     mustChangePassword: false,
-    permissions: ['manage_own_cart', 'view_own_orders'],
+    permissions: [
+      'manage_own_cart',
+      'view_own_orders',
+      'change_own_credentials',
+    ],
   };
 }
 
