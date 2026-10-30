@@ -37,8 +37,7 @@ export function ProfileReadOnlyPanel({ user }: ProfileReadOnlyPanelProps) {
       <CardHeader>
         <CardTitle>Profile</CardTitle>
         <CardDescription>
-          Profile editing is not available through this storefront. The contract
-          does not expose self-update for shoppers.
+          Profile details cannot be edited here yet.
         </CardDescription>
       </CardHeader>
       <CardContent>

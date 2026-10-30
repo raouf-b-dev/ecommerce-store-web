@@ -101,7 +101,7 @@ describe('StorefrontUserMenu', () => {
         userId: '3',
         email: 'shopper@example.com',
         role: 'store_manager',
-        permissions: [],
+        permissions: ['change_own_credentials'],
         mustChangePassword: false,
       },
     });
@@ -117,11 +117,46 @@ describe('StorefrontUserMenu', () => {
     expect(screen.getByText('store manager')).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /my orders/i })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /account settings/i })).toBeInTheDocument();
+    const changePassword = screen.getByRole('menuitem', {
+      name: /change password/i,
+    });
+    expect(changePassword).toBeInTheDocument();
+    expect(changePassword).toHaveAttribute(
+      'href',
+      '/change-password?redirect=%2Faccount',
+    );
     expect(screen.getByText('Appearance')).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'Light' })).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'Dark' })).toBeInTheDocument();
     expect(screen.getByRole('menuitemradio', { name: 'System' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /sign out/i })).toBeInTheDocument();
+  });
+
+  it('hides change password when session lacks change_own_credentials', async () => {
+    const user = userEvent.setup();
+    setAuthState({
+      status: 'authenticated',
+      session: {
+        userId: '8',
+        email: 'readonly@example.com',
+        role: 'customer',
+        permissions: ['manage_own_cart', 'view_own_orders'],
+        mustChangePassword: false,
+      },
+    });
+
+    render(<StorefrontUserMenu />);
+
+    const trigger = screen.getByRole('button', {
+      name: 'User account menu for readonly@example.com',
+    });
+    await user.click(trigger);
+
+    expect(screen.getByRole('menuitem', { name: /my orders/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /account settings/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', { name: /change password/i }),
+    ).not.toBeInTheDocument();
   });
 
   it('allows picking a theme using keyboard navigation', async () => {

@@ -8,7 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { formatAddressLines } from '@/features/account/lib/format-address';
+import {
+  formatAddressLines,
+  formatAddressTypeLabel,
+} from '@/features/account/lib/format-address';
 import type { AddressResponseDto } from '@/features/account/types';
 
 type AddressCardProps = {
@@ -29,6 +32,7 @@ export function AddressCard({
   deletePending = false,
 }: AddressCardProps) {
   const lines = formatAddressLines(address);
+  const typeLabel = formatAddressTypeLabel(address.type);
   const actionsDisabled = setDefaultPending || deletePending;
 
   return (
@@ -36,7 +40,7 @@ export function AddressCard({
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-            {address.type}
+            {typeLabel}
           </span>
           {address.isDefault ? (
             <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -44,7 +48,9 @@ export function AddressCard({
             </span>
           ) : null}
           <CardTitle className="sr-only">
-            {address.isDefault ? 'Default address' : 'Address'} ({address.type})
+            {address.isDefault
+              ? `Default ${typeLabel} address`
+              : `${typeLabel} address`}
           </CardTitle>
         </div>
       </CardHeader>
