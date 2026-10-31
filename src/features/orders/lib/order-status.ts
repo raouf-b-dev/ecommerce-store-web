@@ -13,6 +13,17 @@ export const TERMINAL_FAILURE_STATUSES: readonly OrderStatus[] = [
   'refunded',
 ] as const;
 
+/**
+ * Statuses a shopper (cancel_own_orders, no manage_orders) may cancel.
+ * Mirrors OpenAPI PATCH /v1/orders/{id}/cancel: PENDING_PAYMENT, PAYMENT_FAILED,
+ * or CONFIRMED. PROCESSING is staff/system only; the API enforces the rest.
+ */
+export const SHOPPER_CANCELLABLE_STATUSES: readonly OrderStatus[] = [
+  'pending_payment',
+  'payment_failed',
+  'confirmed',
+] as const;
+
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending_payment: 'Pending Payment',
   confirmed: 'Confirmed',
@@ -33,4 +44,10 @@ export function isTerminalStatus(status: OrderStatus): boolean {
 
 export function isSuccessStatus(status: OrderStatus): boolean {
   return TERMINAL_SUCCESS_STATUSES.includes(status);
+}
+
+export function isShopperCancellableStatus(status: OrderStatus): boolean {
+  return SHOPPER_CANCELLABLE_STATUSES.some(
+    (cancellable) => cancellable === status,
+  );
 }

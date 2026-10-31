@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  cancelOrderRequest,
   getOrderPaymentRequest,
   getOrderRequest,
   listOrdersRequest,
@@ -16,6 +17,7 @@ import {
 
 const mockClient = vi.hoisted(() => ({
   GET: vi.fn(),
+  PATCH: vi.fn(),
 }));
 
 vi.mock('@/lib/api/browser-client', () => ({
@@ -106,6 +108,56 @@ describe('orders-api', () => {
       );
 
       await expect(getOrderPaymentRequest(123)).rejects.toThrow();
+    });
+  });
+
+  describe('cancelOrderRequest', () => {
+    it('calls PATCH /v1/orders/{id}/cancel and returns the mutation DTO', async () => {
+      const mutation = {
+        id: 123,
+        status: 'cancelled' as const,
+        totalPrice: 200,
+        currency: 'USD',
+        updatedAt: '2026-10-31T12:00:00.000Z',
+      };
+      mockClient.PATCH.mockResolvedValueOnce(createSuccessApiResponse(mutation));
+
+      const result = await cancelOrderRequest(123);
+
+      expect(mockClient.PATCH).toHaveBeenCalledWith('/v1/orders/{id}/cancel', {
+        params: { path: { id: 123 } },
+      });
+      expect(result).toEqual(mutation);
+    });
+
+    it('throws an ApiRequestError with the API status on 409', async () => {
+      mockClient.PATCH.mockResolvedValueOnce(
+        createErrorApiResponse(
+          {
+            statusCode: 409,
+            message: 'Order cannot be cancelled in current state',
+            code: 'DOMAIN_ERROR',
+          },
+          409,
+        ),
+      );
+
+      await expect(cancelOrderRequest(123)).rejects.toMatchObject({
+        name: 'ApiRequestError',
+        statusCode: 409,
+        code: 'DOMAIN_ERROR',
+      });
+    });
+
+    it('throws an ApiRequestError on 401 unauthenticated', async () => {
+      mockClient.PATCH.mockResolvedValueOnce(
+        createErrorApiResponse({ message: 'Unauthorized' }, 401),
+      );
+
+      await expect(cancelOrderRequest(123)).rejects.toMatchObject({
+        name: 'ApiRequestError',
+        statusCode: 401,
+      });
     });
   });
 });
