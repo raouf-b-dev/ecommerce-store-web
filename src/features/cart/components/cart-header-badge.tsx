@@ -20,7 +20,7 @@ export function CartHeaderBadge() {
     <Link
       href="/cart"
       aria-label={label}
-      className="relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
+      className="relative inline-flex size-11 items-center justify-center rounded-md border border-input bg-background text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       <ShoppingCart className="h-4 w-4" aria-hidden="true" />
       {count > 0 ? (

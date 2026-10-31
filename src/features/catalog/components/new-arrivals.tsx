@@ -23,7 +23,7 @@ export function NewArrivals({ products }: NewArrivalsProps) {
         </h2>
         <Link
           href={CATALOG_PATH}
-          className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+          className="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           See everything
         </Link>

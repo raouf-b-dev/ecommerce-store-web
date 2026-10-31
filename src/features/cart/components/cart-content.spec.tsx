@@ -74,6 +74,7 @@ describe('CartContent', () => {
     render(<CartContent />);
 
     expect(screen.getByText('Wireless Headphones')).toBeInTheDocument();
+    expect(screen.getByText('1 item')).toBeInTheDocument();
     expect(screen.getByText('Order Summary')).toBeInTheDocument();
     expect(screen.queryByText('Your cart is empty')).not.toBeInTheDocument();
   });

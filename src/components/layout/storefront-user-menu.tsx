@@ -66,12 +66,12 @@ export function StorefrontUserMenu({ onNavigate }: StorefrontUserMenuProps) {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="group flex cursor-pointer items-center gap-2 rounded-full border border-border/80 bg-background/80 py-1 pl-1 pr-2.5 shadow-xs transition-all hover:border-border hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-border/80 bg-background/80 py-1.5 pl-1.5 pr-3 shadow-xs transition-all hover:border-border hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <span className="sr-only">User account menu for {email}</span>
             <span
               aria-hidden="true"
-              className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-xs"
+              className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-xs"
             >
               {initial}
             </span>
@@ -183,12 +183,12 @@ export function StorefrontUserMenu({ onNavigate }: StorefrontUserMenuProps) {
 
   return (
     <div className="flex items-center gap-1.5 sm:gap-2">
-      <Button variant="ghost" size="sm" asChild>
+      <Button variant="ghost" className="h-11 px-3" asChild>
         <Link href="/login" onClick={onNavigate}>
           Sign in
         </Link>
       </Button>
-      <Button size="sm" className="hidden sm:inline-flex" asChild>
+      <Button className="hidden h-11 px-3 sm:inline-flex" asChild>
         <Link href="/register" onClick={onNavigate}>
           Create account
         </Link>

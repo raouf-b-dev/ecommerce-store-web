@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Shoppers can cancel eligible orders from the order details page. The Cancel order button requires the `cancel_own_orders` or `manage_orders` permission and a cancellable status (`pending_payment`, `payment_failed`, or `confirmed`). Needs an ecommerce-store-api with `cancel_own_orders` (API [#408](https://github.com/raouf-b-dev/ecommerce-store-api/pull/408)) ([#149](https://github.com/raouf-b-dev/ecommerce-store-web/pull/149)).
 
+### Fixed
+
+- Storefront mobile layout and accessibility: larger tap targets, mobile drawer with cart/account/theme, readable order line items, cart and category chip overflow, stronger focus rings, and higher-contrast dark-mode secondary text.
+
 ## [0.7.0] - 2026-10-28
 
 Works with ecommerce-store-api v0.10.0 or later. The generated client matches API v0.11.0.

@@ -11,7 +11,7 @@ type CategoryPillsProps = {
 
 function pillClassName(isActive: boolean) {
   return cn(
-    'inline-flex shrink-0 items-center justify-center rounded-full px-4 py-1.5 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+    'inline-flex min-h-11 shrink-0 items-center justify-center rounded-full px-4 py-2 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
     isActive
       ? 'bg-primary text-primary-foreground shadow-xs'
       : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground',
@@ -27,8 +27,11 @@ export function CategoryPills({
   return (
     <nav aria-label="Categories" className="w-full">
       {/* Remount per category so the row re-centers on the active pill. */}
-      <HorizontalScrollRow key={activeParams.categoryId ?? 'all'}>
-        <ul className="flex w-max items-center gap-2 pb-2 *:snap-start">
+      <HorizontalScrollRow
+        key={activeParams.categoryId ?? 'all'}
+        className="-mx-6 px-6"
+      >
+        <ul className="flex w-max items-center gap-2 pb-2 pr-6 *:snap-start">
           <li>
             <Link
               href={createCatalogFilterHref(activeParams, {

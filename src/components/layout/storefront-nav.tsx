@@ -20,7 +20,7 @@ export function StorefrontNav({ onNavigate, className }: StorefrontNavProps) {
             <Link
               href={item.href}
               onClick={onNavigate}
-              className="text-sm font-medium hover:underline"
+              className="inline-flex min-h-11 items-center text-sm font-medium hover:underline focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none lg:min-h-0"
             >
               {item.label}
             </Link>
