@@ -4,6 +4,7 @@ import {
   DEMO_CUSTOMER_EMAIL,
   DEMO_CUSTOMER_PASSWORD,
 } from '@/lib/mock/constants';
+import { setMockSessionActive } from '@/lib/mock/data/store';
 import { handlers } from '@/lib/mock/handlers';
 
 const API = 'http://localhost:3000';
@@ -188,6 +189,63 @@ describe('storefront mock handlers', () => {
       const body = (await response.json()) as { orderId: number; status: string };
       expect(body.orderId).toBe(orderId);
       expect(body.status).toBe('completed');
+    });
+
+    it('cancels a confirmed order via PATCH /v1/orders/{id}/cancel', async () => {
+      await fetch(`${API}/v1/carts`, { method: 'POST' });
+      const products = await listProducts('?limit=1');
+      await fetch(`${API}/v1/carts/42/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: products.items[0]?.id,
+          quantity: 1,
+        }),
+      });
+      const checkout = await fetch(`${API}/v1/orders/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': 'key-cancel-order',
+        },
+        body: JSON.stringify({ cartId: 42, paymentMethod: 'CARD' }),
+      });
+      expect(checkout.status).toBe(201);
+      const checkoutBody: unknown = await checkout.json();
+      expect(checkoutBody).toMatchObject({ orderId: expect.any(Number) });
+      if (
+        typeof checkoutBody !== 'object' ||
+        checkoutBody === null ||
+        !('orderId' in checkoutBody) ||
+        typeof checkoutBody.orderId !== 'number'
+      ) {
+        throw new Error('expected checkout orderId');
+      }
+      const { orderId } = checkoutBody;
+
+      const cancel = await fetch(`${API}/v1/orders/${orderId}/cancel`, {
+        method: 'PATCH',
+      });
+      expect(cancel.status).toBe(200);
+      await expect(cancel.json()).resolves.toMatchObject({
+        id: orderId,
+        status: 'cancelled',
+      });
+
+      const detail = await fetch(`${API}/v1/orders/${orderId}`);
+      await expect(detail.json()).resolves.toMatchObject({
+        id: orderId,
+        status: 'cancelled',
+      });
+    });
+
+    it('rejects unauthenticated cancel with 401', async () => {
+      setMockSessionActive(false);
+      const response = await fetch(`${API}/v1/orders/1/cancel`, {
+        method: 'PATCH',
+      });
+      expect(response.status).toBe(401);
+      setMockSessionActive(true);
     });
 
     it('ships to the address sent with checkout', async () => {

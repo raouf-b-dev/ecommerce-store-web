@@ -528,6 +528,36 @@ export const handlers = [
     return HttpResponse.json(order);
   }),
 
+  http.patch('*/v1/orders/:id/cancel', ({ params }) => {
+    if (!isMockSessionActive()) {
+      return nestError(401, 'Unauthorized');
+    }
+    const store = getMockStore();
+    const order = store.orders.find((item) => item.id === Number(params.id));
+    if (!order) {
+      // OpenAPI: missing or inaccessible cancel target is 422.
+      return nestError(422, 'Order not found');
+    }
+    // Shopper cancel_own_orders (no manage_orders): OpenAPI-allowed early statuses only.
+    const shopperCancellable = [
+      'pending_payment',
+      'payment_failed',
+      'confirmed',
+    ];
+    if (!shopperCancellable.some((status) => status === order.status)) {
+      return nestError(409, 'Order cannot be cancelled in current state');
+    }
+    order.status = 'cancelled';
+    order.updatedAt = new Date().toISOString();
+    return HttpResponse.json({
+      id: order.id,
+      status: order.status,
+      totalPrice: order.totalPrice,
+      currency: order.currency,
+      updatedAt: order.updatedAt,
+    });
+  }),
+
   http.get('*/v1/orders', () => {
     if (!isMockSessionActive()) {
       return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });

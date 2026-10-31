@@ -20,6 +20,12 @@ vi.mock('@/features/orders/hooks/use-order-payment', () => ({
   useOrderPayment: (...args: unknown[]) => mockUseOrderPayment(...args),
 }));
 
+vi.mock('@/features/orders/components/order-cancel-action', () => ({
+  OrderCancelAction: () => (
+    <button type="button">Cancel order</button>
+  ),
+}));
+
 vi.mock('next/navigation', () => ({
   usePathname: () => '/orders/123',
 }));
@@ -98,5 +104,33 @@ describe('OrderDetailContent', () => {
 
     expect(screen.getAllByText('-')).toHaveLength(2);
     expect(screen.queryByText(/null/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the cancel control when the order status is shopper-cancellable', () => {
+    mockUseOrderDetail.mockReturnValue(
+      createMockUseOrderDetailResult({
+        order: createMockOrderDetail({ status: 'confirmed' }),
+      }),
+    );
+
+    render(<OrderDetailContent orderId={123} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Cancel order' }),
+    ).toBeInTheDocument();
+  });
+
+  it('hides the cancel control when the order is processing', () => {
+    mockUseOrderDetail.mockReturnValue(
+      createMockUseOrderDetailResult({
+        order: createMockOrderDetail({ status: 'processing' }),
+      }),
+    );
+
+    render(<OrderDetailContent orderId={123} />);
+
+    expect(
+      screen.queryByRole('button', { name: 'Cancel order' }),
+    ).not.toBeInTheDocument();
   });
 });

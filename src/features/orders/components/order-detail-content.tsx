@@ -7,10 +7,12 @@ import {
 } from '@/components/feedback/query-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { AccountNav } from '@/components/layout/account-nav';
+import { OrderCancelAction } from '@/features/orders/components/order-cancel-action';
 import { OrderDetailItems } from '@/features/orders/components/order-detail-items';
 import { OrderPaymentSummary } from '@/features/orders/components/order-payment-summary';
 import { useOrderDetail } from '@/features/orders/hooks/use-order-detail';
 import { ORDERS_LIST_HREF } from '@/features/orders/lib/order-list-filters';
+import { isShopperCancellableStatus } from '@/features/orders/lib/order-status';
 import {
   formatDateTime,
   formatMoney,
@@ -79,22 +81,36 @@ export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
         {order ? (
           <div className="space-y-8">
             <header className="space-y-3 border-b pb-6">
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  {order.orderNumber}
-                </h1>
-                <StatusBadge status={order.status} />
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                      {order.orderNumber}
+                    </h1>
+                    <StatusBadge status={order.status} />
+                  </div>
+                  <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+                    <div>
+                      <dt className="inline">Placed: </dt>
+                      <dd className="inline">
+                        {formatDateTime(order.createdAt)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="inline">Updated: </dt>
+                      <dd className="inline">
+                        {formatDateTime(order.updatedAt)}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+                {isShopperCancellableStatus(order.status) ? (
+                  <OrderCancelAction
+                    orderId={order.id}
+                    orderNumber={order.orderNumber}
+                  />
+                ) : null}
               </div>
-              <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
-                <div>
-                  <dt className="inline">Placed: </dt>
-                  <dd className="inline">{formatDateTime(order.createdAt)}</dd>
-                </div>
-                <div>
-                  <dt className="inline">Updated: </dt>
-                  <dd className="inline">{formatDateTime(order.updatedAt)}</dd>
-                </div>
-              </dl>
             </header>
 
             <section className="space-y-2" aria-labelledby="shipping-heading">
