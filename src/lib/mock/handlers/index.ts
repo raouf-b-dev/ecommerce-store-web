@@ -48,6 +48,7 @@ function customerSessionBody() {
     permissions: [
       'manage_own_cart',
       'view_own_orders',
+      'cancel_own_orders',
       'change_own_credentials',
     ],
   };
