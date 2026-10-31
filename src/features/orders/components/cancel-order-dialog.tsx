@@ -19,6 +19,7 @@ type CancelOrderDialogProps = {
   onConfirm: () => Promise<void>;
   isPending: boolean;
   error?: string | null;
+  onCloseAutoFocus?: (event: Event) => void;
 };
 
 export function CancelOrderDialog({
@@ -28,6 +29,7 @@ export function CancelOrderDialog({
   onConfirm,
   isPending,
   error,
+  onCloseAutoFocus,
 }: CancelOrderDialogProps) {
   const handleOpenChange = (nextOpen: boolean) => {
     if (isPending && !nextOpen) {
@@ -38,7 +40,7 @@ export function CancelOrderDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <AlertDialogHeader>
           <AlertDialogTitle>Cancel order?</AlertDialogTitle>
           <AlertDialogDescription>
@@ -58,7 +60,7 @@ export function CancelOrderDialog({
               void onConfirm();
             }}
           >
-            {isPending ? 'Cancelling…' : 'Cancel order'}
+            {isPending ? 'Cancelling...' : 'Cancel order'}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

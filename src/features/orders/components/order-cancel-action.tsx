@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { CancelOrderDialog } from '@/features/orders/components/cancel-order-dialog';
@@ -20,8 +20,15 @@ export function OrderCancelAction({
   const cancelOrder = useCancelOrder();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
-  function openDialog() {
+  const handleCloseAutoFocus = (event: Event) => {
+    event.preventDefault();
+    triggerRef.current?.focus();
+  };
+
+  function openDialog(e: React.MouseEvent<HTMLButtonElement>) {
+    triggerRef.current = e.currentTarget;
     setErrorMessage(null);
     cancelOrder.reset();
     setDialogOpen(true);
@@ -34,10 +41,13 @@ export function OrderCancelAction({
       setDialogOpen(false);
       toast.success('Order cancelled');
     } catch (error) {
-      setErrorMessage(getCancelOrderErrorMessage(error));
+      const message = getCancelOrderErrorMessage(error);
       if (hasHttpStatus(error, 409)) {
         setDialogOpen(false);
+        toast.error(message);
+        return;
       }
+      setErrorMessage(message);
     }
   }
 
@@ -68,6 +78,7 @@ export function OrderCancelAction({
         onConfirm={handleConfirm}
         isPending={cancelOrder.isPending}
         error={errorMessage}
+        onCloseAutoFocus={handleCloseAutoFocus}
       />
     </div>
   );

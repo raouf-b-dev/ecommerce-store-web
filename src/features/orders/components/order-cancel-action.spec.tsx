@@ -6,11 +6,12 @@ import { OrderCancelAction } from '@/features/orders/components/order-cancel-act
 import { ApiRequestError } from '@/lib/api/parse-api-error';
 
 const toastSuccess = vi.hoisted(() => vi.fn());
+const toastError = vi.hoisted(() => vi.fn());
 
 vi.mock('sonner', () => ({
   toast: {
     success: toastSuccess,
-    error: vi.fn(),
+    error: toastError,
   },
 }));
 
@@ -118,7 +119,7 @@ describe('OrderCancelAction', () => {
     ).toBeInTheDocument();
   });
 
-  it('closes the dialog when the API returns 409 conflict', async () => {
+  it('closes the dialog and surfaces the 409 message via toast', async () => {
     const user = userEvent.setup();
     mutateAsync.mockRejectedValue(
       new ApiRequestError({
@@ -140,5 +141,44 @@ describe('OrderCancelAction', () => {
     await waitFor(() => {
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
+    expect(toastError).toHaveBeenCalledWith(
+      'This order can no longer be cancelled.',
+    );
+  });
+
+  it('returns focus to the cancel trigger after Keep order', async () => {
+    const user = userEvent.setup();
+
+    render(<OrderCancelAction orderId={123} orderNumber="ORD-2026-0123" />);
+
+    const trigger = screen.getByRole('button', { name: 'Cancel order' });
+    await user.click(trigger);
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Keep order',
+      }),
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+    expect(trigger).toHaveFocus();
+  });
+
+  it('returns focus to the cancel trigger after Escape', async () => {
+    const user = userEvent.setup();
+
+    render(<OrderCancelAction orderId={123} orderNumber="ORD-2026-0123" />);
+
+    const trigger = screen.getByRole('button', { name: 'Cancel order' });
+    await user.click(trigger);
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+    expect(trigger).toHaveFocus();
   });
 });

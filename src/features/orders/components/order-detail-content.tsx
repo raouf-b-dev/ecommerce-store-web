@@ -13,6 +13,7 @@ import { OrderPaymentSummary } from '@/features/orders/components/order-payment-
 import { useOrderDetail } from '@/features/orders/hooks/use-order-detail';
 import { ORDERS_LIST_HREF } from '@/features/orders/lib/order-list-filters';
 import { isShopperCancellableStatus } from '@/features/orders/lib/order-status';
+import { useAuth } from '@/lib/auth/auth-context';
 import {
   formatDateTime,
   formatMoney,
@@ -20,13 +21,21 @@ import {
   formatShipping,
 } from '@/lib/format';
 
+/** API cancel route accepts cancel_own_orders or manage_orders. */
+const CANCEL_OWN_ORDERS_PERMISSION = 'cancel_own_orders';
+const MANAGE_ORDERS_PERMISSION = 'manage_orders';
+
 type OrderDetailContentProps = {
   orderId: number;
 };
 
 export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
+  const { session } = useAuth();
   const { order, isLoading, isFetching, isError, error, refetch } =
     useOrderDetail(orderId);
+  const canCancelOrder =
+    session?.permissions.includes(CANCEL_OWN_ORDERS_PERMISSION) === true ||
+    session?.permissions.includes(MANAGE_ORDERS_PERMISSION) === true;
 
   if (!Number.isInteger(orderId) || orderId <= 0) {
     return (
@@ -75,7 +84,7 @@ export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
       <QueryListRegion
         isLoading={isLoading}
         isFetching={isFetching}
-        loadingLabel="Loading order details…"
+        loadingLabel="Loading order details..."
         hasData={Boolean(order)}
       >
         {order ? (
@@ -104,7 +113,7 @@ export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
                     </div>
                   </dl>
                 </div>
-                {isShopperCancellableStatus(order.status) ? (
+                {isShopperCancellableStatus(order.status) && canCancelOrder ? (
                   <OrderCancelAction
                     orderId={order.id}
                     orderNumber={order.orderNumber}
