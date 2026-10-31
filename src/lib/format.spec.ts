@@ -24,15 +24,18 @@ describe('format', () => {
     expect(formatDate(null)).toBe('-');
     expect(formatDateTime(undefined)).toBe('-');
     expect(formatDate('not-a-date')).toBe('not-a-date');
+    expect(formatDateTime('not-a-date')).toBe('not-a-date');
   });
 
   it('formats valid ISO dates in en-US', () => {
     expect(formatDate('2025-01-15T00:00:00.000Z')).not.toBe(
       '2025-01-15T00:00:00.000Z',
     );
-    expect(formatDateTime('2025-01-15T12:00:00.000Z')).not.toBe(
-      '2025-01-15T12:00:00.000Z',
+    const formatted = formatDateTime('2025-01-15T12:00:00.000Z');
+    expect(formatted).toMatch(
+      /^[A-Z][a-z]{2} \d{1,2}, 2025, \d{1,2}:\d{2}\s(AM|PM)$/,
     );
+    expect(formatted).not.toMatch(/\d{1,2}:\d{2}:\d{2}/);
   });
 
   it('shows free shipping for zero and the amount otherwise', () => {

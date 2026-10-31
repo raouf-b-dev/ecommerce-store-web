@@ -61,7 +61,10 @@ export function formatDateTime(value: string | null | undefined): string {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return date.toLocaleString(SHOPPER_LOCALE);
+  return date.toLocaleString(SHOPPER_LOCALE, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
 }
 
 export function formatOptionalText(value: string | null | undefined): string {

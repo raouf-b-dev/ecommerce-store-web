@@ -355,6 +355,29 @@ describe('CheckoutForm', () => {
     });
   });
 
+  it('omits sample placeholders on custom address fields', async () => {
+    const user = userEvent.setup();
+    mockCartWithItems();
+
+    render(<CheckoutForm onOrderCreated={mockOnOrderCreated} />);
+
+    await user.click(screen.getByLabelText(/ship to a custom address/i));
+
+    const addressFields = [
+      /first name/i,
+      /last name/i,
+      /street address/i,
+      /apartment, suite, unit/i,
+      /^city$/i,
+      /state \/ province/i,
+      /postal code/i,
+    ] as const;
+
+    for (const label of addressFields) {
+      expect(screen.getByLabelText(label)).not.toHaveAttribute('placeholder');
+    }
+  });
+
   it('shows validation errors and blocks submit when custom address is invalid', async () => {
     const user = userEvent.setup();
     mockCartWithItems();
