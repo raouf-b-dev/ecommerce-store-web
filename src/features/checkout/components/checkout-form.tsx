@@ -282,7 +282,6 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                       <FieldLabel htmlFor="firstName">First Name</FieldLabel>
                       <Input
                         id="firstName"
-                        placeholder="Jane"
                         aria-invalid={Boolean(
                           errors.shippingAddress?.firstName,
                         )}
@@ -301,7 +300,6 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                       <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
                       <Input
                         id="lastName"
-                        placeholder="Doe"
                         aria-invalid={Boolean(
                           errors.shippingAddress?.lastName,
                         )}
@@ -319,7 +317,6 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                     <FieldLabel htmlFor="street">Street Address</FieldLabel>
                     <Input
                       id="street"
-                      placeholder="123 Market Street"
                       aria-invalid={Boolean(errors.shippingAddress?.street)}
                       {...form.register('shippingAddress.street')}
                     />
@@ -336,7 +333,6 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                     </FieldLabel>
                     <Input
                       id="street2"
-                      placeholder="Apt 4B"
                       aria-invalid={Boolean(errors.shippingAddress?.street2)}
                       {...form.register('shippingAddress.street2')}
                     />
@@ -352,7 +348,6 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                       <FieldLabel htmlFor="city">City</FieldLabel>
                       <Input
                         id="city"
-                        placeholder="New York"
                         aria-invalid={Boolean(errors.shippingAddress?.city)}
                         {...form.register('shippingAddress.city')}
                       />
@@ -367,7 +362,6 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                       <FieldLabel htmlFor="state">State / Province</FieldLabel>
                       <Input
                         id="state"
-                        placeholder="NY"
                         aria-invalid={Boolean(errors.shippingAddress?.state)}
                         {...form.register('shippingAddress.state')}
                       />
@@ -384,7 +378,6 @@ export function CheckoutForm({ onOrderCreated }: CheckoutFormProps) {
                       <FieldLabel htmlFor="postalCode">Postal Code</FieldLabel>
                       <Input
                         id="postalCode"
-                        placeholder="10001"
                         aria-invalid={Boolean(
                           errors.shippingAddress?.postalCode,
                         )}
