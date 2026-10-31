@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Storefront mobile layout and accessibility: larger tap targets, mobile drawer with cart/account/theme, readable order line items, cart and category chip overflow, stronger focus rings, and higher-contrast dark-mode secondary text.
 - Shopper date and times omit seconds, and checkout address fields no longer show sample-looking placeholders.
 
 ## [0.7.0] - 2026-10-28
