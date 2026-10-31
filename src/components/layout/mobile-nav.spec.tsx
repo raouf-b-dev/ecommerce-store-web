@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { toast } from 'sonner';
@@ -58,7 +58,6 @@ describe('MobileNav', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockLogout.mockResolvedValue(undefined);
-    setAuthState({ status: 'authenticated', session: null });
     auth.mockReturnValue({
       status: 'authenticated',
       session: {
@@ -87,7 +86,9 @@ describe('MobileNav', () => {
       name: 'Open navigation menu',
     });
     await user.click(trigger);
-    expect(screen.getByRole('heading', { name: 'Menu' })).toBeVisible();
+    expect(
+      screen.getByRole('heading', { name: 'Navigation menu' }),
+    ).toBeVisible();
     expect(screen.getByRole('link', { name: 'Home' })).toBeVisible();
     expect(
       screen.getByText('Storefront sections, cart, account, and appearance'),
@@ -103,11 +104,9 @@ describe('MobileNav', () => {
   it('offers cart, account links, sign out, and theme when authenticated', async () => {
     await openMenu();
 
-    expect(screen.getByRole('link', { name: /cart/i })).toHaveAttribute(
-      'href',
-      '/cart',
-    );
-    expect(screen.getByText('2')).toBeInTheDocument();
+    const cartLink = screen.getByRole('link', { name: /cart/i });
+    expect(cartLink).toHaveAttribute('href', '/cart');
+    expect(within(cartLink).getByText('2')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'My Orders' })).toHaveAttribute(
       'href',
       '/orders',
@@ -162,8 +161,11 @@ describe('MobileNav', () => {
       expect(mockLogout).toHaveBeenCalledTimes(1);
     });
     expect(
-      screen.queryByRole('heading', { name: 'Menu' }),
+      screen.queryByRole('heading', { name: 'Navigation menu' }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Open navigation menu' }),
+    ).toHaveFocus();
   });
 
   it('toasts when sign out fails', async () => {
@@ -179,7 +181,9 @@ describe('MobileNav', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Network down');
     });
-    expect(screen.getByRole('heading', { name: 'Menu' })).toBeVisible();
+    expect(
+      screen.getByRole('heading', { name: 'Navigation menu' }),
+    ).toBeVisible();
   });
 
   it('offers cart, sign in, create account, and theme when unauthenticated', async () => {

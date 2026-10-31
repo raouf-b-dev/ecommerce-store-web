@@ -54,7 +54,7 @@ export function MobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="w-[280px] gap-0 p-0">
         <SheetHeader className="border-b px-4 py-4 pr-12 text-left">
-          <SheetTitle>Menu</SheetTitle>
+          <SheetTitle>Navigation menu</SheetTitle>
           <SheetDescription className="sr-only">
             Storefront sections, cart, account, and appearance
           </SheetDescription>

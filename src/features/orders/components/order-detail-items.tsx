@@ -37,16 +37,19 @@ export function OrderDetailItems({ items, currency }: OrderDetailItemsProps) {
                 <dd className="inline">{formatOptionalText(item.sku)}</dd>
               </div>
               <div>
-                <dt className="inline">Qty: </dt>
+                <dt className="inline">Qty × price: </dt>
                 <dd className="inline">
                   {item.quantity} × {formatMoney(item.unitPrice, currency)}
                 </dd>
               </div>
             </dl>
           </div>
-          <p className="shrink-0 text-sm font-medium text-foreground tabular-nums">
-            {formatMoney(item.subtotal, currency)}
-          </p>
+          <dl className="shrink-0 text-right">
+            <dt className="sr-only">Subtotal</dt>
+            <dd className="text-sm font-medium text-foreground tabular-nums">
+              {formatMoney(item.subtotal, currency)}
+            </dd>
+          </dl>
         </li>
       ))}
     </ul>
