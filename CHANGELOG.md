@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Regenerated OpenAPI client so typed error `code` includes documented `ErrorCode` values (resource NOT_FOUND and SCREAMING auth codes).
 - Regenerated OpenAPI client for the shared API error body (`code` on errors). MSW auth and path not-found responses use `UNAUTHORIZED` and `*_NOT_FOUND` codes; shopper cancel for a missing order maps HTTP 404 / `ORDER_NOT_FOUND` instead of 422.
 
 ### Fixed
