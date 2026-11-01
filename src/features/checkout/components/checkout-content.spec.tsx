@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { CheckoutContent } from './checkout-content';
 
 const replace = vi.hoisted(() => vi.fn());
@@ -26,7 +27,7 @@ vi.mock('./checkout-form', () => ({
 
 vi.mock('./checkout-confirmation', () => ({
   CheckoutConfirmation: ({ orderId }: { orderId: number }) => (
-    <h2>Mock confirmation for {orderId}</h2>
+    <h1>Mock confirmation for {orderId}</h1>
   ),
 }));
 
@@ -59,7 +60,30 @@ describe('CheckoutContent', () => {
       screen.queryByRole('heading', { level: 1, name: 'Checkout' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Mock confirmation for 99' }),
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Mock confirmation for 99',
+      }),
     ).toBeInTheDocument();
+  });
+
+  it('replaces the Checkout heading with confirmation after the form creates an order', async () => {
+    const user = userEvent.setup();
+    render(<CheckoutContent />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Mock checkout form' }),
+    );
+
+    expect(
+      screen.queryByRole('heading', { level: 1, name: 'Checkout' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Mock confirmation for 42',
+      }),
+    ).toBeInTheDocument();
+    expect(replace).toHaveBeenCalledWith('/checkout?orderId=42');
   });
 });

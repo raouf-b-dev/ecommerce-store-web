@@ -27,15 +27,10 @@ export default function ShippingPage() {
       />
       <div className="space-y-4 text-sm leading-6 text-muted-foreground">
         <p>
-          Items in the catalog ship from available stock. Shipping cost is
-          calculated at checkout for the address you choose; the cart and
-          checkout summary show the amount for that order.
+          Items in the catalog ship from available stock. The cart and checkout
+          summary show the shipping amount for your order.
         </p>
-        <p>
-          We do not advertise a blanket free-shipping threshold on this page.
-          When an order qualifies for free shipping, the cart and confirmation
-          screens say so for that order.
-        </p>
+        <p>Order confirmation shows the shipping amount that was charged.</p>
         <p>
           After you place an order, track status under{' '}
           <Link

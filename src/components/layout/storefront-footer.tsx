@@ -19,8 +19,8 @@ const FOOTER_SECTIONS: {
   {
     title: 'Account',
     links: [
-      { href: '/account', label: 'Account' },
-      { href: '/orders', label: 'Orders' },
+      { href: '/account', label: 'Your account' },
+      { href: '/orders', label: 'Order history' },
     ],
   },
   {

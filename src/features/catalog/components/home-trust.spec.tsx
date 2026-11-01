@@ -19,7 +19,9 @@ describe('HomeTrust', () => {
       screen.getByRole('heading', { name: 'Order history' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/shipping cost is calculated at checkout/i),
+      screen.getByText(
+        /the cart and checkout show the shipping amount for your order/i,
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/free shipping/i)).not.toBeInTheDocument();
   });

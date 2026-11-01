@@ -4,7 +4,7 @@ const TRUST_POINTS = [
   {
     title: 'Ships from stock',
     description:
-      'Catalog items are picked from available inventory. Shipping cost is calculated at checkout for your address.',
+      'Catalog items are picked from available inventory. The cart and checkout show the shipping amount for your order.',
     Icon: Truck,
   },
   {

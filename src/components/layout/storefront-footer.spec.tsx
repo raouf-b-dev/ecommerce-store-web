@@ -21,10 +21,10 @@ describe('StorefrontFooter', () => {
 
     const account = screen.getByRole('navigation', { name: 'Account' });
     expect(
-      within(account).getByRole('link', { name: 'Account' }),
+      within(account).getByRole('link', { name: 'Your account' }),
     ).toHaveAttribute('href', '/account');
     expect(
-      within(account).getByRole('link', { name: 'Orders' }),
+      within(account).getByRole('link', { name: 'Order history' }),
     ).toHaveAttribute('href', '/orders');
 
     const help = screen.getByRole('navigation', { name: 'Help' });
