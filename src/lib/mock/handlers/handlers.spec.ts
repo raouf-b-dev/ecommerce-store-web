@@ -245,7 +245,24 @@ describe('storefront mock handlers', () => {
         method: 'PATCH',
       });
       expect(response.status).toBe(401);
+      await expect(response.json()).resolves.toMatchObject({
+        success: false,
+        statusCode: 401,
+        code: 'UNAUTHORIZED',
+      });
       setMockSessionActive(true);
+    });
+
+    it('rejects cancel for a missing order with 404 ORDER_NOT_FOUND', async () => {
+      const response = await fetch(`${API}/v1/orders/999999/cancel`, {
+        method: 'PATCH',
+      });
+      expect(response.status).toBe(404);
+      await expect(response.json()).resolves.toMatchObject({
+        success: false,
+        statusCode: 404,
+        code: 'ORDER_NOT_FOUND',
+      });
     });
 
     it('ships to the address sent with checkout', async () => {

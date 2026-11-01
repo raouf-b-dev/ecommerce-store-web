@@ -10,7 +10,11 @@ export async function createCartRequest(): Promise<CartResponse> {
   const { data, error, response } = await browserClient.POST('/v1/carts');
 
   if (error || !data || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to create cart.', error);
+    return await throwApiErrorFromResponse(
+      response,
+      'Failed to create cart.',
+      error,
+    );
   }
 
   return data;
@@ -28,10 +32,14 @@ export async function getCurrentCartRequest(): Promise<CartResponse | null> {
   }
 
   if (error || !data || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to load cart.', error);
+    return await throwApiErrorFromResponse(
+      response,
+      'Failed to load cart.',
+      error,
+    );
   }
 
-  return data as CartResponse;
+  return data;
 }
 
 export async function getCartRequest(id: number): Promise<CartResponse> {
@@ -42,7 +50,11 @@ export async function getCartRequest(id: number): Promise<CartResponse> {
   });
 
   if (error || !data || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to load cart.', error);
+    return await throwApiErrorFromResponse(
+      response,
+      'Failed to load cart.',
+      error,
+    );
   }
 
   return data;
@@ -60,7 +72,7 @@ export async function addItemToCartRequest(
   });
 
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(
+    return await throwApiErrorFromResponse(
       response,
       'Failed to add item to cart.',
       error,
@@ -84,7 +96,7 @@ export async function updateCartItemRequest(
   );
 
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(
+    return await throwApiErrorFromResponse(
       response,
       'Failed to update cart item quantity.',
       error,
@@ -106,7 +118,7 @@ export async function removeCartItemRequest(
   );
 
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(
+    return await throwApiErrorFromResponse(
       response,
       'Failed to remove cart item.',
       error,
@@ -122,6 +134,10 @@ export async function clearCartRequest(cartId: number): Promise<void> {
   });
 
   if (error || !response.ok) {
-    await throwApiErrorFromResponse(response, 'Failed to clear cart.', error);
+    return await throwApiErrorFromResponse(
+      response,
+      'Failed to clear cart.',
+      error,
+    );
   }
 }
