@@ -6,15 +6,7 @@ export const instant = false;
 
 export default function CheckoutPage() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Checkout
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Complete your order with secure payment and address confirmation.
-        </p>
-      </div>
+    <div className="container mx-auto max-w-6xl px-4 py-8">
       <CheckoutContent />
     </div>
   );

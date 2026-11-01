@@ -19,8 +19,16 @@ const FOOTER_SECTIONS: {
   {
     title: 'Account',
     links: [
-      { href: '/account', label: 'Your account' },
-      { href: '/orders', label: 'Order history' },
+      { href: '/account', label: 'Account' },
+      { href: '/orders', label: 'Orders' },
+    ],
+  },
+  {
+    title: 'Help',
+    links: [
+      { href: '/shipping', label: 'Shipping' },
+      { href: '/privacy', label: 'Privacy' },
+      { href: '/contact', label: 'Contact' },
     ],
   },
 ];
@@ -28,7 +36,7 @@ const FOOTER_SECTIONS: {
 export function StorefrontFooter() {
   return (
     <footer className="mt-8 border-t bg-muted/30">
-      <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 sm:grid-cols-[2fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 sm:grid-cols-[2fr_1fr_1fr_1fr]">
         <div className="space-y-3">
           <Link
             href="/"

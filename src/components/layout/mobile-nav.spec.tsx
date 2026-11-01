@@ -111,9 +111,10 @@ describe('MobileNav', () => {
       'href',
       '/orders',
     );
-    expect(
-      screen.getByRole('link', { name: 'Account Settings' }),
-    ).toHaveAttribute('href', '/account');
+    expect(screen.getByRole('link', { name: 'Account' })).toHaveAttribute(
+      'href',
+      '/account',
+    );
     expect(
       screen.queryByRole('link', { name: 'Change password' }),
     ).not.toBeInTheDocument();

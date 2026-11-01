@@ -116,7 +116,7 @@ describe('StorefrontUserMenu', () => {
     expect(screen.getByText('shopper@example.com')).toBeInTheDocument();
     expect(screen.getByText('store manager')).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /my orders/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /account settings/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /^account$/i })).toBeInTheDocument();
     const changePassword = screen.getByRole('menuitem', {
       name: /change password/i,
     });
@@ -153,7 +153,7 @@ describe('StorefrontUserMenu', () => {
     await user.click(trigger);
 
     expect(screen.getByRole('menuitem', { name: /my orders/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /account settings/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /^account$/i })).toBeInTheDocument();
     expect(
       screen.queryByRole('menuitem', { name: /change password/i }),
     ).not.toBeInTheDocument();

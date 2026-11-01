@@ -39,7 +39,19 @@ function CheckoutContentInner() {
     );
   }
 
-  return <CheckoutForm onOrderCreated={persistOrderId} />;
+  return (
+    <>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Checkout
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Complete your order with secure payment and address confirmation.
+        </p>
+      </div>
+      <CheckoutForm onOrderCreated={persistOrderId} />
+    </>
+  );
 }
 
 export function CheckoutContent() {
