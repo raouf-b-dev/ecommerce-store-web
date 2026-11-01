@@ -4,6 +4,7 @@ import { INDEX_FOLLOW_ROBOTS } from '@/lib/seo/config';
 import { createPageMetadata, type PageMetadata } from '@/lib/seo/metadata';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
 import { HomeHero } from '@/features/catalog/components/home-hero';
+import { HomeTrust } from '@/features/catalog/components/home-trust';
 import { LandingSections } from '@/features/catalog/components/landing-sections';
 import { LandingSectionsSkeleton } from '@/features/catalog/components/landing-sections-skeleton';
 
@@ -23,6 +24,7 @@ export default function HomePage() {
   return (
     <div className="space-y-14">
       <HomeHero />
+      <HomeTrust />
       <Suspense fallback={<LandingSectionsSkeleton />}>
         <LandingSections />
       </Suspense>

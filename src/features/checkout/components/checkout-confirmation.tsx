@@ -17,7 +17,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ProductImageFrame } from '@/components/media/product-image';
@@ -68,9 +67,9 @@ export function CheckoutConfirmation({
       <Card className="mx-auto max-w-2xl text-center py-16 border shadow-sm">
         <CardContent className="space-y-4">
           <div className="mx-auto size-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <h2 className="text-xl font-semibold text-foreground">
+          <h1 className="text-xl font-semibold text-foreground">
             Processing Order Confirmation…
-          </h2>
+          </h1>
           <p className="text-sm text-muted-foreground">
             Checking your payment and order status.
           </p>
@@ -87,7 +86,7 @@ export function CheckoutConfirmation({
           <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <XCircle className="size-6" />
           </div>
-          <CardTitle className="text-xl">Unable to Load Order</CardTitle>
+          <h1 className="text-xl">Unable to Load Order</h1>
           <CardDescription>
             {error instanceof Error
               ? error.message
@@ -118,9 +117,7 @@ export function CheckoutConfirmation({
           <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
             <div className="size-8 animate-spin rounded-full border-3 border-current border-t-transparent" />
           </div>
-          <CardTitle className="text-2xl font-bold">
-            Finalizing Your Order
-          </CardTitle>
+          <h1 className="text-2xl font-bold">Finalizing Your Order</h1>
           <div className="flex justify-center">
             <StatusBadge status={order.status} />
           </div>
@@ -167,9 +164,9 @@ export function CheckoutConfirmation({
           <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <XCircle className="size-8" />
           </div>
-          <CardTitle className="text-2xl font-bold text-destructive">
+          <h1 className="text-2xl font-bold text-destructive">
             {confirmationHeading(order.status)}
-          </CardTitle>
+          </h1>
           <div className="flex justify-center">
             <StatusBadge status={order.status} />
           </div>
@@ -228,9 +225,9 @@ export function CheckoutConfirmation({
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="size-8" />
           </div>
-          <h2 className="text-2xl font-bold text-foreground">
+          <h1 className="text-2xl font-bold text-foreground">
             {confirmationHeading(order.status)}
-          </h2>
+          </h1>
           <div className="flex justify-center pt-1">
             <StatusBadge status={order.status} />
           </div>

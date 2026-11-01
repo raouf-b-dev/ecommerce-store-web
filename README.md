@@ -27,6 +27,7 @@
 - [Documentation](#documentation)
 - [Related repositories](#related-repositories)
 - [Project layout](#project-layout)
+- [Customizing the storefront](#customizing)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -259,6 +260,14 @@ docs/
   ai/                     # agent conventions
   architecture/           # ADRs
 ```
+
+---
+
+<a id="customizing"></a>
+
+## Customizing the storefront
+
+Shop name, tagline, description, and the support address live in [`src/lib/shop.ts`](src/lib/shop.ts). Accent colors live in [`src/app/globals.css`](src/app/globals.css). The favicon lives in [`src/app/icon.svg`](src/app/icon.svg). Replace the support address in `shop.ts` before going live.
 
 ---
 

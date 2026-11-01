@@ -129,7 +129,7 @@ export function StorefrontUserMenu({ onNavigate }: StorefrontUserMenuProps) {
               className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-accent"
             >
               <UserIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-              <span className="font-medium">Account Settings</span>
+              <span className="font-medium">Account</span>
             </Link>
           </DropdownMenuItem>
 

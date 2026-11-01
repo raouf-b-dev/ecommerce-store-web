@@ -90,7 +90,7 @@ export function MobileNav() {
                   onClick={close}
                   className={drawerLinkClassName}
                 >
-                  Account Settings
+                  Account
                 </Link>
                 {session.permissions.includes('change_own_credentials') ? (
                   <Link
