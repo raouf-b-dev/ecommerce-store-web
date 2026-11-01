@@ -66,7 +66,7 @@ describe('cart-api', () => {
     it('throws ApiRequestError on failure', async () => {
       mockClient.POST.mockResolvedValueOnce({
         data: undefined,
-        error: { message: 'Unauthorized' },
+        error: { message: 'Unauthorized', code: 'UNAUTHORIZED' },
         response: new Response(null, { status: 401 }),
       });
 

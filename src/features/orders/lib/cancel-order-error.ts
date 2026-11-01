@@ -1,11 +1,12 @@
 import {
+  ApiRequestError,
   getErrorMessage,
   hasHttpStatus,
 } from '@/lib/api/parse-api-error';
 
 /**
- * Map cancel PATCH failures by HTTP status (and parse-api-error), not English text.
- * OpenAPI: 401, 403, 409 (not cancellable), 422 (missing or inaccessible).
+ * Map cancel PATCH failures by HTTP status and/or API `code`, not English text.
+ * OpenAPI: 401, 403, 409 (not cancellable), 404 + ORDER_NOT_FOUND (missing or inaccessible).
  */
 export function getCancelOrderErrorMessage(error: unknown): string {
   if (hasHttpStatus(error, 401)) {
@@ -17,7 +18,10 @@ export function getCancelOrderErrorMessage(error: unknown): string {
   if (hasHttpStatus(error, 409)) {
     return 'This order can no longer be cancelled.';
   }
-  if (hasHttpStatus(error, 422)) {
+  if (
+    hasHttpStatus(error, 404) ||
+    (error instanceof ApiRequestError && error.code === 'ORDER_NOT_FOUND')
+  ) {
     return 'This order could not be found.';
   }
   return getErrorMessage(

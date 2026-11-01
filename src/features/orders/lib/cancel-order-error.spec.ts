@@ -7,7 +7,7 @@ describe('getCancelOrderErrorMessage', () => {
     [401, 'Your session has expired. Sign in again to cancel this order.'],
     [403, 'You do not have permission to cancel this order.'],
     [409, 'This order can no longer be cancelled.'],
-    [422, 'This order could not be found.'],
+    [404, 'This order could not be found.'],
   ] as const)('maps HTTP %i to a stable shopper message', (status, message) => {
     expect(
       getCancelOrderErrorMessage(
@@ -18,6 +18,18 @@ describe('getCancelOrderErrorMessage', () => {
         }),
       ),
     ).toBe(message);
+  });
+
+  it('maps ORDER_NOT_FOUND by code even when status is not 404', () => {
+    expect(
+      getCancelOrderErrorMessage(
+        new ApiRequestError({
+          statusCode: 500,
+          message: 'raw API text must not drive control flow',
+          code: 'ORDER_NOT_FOUND',
+        }),
+      ),
+    ).toBe('This order could not be found.');
   });
 
   it('falls back to getErrorMessage for other failures', () => {

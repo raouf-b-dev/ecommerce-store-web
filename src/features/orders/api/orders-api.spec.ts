@@ -45,7 +45,10 @@ describe('orders-api', () => {
 
     it('throws on error response', async () => {
       mockClient.GET.mockResolvedValueOnce(
-        createErrorApiResponse({ message: 'Unauthorized' }, 401),
+        createErrorApiResponse(
+          { message: 'Unauthorized', code: 'UNAUTHORIZED' },
+          401,
+        ),
       );
 
       await expect(
@@ -151,12 +154,16 @@ describe('orders-api', () => {
 
     it('throws an ApiRequestError on 401 unauthenticated', async () => {
       mockClient.PATCH.mockResolvedValueOnce(
-        createErrorApiResponse({ message: 'Unauthorized' }, 401),
+        createErrorApiResponse(
+          { message: 'Unauthorized', code: 'UNAUTHORIZED' },
+          401,
+        ),
       );
 
       await expect(cancelOrderRequest(123)).rejects.toMatchObject({
         name: 'ApiRequestError',
         statusCode: 401,
+        code: 'UNAUTHORIZED',
       });
     });
   });
