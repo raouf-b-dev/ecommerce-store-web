@@ -23,13 +23,12 @@ export default function PrivacyPage() {
     <article className="mx-auto max-w-2xl space-y-8">
       <PageHeader
         title="Privacy"
-        description={`How ${shop.name} handles account and order information on this demo storefront.`}
+        description={`How ${shop.name} handles account and order information.`}
       />
       <div className="space-y-4 text-sm leading-6 text-muted-foreground">
         <p>
-          This storefront is a demo ecommerce experience. Account email,
-          addresses, cart, and order data are stored by the store API so you can
-          sign in, check out, and review order history.
+          Account email, addresses, cart, and order data are stored by the store
+          API so you can sign in, check out, and review order history.
         </p>
         <p>
           Questions about your data? See{' '}

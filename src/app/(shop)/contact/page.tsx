@@ -6,8 +6,6 @@ import { createPageMetadata } from '@/lib/seo/metadata';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
 import { shop } from '@/lib/shop';
 
-const DEMO_SUPPORT_EMAIL = 'support@example.com';
-
 export function generateMetadata(): Metadata {
   const origin = getStorefrontOrigin();
   return createPageMetadata({
@@ -28,22 +26,17 @@ export default function ContactPage() {
       />
       <div className="space-y-4 text-sm leading-6 text-muted-foreground">
         <p>
-          This is a demo storefront. Use the address below as a placeholder for
-          support mail; it is not a monitored inbox for a live brand.
-        </p>
-        <p>
           Email:{' '}
           <a
-            href={`mailto:${DEMO_SUPPORT_EMAIL}`}
+            href={`mailto:${shop.supportEmail}`}
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            {DEMO_SUPPORT_EMAIL}
-          </a>{' '}
-          (demo placeholder)
+            {shop.supportEmail}
+          </a>
         </p>
         <p>
-          For order status, sign in and open Orders. Shipping rates appear in
-          cart and checkout for your address.
+          For order status, sign in and open Orders. The cart and checkout show
+          the shipping amount for your order.
         </p>
       </div>
     </article>
