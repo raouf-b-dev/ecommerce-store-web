@@ -119,7 +119,7 @@ describe('orders-api', () => {
       const mutation = {
         id: 123,
         status: 'cancelled' as const,
-        totalPrice: 200,
+        totalAmount: 200,
         currency: 'USD',
         updatedAt: '2026-10-31T12:00:00.000Z',
       };

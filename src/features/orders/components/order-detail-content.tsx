@@ -157,7 +157,7 @@ export function OrderDetailContent({ orderId }: OrderDetailContentProps) {
               </div>
               <div className="flex justify-between border-t pt-2 text-base font-semibold text-foreground">
                 <span>Total</span>
-                <span>{formatMoney(order.totalPrice, order.currency)}</span>
+                <span>{formatMoney(order.totalAmount, order.currency)}</span>
               </div>
             </div>
 

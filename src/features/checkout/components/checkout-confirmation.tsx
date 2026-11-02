@@ -328,7 +328,7 @@ export function CheckoutConfirmation({
               </div>
               <div className="flex justify-between border-t pt-2 font-bold text-base text-foreground">
                 <span>Total Paid</span>
-                <span>{formatMoney(order.totalPrice, order.currency)}</span>
+                <span>{formatMoney(order.totalAmount, order.currency)}</span>
               </div>
               <p className="text-xs text-muted-foreground">
                 {shippingSentence(order.shippingCost, order.currency)}

@@ -494,7 +494,6 @@ export const handlers = [
       subtotal: totals.subtotal,
       shippingCost: totals.shippingCost,
       totalAmount: totals.totalAmount,
-      totalPrice: totals.totalAmount,
       currency,
       createdAt: now,
       updatedAt: now,
@@ -544,7 +543,7 @@ export const handlers = [
     return HttpResponse.json({
       id: order.id,
       status: order.status,
-      totalPrice: order.totalPrice,
+      totalAmount: order.totalAmount,
       currency: order.currency,
       updatedAt: order.updatedAt,
     });
