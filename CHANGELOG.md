@@ -14,14 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Regenerated OpenAPI client so typed error `code` includes documented `ErrorCode` values (resource NOT_FOUND and SCREAMING auth codes).
-- Regenerated OpenAPI client for the shared API error body (`code` on errors). MSW auth and path not-found responses use `UNAUTHORIZED` and `*_NOT_FOUND` codes; shopper cancel for a missing order maps HTTP 404 / `ORDER_NOT_FOUND` instead of 422.
+- Regenerated OpenAPI client for the shared API error body (`code` on errors is a non-exhaustive string with documented common values, including resource NOT_FOUND and SCREAMING auth codes). MSW auth and path not-found responses use `UNAUTHORIZED` and `*_NOT_FOUND` codes; shopper cancel for a missing order maps HTTP 404 / `ORDER_NOT_FOUND` instead of 422.
 
 ### Fixed
 
 - Storefront mobile layout and accessibility: larger tap targets, mobile drawer with cart/account/theme, readable order line items, cart and category chip overflow, stronger focus rings, and higher-contrast dark-mode secondary text.
 - Shopper date and times omit seconds, and checkout address fields no longer show sample-looking placeholders.
-- Checkout hides the page Checkout heading while confirmation is showing; account menu and drawer say Account (not Account Settings) to match sibling `/account` and `/orders` routes.
+- Checkout hides the page Checkout heading while confirmation is showing.
+- Account menu and drawer say Account (not Account Settings) to match sibling `/account` and `/orders` routes.
+- Signed-in shoppers can change their password from the account menu, and account pages use shopper-facing wording and address labels.
 
 ## [0.7.0] - 2026-10-28
 
