@@ -32,8 +32,8 @@ export function createMockOrderDetail(
   const subtotal =
     overrides?.subtotal ?? items.reduce((sum, item) => sum + item.subtotal, 0);
   const shippingCost = overrides?.shippingCost ?? 0;
-  const totalPrice =
-    overrides?.totalPrice ?? Number((subtotal + shippingCost).toFixed(2));
+  const totalAmount =
+    overrides?.totalAmount ?? Number((subtotal + shippingCost).toFixed(2));
 
   return {
     id: 123,
@@ -46,8 +46,7 @@ export function createMockOrderDetail(
     items,
     subtotal,
     shippingCost,
-    totalAmount: overrides?.totalAmount ?? totalPrice,
-    totalPrice,
+    totalAmount,
     currency: 'USD',
     paymentMethod: 'CARD',
     createdAt: '2026-09-13T12:00:00.000Z',

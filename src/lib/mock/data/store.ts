@@ -68,7 +68,6 @@ export type MockOrder = {
   subtotal: number;
   shippingCost: number;
   totalAmount: number;
-  totalPrice: number;
   currency: string;
   createdAt: string;
   updatedAt: string;

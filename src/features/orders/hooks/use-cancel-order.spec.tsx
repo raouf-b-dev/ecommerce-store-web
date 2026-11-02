@@ -40,7 +40,7 @@ describe('useCancelOrder', () => {
     vi.mocked(cancelOrderRequest).mockResolvedValue({
       id: 123,
       status: 'cancelled',
-      totalPrice: 200,
+      totalAmount: 200,
       currency: 'USD',
       updatedAt: '2026-10-31T12:00:00.000Z',
     });
