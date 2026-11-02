@@ -25,3 +25,29 @@ export const shop = {
     muted: '#a3b8ae',
   },
 } as const;
+
+const PLACEHOLDER_SUPPORT_EMAIL_DOMAINS = new Set([
+  'example.com',
+  'example.org',
+  'example.net',
+]);
+
+/**
+ * True when the support address still uses a reserved example/test domain so
+ * Contact must stay out of search indexes until a real address is set.
+ * Defaults to `shop.supportEmail`.
+ */
+export function hasPlaceholderSupportEmail(
+  email: string = shop.supportEmail,
+): boolean {
+  const at = email.lastIndexOf('@');
+  if (at < 0) {
+    return true;
+  }
+  const domain = email.slice(at + 1).toLowerCase();
+  return (
+    PLACEHOLDER_SUPPORT_EMAIL_DOMAINS.has(domain) ||
+    domain.endsWith('.example') ||
+    domain.endsWith('.test')
+  );
+}

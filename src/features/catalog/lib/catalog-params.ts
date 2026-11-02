@@ -55,6 +55,11 @@ export const CATALOG_SORT_OPTIONS: readonly {
 /** Route of the full catalog. Product detail pages live under it at `/products/[id]`. */
 export const CATALOG_PATH = '/products' satisfies Route;
 
+/** Help pages linked from the storefront footer. */
+export const SHIPPING_PATH = '/shipping' satisfies Route;
+export const PRIVACY_PATH = '/privacy' satisfies Route;
+export const CONTACT_PATH = '/contact' satisfies Route;
+
 function getSingleParam(
   value: string | string[] | undefined,
 ): string | undefined {

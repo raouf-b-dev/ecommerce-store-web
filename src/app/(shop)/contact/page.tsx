@@ -1,18 +1,21 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/layout/page-header';
+import { CONTACT_PATH } from '@/features/catalog/lib/catalog-params';
 import { buildCanonicalUrl } from '@/lib/seo/canonical';
-import { INDEX_FOLLOW_ROBOTS } from '@/lib/seo/config';
+import { INDEX_FOLLOW_ROBOTS, NO_INDEX_ROBOTS } from '@/lib/seo/config';
 import { createPageMetadata } from '@/lib/seo/metadata';
 import { getStorefrontOrigin } from '@/lib/storefront-origin';
-import { shop } from '@/lib/shop';
+import { hasPlaceholderSupportEmail, shop } from '@/lib/shop';
 
 export function generateMetadata(): Metadata {
   const origin = getStorefrontOrigin();
   return createPageMetadata({
     title: 'Contact',
     description: `Contact ${shop.name} support.`,
-    canonicalUrl: buildCanonicalUrl(origin, '/contact'),
-    robots: INDEX_FOLLOW_ROBOTS,
+    canonicalUrl: buildCanonicalUrl(origin, CONTACT_PATH),
+    robots: hasPlaceholderSupportEmail()
+      ? NO_INDEX_ROBOTS
+      : INDEX_FOLLOW_ROBOTS,
     origin,
   });
 }
