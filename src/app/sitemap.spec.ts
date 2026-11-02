@@ -5,6 +5,12 @@ import sitemap, {
 } from '@/app/sitemap';
 import * as getProductsModule from '@/features/catalog/api/get-products';
 import * as getCategoriesModule from '@/features/catalog/api/get-categories';
+import {
+  CONTACT_PATH,
+  PRIVACY_PATH,
+  SHIPPING_PATH,
+} from '@/features/catalog/lib/catalog-params';
+import * as shopModule from '@/lib/shop';
 import * as storefrontOriginModule from '@/lib/storefront-origin';
 import { ApiRequestError } from '@/lib/api/parse-api-error';
 import type { Category, PaginatedProducts } from '@/features/catalog/types';
@@ -49,7 +55,7 @@ describe('sitemap and generateSitemaps', () => {
   ];
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
     vi.spyOn(storefrontOriginModule, 'getStorefrontOrigin').mockReturnValue(
       origin,
     );
@@ -165,6 +171,60 @@ describe('sitemap and generateSitemaps', () => {
         sortBy: 'id',
         sortOrder: 'asc',
       });
+    });
+
+    it('includes Shipping and Privacy help pages and omits Contact while support email is a placeholder', async () => {
+      vi.spyOn(getProductsModule, 'getProducts').mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 100,
+        totalPages: 0,
+      });
+      expect(shopModule.hasPlaceholderSupportEmail()).toBe(true);
+
+      const entries = await sitemap({ id: Promise.resolve('0') });
+
+      expect(entries).toEqual(
+        expect.arrayContaining([
+          {
+            url: `${origin}${SHIPPING_PATH}`,
+            changeFrequency: 'monthly',
+            priority: 0.4,
+          },
+          {
+            url: `${origin}${PRIVACY_PATH}`,
+            changeFrequency: 'monthly',
+            priority: 0.4,
+          },
+        ]),
+      );
+      expect(entries.some((e) => e.url === `${origin}${CONTACT_PATH}`)).toBe(
+        false,
+      );
+    });
+
+    it('includes Contact in partition 0 when the support email is real', async () => {
+      vi.spyOn(shopModule, 'hasPlaceholderSupportEmail').mockReturnValue(false);
+      vi.spyOn(getProductsModule, 'getProducts').mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 100,
+        totalPages: 0,
+      });
+
+      const entries = await sitemap({ id: Promise.resolve('0') });
+
+      expect(entries).toEqual(
+        expect.arrayContaining([
+          {
+            url: `${origin}${CONTACT_PATH}`,
+            changeFrequency: 'monthly',
+            priority: 0.4,
+          },
+        ]),
+      );
     });
 
     it('partition 0 with empty catalog returns homepage and non-empty category URLs', async () => {
