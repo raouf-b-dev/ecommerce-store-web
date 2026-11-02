@@ -51,6 +51,22 @@ describe('CheckoutContent', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('renders one Checkout h1 in the Suspense fallback', () => {
+    getSearchParams.mockImplementation(() => {
+      throw new Promise<never>(() => {});
+    });
+
+    render(<CheckoutContent />);
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Checkout' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(
+      screen.queryByRole('button', { name: 'Mock checkout form' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('hides the Checkout heading when confirmation is active', () => {
     getSearchParams.mockReturnValue(new URLSearchParams('orderId=99'));
 
