@@ -24,6 +24,7 @@ Works with ecommerce-store-api v0.14.0 or later. The generated client matches AP
 
 ### Fixed
 
+- Destructive buttons use a solid red background with white label text so Cancel order and other danger actions meet WCAG AA color contrast (the soft tint style scored about 4:1).
 - The checkout page shows its Checkout heading while the page is still loading ([#161](https://github.com/raouf-b-dev/ecommerce-store-web/pull/161)).
 - The sitemap lists the Shipping and Privacy pages, and the Contact page is hidden from search engines until a real support email is set ([#160](https://github.com/raouf-b-dev/ecommerce-store-web/pull/160)).
 - Storefront mobile layout and accessibility: larger tap targets, mobile drawer with cart/account/theme, readable order line items, cart and category chip overflow, stronger focus rings, and higher-contrast dark-mode secondary text ([#151](https://github.com/raouf-b-dev/ecommerce-store-web/pull/151)).
