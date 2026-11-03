@@ -12,7 +12,7 @@ test('registers a customer and establishes a session', async ({ page }) => {
   await expect(page).toHaveURL('/');
   await accountMenuButton(page, customer.email).click();
   await expect(
-    page.getByRole('menuitem', { name: 'Account Settings' }),
+    page.getByRole('menuitem', { name: 'Account' }),
   ).toBeVisible();
 });
 

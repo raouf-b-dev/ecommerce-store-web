@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-03
+
+Works with ecommerce-store-api v0.14.0 or later. The generated client matches API v0.14.0.
+
+### Added
+
+- Shoppers can cancel eligible orders from the order details page. The Cancel order button requires the `cancel_own_orders` or `manage_orders` permission and a cancellable status (`pending_payment`, `payment_failed`, or `confirmed`). Needs an ecommerce-store-api with `cancel_own_orders` (API [#408](https://github.com/raouf-b-dev/ecommerce-store-api/pull/408)) ([#149](https://github.com/raouf-b-dev/ecommerce-store-web/pull/149)).
+- Home trust and shipping strip, plus Help footer links to Shipping, Privacy, and Contact pages ([#153](https://github.com/raouf-b-dev/ecommerce-store-web/pull/153)).
+
+### Changed
+
+- Storefront order screens read the canonical order total field from the API ([#162](https://github.com/raouf-b-dev/ecommerce-store-web/pull/162)).
+- Regenerated OpenAPI client for the shared API error body (`code` on errors is a non-exhaustive string with documented common values, including resource NOT_FOUND and SCREAMING auth codes). MSW auth and path not-found responses use `UNAUTHORIZED` and `*_NOT_FOUND` codes. Shopper cancel for a missing order maps HTTP 404 / `ORDER_NOT_FOUND` instead of 422 ([#154](https://github.com/raouf-b-dev/ecommerce-store-web/pull/154), [#155](https://github.com/raouf-b-dev/ecommerce-store-web/pull/155)).
+- Dependency updates: production dependencies including Next.js 16.4.3, react-hook-form 7.91.0, @hookform/resolvers 6.0.2, @tanstack/react-query 5.105.0, cn 0.5.1, and lucide-react 1.65.0 ([#136](https://github.com/raouf-b-dev/ecommerce-store-web/pull/136), [#156](https://github.com/raouf-b-dev/ecommerce-store-web/pull/156)), Docker Node base image 26.13.0 ([#157](https://github.com/raouf-b-dev/ecommerce-store-web/pull/157)), and dev dependencies ([#142](https://github.com/raouf-b-dev/ecommerce-store-web/pull/142), [#158](https://github.com/raouf-b-dev/ecommerce-store-web/pull/158)).
+
+### Fixed
+
+- Destructive buttons use a solid red background with white label text so Cancel order and other danger actions meet WCAG AA color contrast (the soft tint style scored about 4:1).
+- The checkout page shows its Checkout heading while the page is still loading ([#161](https://github.com/raouf-b-dev/ecommerce-store-web/pull/161)).
+- The sitemap lists the Shipping and Privacy pages, and the Contact page is hidden from search engines until a real support email is set ([#160](https://github.com/raouf-b-dev/ecommerce-store-web/pull/160)).
+- Storefront mobile layout and accessibility: larger tap targets, mobile drawer with cart/account/theme, readable order line items, cart and category chip overflow, stronger focus rings, and higher-contrast dark-mode secondary text ([#151](https://github.com/raouf-b-dev/ecommerce-store-web/pull/151)).
+- Shopper date and times omit seconds, and checkout address fields no longer show sample-looking placeholders ([#152](https://github.com/raouf-b-dev/ecommerce-store-web/pull/152)).
+- Checkout hides the page Checkout heading while confirmation is showing ([#153](https://github.com/raouf-b-dev/ecommerce-store-web/pull/153)).
+- Account menu and drawer say Account (not Account Settings) to match sibling `/account` and `/orders` routes ([#153](https://github.com/raouf-b-dev/ecommerce-store-web/pull/153)).
+- Signed-in shoppers can change their password from the account menu, and account pages use shopper-facing wording and address labels ([#147](https://github.com/raouf-b-dev/ecommerce-store-web/pull/147)).
+
+### Upgrade notes
+
+- Requires ecommerce-store-api 0.14.0 or later (shopper cancel, 404 `ORDER_NOT_FOUND`) ([#149](https://github.com/raouf-b-dev/ecommerce-store-web/pull/149), [#154](https://github.com/raouf-b-dev/ecommerce-store-web/pull/154), [#155](https://github.com/raouf-b-dev/ecommerce-store-web/pull/155)).
+- Set a real support email in `src/lib/shop.ts` before going live. The Contact page reads this configuration and remains hidden from search engines while the placeholder support@example.com is in place ([#153](https://github.com/raouf-b-dev/ecommerce-store-web/pull/153), [#160](https://github.com/raouf-b-dev/ecommerce-store-web/pull/160)).
+
+[Compare v0.7.0...v0.8.0](https://github.com/raouf-b-dev/ecommerce-store-web/compare/v0.7.0...v0.8.0)
+
 ## [0.7.0] - 2026-10-28
 
 Works with ecommerce-store-api v0.10.0 or later. The generated client matches API v0.11.0.

@@ -122,4 +122,69 @@ describe('CheckoutConfirmation', () => {
     expect(screen.getAllByText('-')).toHaveLength(2);
     expect(screen.getByText('Ergonomic Desk Chair')).toBeInTheDocument();
   });
+
+  it.each([
+    {
+      label: 'initial loading',
+      polling: {
+        order: null,
+        isLoading: true,
+      },
+      heading: 'Processing Order Confirmation…',
+    },
+    {
+      label: 'load error',
+      polling: {
+        order: null,
+        isError: true,
+        error: new Error('network down'),
+      },
+      heading: 'Unable to Load Order',
+    },
+    {
+      label: 'pending payment',
+      polling: {
+        order: createMockOrderDetail({ status: 'pending_payment' }),
+      },
+      heading: 'Finalizing Your Order',
+    },
+    {
+      label: 'payment failed',
+      polling: {
+        order: createMockOrderDetail({ status: 'payment_failed' }),
+      },
+      heading: 'Payment failed',
+    },
+    {
+      label: 'cancelled',
+      polling: {
+        order: createMockOrderDetail({ status: 'cancelled' }),
+      },
+      heading: 'Order cancelled',
+    },
+    {
+      label: 'refunded',
+      polling: {
+        order: createMockOrderDetail({ status: 'refunded' }),
+      },
+      heading: 'Order refunded',
+    },
+    {
+      label: 'confirmed',
+      polling: {
+        order: createMockOrderDetail({ status: 'confirmed' }),
+      },
+      heading: 'Your order is confirmed',
+    },
+  ])('renders exactly one h1 in the $label state', ({ polling, heading }) => {
+    vi.mocked(pollingHook.useOrderPolling).mockReturnValue(
+      createMockUseOrderPollingResult(polling),
+    );
+
+    render(<CheckoutConfirmation orderId={123} />);
+
+    const headings = screen.getAllByRole('heading', { level: 1 });
+    expect(headings).toHaveLength(1);
+    expect(headings[0]).toHaveTextContent(heading);
+  });
 });

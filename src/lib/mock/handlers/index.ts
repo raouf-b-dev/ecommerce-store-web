@@ -45,17 +45,23 @@ function customerSessionBody() {
       role: 'customer',
     }),
     mustChangePassword: false,
-    permissions: ['manage_own_cart', 'view_own_orders'],
+    permissions: [
+      'manage_own_cart',
+      'view_own_orders',
+      'cancel_own_orders',
+      'change_own_credentials',
+    ],
   };
 }
 
-/** Nest GlobalExceptionFilter shopper-facing error body. */
-function nestError(statusCode: number, message: string) {
+/** Nest GlobalExceptionFilter shopper-facing error body (ErrorResponseDto). */
+function nestError(statusCode: number, message: string, code?: string) {
   return HttpResponse.json(
     {
       success: false,
       statusCode,
       message,
+      ...(code !== undefined ? { code } : {}),
       timestamp: new Date().toISOString(),
     },
     { status: statusCode },
@@ -123,7 +129,7 @@ export const handlers = [
 
   http.get('*/v1/users/me', () => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     return HttpResponse.json(getMockUserProfile());
   }),
@@ -186,7 +192,7 @@ export const handlers = [
       (item) => item.id === Number(params.id),
     );
     if (!product) {
-      return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+      return nestError(404, 'Product not found', 'PRODUCT_NOT_FOUND');
     }
     return HttpResponse.json(toProductDetail(product));
   }),
@@ -211,17 +217,17 @@ export const handlers = [
 
   http.get('*/v1/carts/current', () => {
     if (!isMockSessionActive()) {
-      return nestError(401, 'Unauthorized');
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     if (!getMockStore().cart) {
-      return nestError(404, 'No cart');
+      return nestError(404, 'No cart', 'CART_NOT_FOUND');
     }
     return HttpResponse.json(cartResponse());
   }),
 
   http.post('*/v1/carts', () => {
     if (!isMockSessionActive()) {
-      return nestError(401, 'Unauthorized');
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     ensureMockCart(DEMO_CUSTOMER_USER_ID);
     return HttpResponse.json(cartResponse(), { status: 201 });
@@ -231,14 +237,14 @@ export const handlers = [
     '*/v1/carts/:id/items',
     async ({ request }) => {
       if (!isMockSessionActive()) {
-        return nestError(401, 'Unauthorized');
+        return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
       }
       const body = await request.json();
       const store = getMockStore();
       const cart = ensureMockCart(DEMO_CUSTOMER_USER_ID)!;
       const product = store.products.find((item) => item.id === body.productId);
       if (!product) {
-        return nestError(404, 'Product not found');
+        return nestError(404, 'Product not found', 'PRODUCT_NOT_FOUND');
       }
 
       const quantity = body.quantity ?? 1;
@@ -276,13 +282,13 @@ export const handlers = [
     '*/v1/carts/:cartId/items/:itemId',
     async ({ request, params }) => {
       if (!isMockSessionActive()) {
-        return nestError(401, 'Unauthorized');
+        return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
       }
       const body = await request.json();
       const cart = ensureMockCart(DEMO_CUSTOMER_USER_ID)!;
       const item = cart.items.find((line) => line.id === Number(params.itemId));
       if (!item) {
-        return nestError(404, 'Cart item not found');
+        return nestError(404, 'Cart item not found', 'CART_ITEM_NOT_FOUND');
       }
       const quantity = body.quantity ?? item.quantity;
       if (quantity <= 0) {
@@ -304,21 +310,21 @@ export const handlers = [
 
   http.delete('*/v1/carts/:cartId/items/:itemId', ({ params }) => {
     if (!isMockSessionActive()) {
-      return nestError(401, 'Unauthorized');
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     const cart = ensureMockCart(DEMO_CUSTOMER_USER_ID)!;
     const itemId = Number(params.itemId);
     const before = cart.items.length;
     cart.items = cart.items.filter((line) => line.id !== itemId);
     if (cart.items.length === before) {
-      return nestError(404, 'Cart item not found');
+      return nestError(404, 'Cart item not found', 'CART_ITEM_NOT_FOUND');
     }
     return HttpResponse.json(cartResponse());
   }),
 
   http.delete('*/v1/carts/:cartId', () => {
     if (!isMockSessionActive()) {
-      return nestError(401, 'Unauthorized');
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     const store = getMockStore();
     if (store.cart) {
@@ -331,7 +337,7 @@ export const handlers = [
     '*/v1/users/:userId/addresses',
     async ({ request }) => {
       if (!isMockSessionActive()) {
-        return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
       }
       const body = await request.json();
       const store = getMockStore();
@@ -368,7 +374,7 @@ export const handlers = [
     '*/v1/users/:userId/addresses/:addressId',
     async ({ request, params }) => {
       if (!isMockSessionActive()) {
-        return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
       }
       const body = await request.json();
       const store = getMockStore();
@@ -376,10 +382,7 @@ export const handlers = [
         (row) => row.id === Number(params.addressId),
       );
       if (!address) {
-        return HttpResponse.json(
-          { message: 'Address not found' },
-          { status: 404 },
-        );
+        return nestError(404, 'Address not found', 'ADDRESS_NOT_FOUND');
       }
       Object.assign(address, body, {
         updatedAt: new Date().toISOString(),
@@ -391,7 +394,7 @@ export const handlers = [
 
   http.delete('*/v1/users/:userId/addresses/:addressId', ({ params }) => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     const store = getMockStore();
     const addressId = Number(params.addressId);
@@ -400,10 +403,7 @@ export const handlers = [
       (row) => row.id !== addressId,
     );
     if (store.userProfile.addresses.length === before) {
-      return HttpResponse.json(
-        { message: 'Address not found' },
-        { status: 404 },
-      );
+      return nestError(404, 'Address not found', 'ADDRESS_NOT_FOUND');
     }
     store.userProfile.addressCount = store.userProfile.addresses.length;
     return new HttpResponse(null, { status: 204 });
@@ -413,7 +413,7 @@ export const handlers = [
     '*/v1/users/:userId/addresses/:addressId/set-default',
     ({ params }) => {
       if (!isMockSessionActive()) {
-        return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
       }
       const store = getMockStore();
       const addressId = Number(params.addressId);
@@ -421,10 +421,7 @@ export const handlers = [
         (row) => row.id === addressId,
       );
       if (!target) {
-        return HttpResponse.json(
-          { message: 'Address not found' },
-          { status: 404 },
-        );
+        return nestError(404, 'Address not found', 'ADDRESS_NOT_FOUND');
       }
       store.userProfile.addresses.forEach((row) => {
         row.isDefault = row.id === addressId;
@@ -438,7 +435,7 @@ export const handlers = [
 
   http.post<never, CheckoutDto>('*/v1/orders/checkout', async ({ request }) => {
     if (!isMockSessionActive()) {
-      return nestError(401, 'Unauthorized');
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     const idempotencyKey = request.headers.get('Idempotency-Key');
     if (!idempotencyKey || !idempotencyKey.trim()) {
@@ -497,7 +494,6 @@ export const handlers = [
       subtotal: totals.subtotal,
       shippingCost: totals.shippingCost,
       totalAmount: totals.totalAmount,
-      totalPrice: totals.totalAmount,
       currency,
       createdAt: now,
       updatedAt: now,
@@ -512,20 +508,50 @@ export const handlers = [
 
   http.get('*/v1/orders/:id', ({ params }) => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     const order = getMockStore().orders.find(
       (item) => item.id === Number(params.id),
     );
     if (!order) {
-      return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+      return nestError(404, 'Order not found', 'ORDER_NOT_FOUND');
     }
     return HttpResponse.json(order);
   }),
 
+  http.patch('*/v1/orders/:id/cancel', ({ params }) => {
+    if (!isMockSessionActive()) {
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
+    }
+    const store = getMockStore();
+    const order = store.orders.find((item) => item.id === Number(params.id));
+    if (!order) {
+      // OpenAPI: missing or inaccessible cancel target is 404 + ORDER_NOT_FOUND.
+      return nestError(404, 'Order not found', 'ORDER_NOT_FOUND');
+    }
+    // Shopper cancel_own_orders (no manage_orders): OpenAPI-allowed early statuses only.
+    const shopperCancellable = [
+      'pending_payment',
+      'payment_failed',
+      'confirmed',
+    ];
+    if (!shopperCancellable.some((status) => status === order.status)) {
+      return nestError(409, 'Order cannot be cancelled in current state');
+    }
+    order.status = 'cancelled';
+    order.updatedAt = new Date().toISOString();
+    return HttpResponse.json({
+      id: order.id,
+      status: order.status,
+      totalAmount: order.totalAmount,
+      currency: order.currency,
+      updatedAt: order.updatedAt,
+    });
+  }),
+
   http.get('*/v1/orders', () => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     const orders = getMockStore().orders;
     return HttpResponse.json({
@@ -550,12 +576,12 @@ export const handlers = [
 
   http.get('*/v1/payments/orders/:orderId', ({ params }) => {
     if (!isMockSessionActive()) {
-      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return nestError(401, 'Unauthorized', 'UNAUTHORIZED');
     }
     const orderId = Number(params.orderId);
     const order = getMockStore().orders.find((item) => item.id === orderId);
     if (!order) {
-      return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+      return nestError(404, 'Payment not found', 'PAYMENT_NOT_FOUND');
     }
     return HttpResponse.json({
       id: orderId,

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import type { useAuth } from '@/lib/auth/auth-context';
 import { OrderDetailContent } from './order-detail-content';
 import {
   createMockOrderDetail,
@@ -12,6 +13,13 @@ import {
 const mockUseOrderDetail = vi.fn();
 const mockUseOrderPayment = vi.fn();
 
+type AuthStub = Pick<ReturnType<typeof useAuth>, 'session'>;
+const auth = vi.hoisted(() => vi.fn<() => AuthStub>());
+
+vi.mock('@/lib/auth/auth-context', () => ({
+  useAuth: auth,
+}));
+
 vi.mock('@/features/orders/hooks/use-order-detail', () => ({
   useOrderDetail: (...args: unknown[]) => mockUseOrderDetail(...args),
 }));
@@ -20,13 +28,32 @@ vi.mock('@/features/orders/hooks/use-order-payment', () => ({
   useOrderPayment: (...args: unknown[]) => mockUseOrderPayment(...args),
 }));
 
+vi.mock('@/features/orders/components/order-cancel-action', () => ({
+  OrderCancelAction: () => (
+    <button type="button">Cancel order</button>
+  ),
+}));
+
 vi.mock('next/navigation', () => ({
   usePathname: () => '/orders/123',
 }));
 
+function setSessionPermissions(permissions: string[]): void {
+  auth.mockReturnValue({
+    session: {
+      userId: '1',
+      email: 'shopper@example.com',
+      role: 'customer',
+      permissions,
+      mustChangePassword: false,
+    },
+  });
+}
+
 describe('OrderDetailContent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setSessionPermissions(['cancel_own_orders']);
     mockUseOrderPayment.mockReturnValue(
       createMockUseOrderPaymentResult({
         payment: createMockPaymentDetail(),
@@ -44,7 +71,7 @@ describe('OrderDetailContent', () => {
 
     render(<OrderDetailContent orderId={123} />);
 
-    expect(screen.getByText('Loading order details…')).toBeInTheDocument();
+    expect(screen.getByText('Loading order details...')).toBeInTheDocument();
   });
 
   it('shows error state when the order fails to load', () => {
@@ -98,5 +125,65 @@ describe('OrderDetailContent', () => {
 
     expect(screen.getAllByText('-')).toHaveLength(2);
     expect(screen.queryByText(/null/i)).not.toBeInTheDocument();
+  });
+
+  it('hides the cancel control when the session has neither cancel permission', () => {
+    setSessionPermissions([]);
+    mockUseOrderDetail.mockReturnValue(
+      createMockUseOrderDetailResult({
+        order: createMockOrderDetail({ status: 'confirmed' }),
+      }),
+    );
+
+    render(<OrderDetailContent orderId={123} />);
+
+    expect(
+      screen.queryByRole('button', { name: 'Cancel order' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the cancel control when cancel_own_orders alone and status is cancellable', () => {
+    setSessionPermissions(['cancel_own_orders']);
+    mockUseOrderDetail.mockReturnValue(
+      createMockUseOrderDetailResult({
+        order: createMockOrderDetail({ status: 'confirmed' }),
+      }),
+    );
+
+    render(<OrderDetailContent orderId={123} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Cancel order' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the cancel control when manage_orders alone and status is cancellable', () => {
+    setSessionPermissions(['manage_orders']);
+    mockUseOrderDetail.mockReturnValue(
+      createMockUseOrderDetailResult({
+        order: createMockOrderDetail({ status: 'confirmed' }),
+      }),
+    );
+
+    render(<OrderDetailContent orderId={123} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Cancel order' }),
+    ).toBeInTheDocument();
+  });
+
+  it('hides the cancel control when the order is processing even with cancel permission', () => {
+    setSessionPermissions(['cancel_own_orders']);
+    mockUseOrderDetail.mockReturnValue(
+      createMockUseOrderDetailResult({
+        order: createMockOrderDetail({ status: 'processing' }),
+      }),
+    );
+
+    render(<OrderDetailContent orderId={123} />);
+
+    expect(
+      screen.queryByRole('button', { name: 'Cancel order' }),
+    ).not.toBeInTheDocument();
   });
 });

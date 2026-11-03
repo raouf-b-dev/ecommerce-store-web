@@ -8,6 +8,8 @@ export type OrderDetailResponseDto =
   components['schemas']['OrderDetailResponseDto'];
 export type OrderItemDetailResponseDto =
   components['schemas']['OrderItemDetailResponseDto'];
+export type OrderMutationResponseDto =
+  components['schemas']['OrderMutationResponseDto'];
 export type PaymentDetailResponseDto =
   components['schemas']['PaymentDetailResponseDto'];
 export type PaymentMethod = PaymentDetailResponseDto['paymentMethod'];

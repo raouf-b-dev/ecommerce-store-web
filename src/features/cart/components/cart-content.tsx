@@ -27,8 +27,8 @@ export function CartContent() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between border-b pb-6">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b pb-6">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Shopping Cart
           </h1>
@@ -37,7 +37,7 @@ export function CartContent() {
           </p>
         </div>
         {lineItemCount > 0 ? (
-          <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
+          <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground">
             {lineItemCount} {lineItemCount === 1 ? 'item' : 'items'}
           </span>
         ) : null}

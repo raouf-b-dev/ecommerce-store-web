@@ -7,12 +7,16 @@ import { ApiRequestError } from '@/lib/api/parse-api-error';
 import type { PaginatedProducts } from '@/features/catalog/types';
 import {
   CATALOG_PATH,
+  CONTACT_PATH,
+  PRIVACY_PATH,
+  SHIPPING_PATH,
   catalogHref,
 } from '@/features/catalog/lib/catalog-params';
 import {
   getSitemapPartitions,
   PRODUCTS_PER_SITEMAP,
 } from '@/features/catalog/lib/sitemap-partitions';
+import { hasPlaceholderSupportEmail } from '@/lib/shop';
 
 export { PRODUCTS_PER_SITEMAP };
 const API_PAGE_LIMIT = 100;
@@ -128,7 +132,9 @@ export default async function sitemap(props: {
 
   const staticEntries: MetadataRoute.Sitemap = [];
 
-  // Partition 0 includes the homepage, the full catalog, and non-empty category URLs.
+  // Partition 0 includes the homepage, the full catalog, help pages, and
+  // non-empty category URLs. Contact stays out while supportEmail is a
+  // placeholder (example/test domains).
   if (partitionId === 0) {
     staticEntries.push(
       {
@@ -141,7 +147,25 @@ export default async function sitemap(props: {
         changeFrequency: 'daily',
         priority: 0.9,
       },
+      {
+        url: `${origin}${SHIPPING_PATH}`,
+        changeFrequency: 'monthly',
+        priority: 0.4,
+      },
+      {
+        url: `${origin}${PRIVACY_PATH}`,
+        changeFrequency: 'monthly',
+        priority: 0.4,
+      },
     );
+
+    if (!hasPlaceholderSupportEmail()) {
+      staticEntries.push({
+        url: `${origin}${CONTACT_PATH}`,
+        changeFrequency: 'monthly',
+        priority: 0.4,
+      });
+    }
 
     try {
       const categories = await getCategories();

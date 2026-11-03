@@ -134,12 +134,12 @@ export function CartItemRow({ item }: CartItemRowProps) {
             onClick={() => handleUpdateQuantity(item.quantity - 1)}
             disabled={item.quantity <= 1 || isPending}
             aria-label={`Decrease quantity of ${item.productName}`}
-            className="h-8 w-8 rounded-r-none"
+            className="size-11 rounded-r-none"
           >
             <Minus className="h-3.5 w-3.5" />
           </Button>
           <span
-            className="flex h-8 w-10 items-center justify-center text-xs font-semibold tabular-nums"
+            className="flex h-11 w-10 items-center justify-center text-xs font-semibold tabular-nums"
             aria-live="polite"
           >
             {item.quantity}
@@ -151,7 +151,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
             onClick={() => handleUpdateQuantity(item.quantity + 1)}
             disabled={increaseDisabled}
             aria-label={`Increase quantity of ${item.productName}`}
-            className="h-8 w-8 rounded-l-none"
+            className="size-11 rounded-l-none"
           >
             <Plus className="h-3.5 w-3.5" />
           </Button>
@@ -170,7 +170,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
           onClick={handleRemove}
           disabled={isPending}
           aria-label={`Remove ${item.productName} from cart`}
-          className="text-muted-foreground hover:text-destructive"
+          className="size-11 text-muted-foreground hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

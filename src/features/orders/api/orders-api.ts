@@ -2,6 +2,7 @@ import { browserClient } from '@/lib/api/browser-client';
 import { throwApiErrorFromResponse } from '@/lib/api/throw-api-error';
 import type {
   OrderDetailResponseDto,
+  OrderMutationResponseDto,
   PaginatedOrdersResponseDto,
   PaymentDetailResponseDto,
   ShopperOrderListQuery,
@@ -68,4 +69,27 @@ export async function getOrderPaymentRequest(
   }
 
   return data ?? null;
+}
+
+export async function cancelOrderRequest(
+  orderId: number,
+): Promise<OrderMutationResponseDto> {
+  const { data, error, response } = await browserClient.PATCH(
+    '/v1/orders/{id}/cancel',
+    {
+      params: {
+        path: { id: orderId },
+      },
+    },
+  );
+
+  if (error || !data || !response.ok) {
+    return await throwApiErrorFromResponse(
+      response,
+      'Failed to cancel order.',
+      error,
+    );
+  }
+
+  return data;
 }

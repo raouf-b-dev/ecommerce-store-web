@@ -29,7 +29,7 @@ export default function ChangePasswordPage({
         <div className="space-y-6">
           <PageHeader
             title="Change your password"
-            description="Choose a new password before you continue shopping."
+            description="Choose a new password for your account."
           />
           <ChangePasswordFormWithRedirect searchParams={searchParams} />
         </div>

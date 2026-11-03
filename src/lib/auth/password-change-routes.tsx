@@ -9,7 +9,6 @@ import {
 import {
   getChangePasswordRedirectPath,
   getLoginRedirectPath,
-  navigateAfterLoginPath,
 } from '@/lib/auth/auth-routes';
 import { useAuth } from '@/lib/auth/auth-context';
 
@@ -53,26 +52,15 @@ export function RequirePasswordChanged({ children }: RouteProps) {
 }
 
 export function ChangePasswordRoute({ children }: RouteProps) {
-  const { status, session, sessionError, retrySession } = useAuth();
+  const { status, sessionError, retrySession } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.replace(getLoginRedirectPath(searchParams.get('redirect')));
-      return;
     }
-
-    if (
-      status === 'authenticated' &&
-      session &&
-      !session.mustChangePassword
-    ) {
-      router.replace(
-        navigateAfterLoginPath(session, searchParams.get('redirect')),
-      );
-    }
-  }, [status, session, searchParams, router]);
+  }, [status, searchParams, router]);
 
   if (status === 'loading') {
     return <QueryLoading>Loading session…</QueryLoading>;
@@ -90,10 +78,7 @@ export function ChangePasswordRoute({ children }: RouteProps) {
     );
   }
 
-  if (
-    status === 'unauthenticated' ||
-    (status === 'authenticated' && !session?.mustChangePassword)
-  ) {
+  if (status === 'unauthenticated') {
     return <QueryLoading>Redirecting…</QueryLoading>;
   }
 

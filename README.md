@@ -27,6 +27,7 @@
 - [Documentation](#documentation)
 - [Related repositories](#related-repositories)
 - [Project layout](#project-layout)
+- [Customizing the storefront](#customizing)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -87,11 +88,11 @@ Client rules: [`docs/API-INTEGRATION.md`](docs/API-INTEGRATION.md). Security bas
 Published as `ghcr.io/raouf-b-dev/ecommerce-store-web` on pushes to `master` and on `v*` tags (linux/amd64 and linux/arm64). Listens on **3100**. Published builds bake `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000` and `NEXT_PUBLIC_STOREFRONT_ORIGIN=http://localhost:3100` with `NEXT_PUBLIC_ALLOW_LOOPBACK_ORIGIN=true`. Override at run time with `API_BASE_URL` (browser, via `/runtime-config.js`) and `API_INTERNAL_BASE_URL` (server-side fetches).
 
 ```bash
-docker pull ghcr.io/raouf-b-dev/ecommerce-store-web:0.7.0
+docker pull ghcr.io/raouf-b-dev/ecommerce-store-web:0.8.0
 docker run --rm -p 3100:3100 \
   -e API_BASE_URL=http://localhost:3000 \
   -e API_INTERNAL_BASE_URL=http://localhost:3000 \
-  ghcr.io/raouf-b-dev/ecommerce-store-web:0.7.0
+  ghcr.io/raouf-b-dev/ecommerce-store-web:0.8.0
 ```
 
 For the full stack, use ecommerce-platform.
@@ -259,6 +260,14 @@ docs/
   ai/                     # agent conventions
   architecture/           # ADRs
 ```
+
+---
+
+<a id="customizing"></a>
+
+## Customizing the storefront
+
+Shop name, tagline, description, and the support address live in [`src/lib/shop.ts`](src/lib/shop.ts). Accent colors live in [`src/app/globals.css`](src/app/globals.css). The favicon lives in [`src/app/icon.svg`](src/app/icon.svg). Replace the support address in `shop.ts` before going live.
 
 ---
 

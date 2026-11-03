@@ -23,12 +23,20 @@ const FOOTER_SECTIONS: {
       { href: '/orders', label: 'Order history' },
     ],
   },
+  {
+    title: 'Help',
+    links: [
+      { href: '/shipping', label: 'Shipping' },
+      { href: '/privacy', label: 'Privacy' },
+      { href: '/contact', label: 'Contact' },
+    ],
+  },
 ];
 
 export function StorefrontFooter() {
   return (
     <footer className="mt-8 border-t bg-muted/30">
-      <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 sm:grid-cols-[2fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 sm:grid-cols-[2fr_1fr_1fr_1fr]">
         <div className="space-y-3">
           <Link
             href="/"
@@ -55,7 +63,7 @@ export function StorefrontFooter() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                   >
                     {link.label}
                   </Link>

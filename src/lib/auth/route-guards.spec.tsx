@@ -270,7 +270,7 @@ describe('forced-password routes', () => {
     expect(screen.queryByText('Rotation form')).not.toBeInTheDocument();
   });
 
-  it('allows only flagged authenticated sessions onto the change page', () => {
+  it('allows a flagged authenticated session onto the change page', () => {
     mocks.auth.status = 'authenticated';
     mocks.auth.session = {
       email: 'shopper@example.com',
@@ -278,19 +278,18 @@ describe('forced-password routes', () => {
     };
     render(<ChangePasswordRoute>Rotation form</ChangePasswordRoute>);
     expect(screen.getByText('Rotation form')).toBeInTheDocument();
+    expect(mocks.replace).not.toHaveBeenCalled();
   });
 
-  it('redirects clean sessions away from the change page', async () => {
+  it('allows a voluntary authenticated session onto the change page', () => {
     mocks.auth.status = 'authenticated';
     mocks.auth.session = {
       email: 'shopper@example.com',
       mustChangePassword: false,
     };
     render(<ChangePasswordRoute>Rotation form</ChangePasswordRoute>);
-    await waitFor(() => {
-      expect(mocks.replace).toHaveBeenCalledWith('/');
-    });
-    expect(screen.queryByText('Rotation form')).not.toBeInTheDocument();
+    expect(screen.getByText('Rotation form')).toBeInTheDocument();
+    expect(mocks.replace).not.toHaveBeenCalled();
   });
 
   it('shows session errors instead of redirecting', async () => {
