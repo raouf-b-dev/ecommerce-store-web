@@ -56,7 +56,7 @@
   },
   "homepage": "https://github.com/raouf-b-dev/ecommerce-store-web#readme",
   "dependencies": {
-    "@hookform/resolvers": "^6.0.2",
+    "@hookform/resolvers": "^7.0.3",
     "@tanstack/react-query": "^5.106.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
