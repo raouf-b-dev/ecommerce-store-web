@@ -19,7 +19,7 @@
 ## Table of Contents
 
 - [What this is](#what-this-is)
-- [Hosted demo](#hosted-demo)
+- [Demo](#hosted-demo)
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
 - [Screenshots](#screenshots)
@@ -48,15 +48,15 @@ This app handles UI, routing, and client caching only. Pricing, stock, checkout 
 | Application code | Port **3100**. Catalog, cart, checkout, orders, and account are live (mock payments). Further hardening is tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). |
 | Payments         | Mock adapter behind a swappable hexagonal port (no live card UI / Stripe Elements). |
 | Guest cart       | None. Add to cart requires a signed-in account because the API has no guest cart. |
-| Hosted demo      | Coming soon (see [Hosted demo](#hosted-demo)). Local full stack: [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). |
+| Hosted demo      | In progress (see [Demo](#hosted-demo)). Local full stack: [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform). |
 
 ---
 
 <a id="hosted-demo"></a>
 
-## Hosted demo
+## Demo
 
-Hosted demo: coming soon. Until then, run the full stack locally with the [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform) repo (`docker compose up`).
+Run the full stack locally with the [ecommerce-platform](https://github.com/raouf-b-dev/ecommerce-platform) repo (`docker compose up`). A hosted public demo is in progress (shoppers register when live).
 
 Sign-in accounts for a local run: [platform README](https://github.com/raouf-b-dev/ecommerce-platform#local-demo-sign-in-demo_read_onlyfalse). Seed env keys: [API SEEDING.md](https://github.com/raouf-b-dev/ecommerce-store-api/blob/develop/docs/development/SEEDING.md).
 
@@ -123,7 +123,7 @@ Browser -> Next.js (RSC + client components) -> versioned HTTP API -> ecommerce-
 
 ## Screenshots
 
-Captured from `npm run dev:mock` (MSW). Mock payments; no hosted demo.
+Captured from `npm run dev:mock` (MSW). Mock payments; run the full stack locally until the hosted demo is live.
 
 <p align="center">
   <picture>
